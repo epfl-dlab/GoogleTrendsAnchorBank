@@ -43,7 +43,7 @@ with open(DATA_DIR + 'freebase_foods.tsv', 'w') as out:
     for line in f:
       try:
         (s, p, o, dot) = tuple(line.split('\t'))
-        if s in types:
+        if s in types and s in mids:
           type_string = ','.join(sorted(list(types[s])))
           print('\t'.join([mids[s], s, o, type_string]), file=out)
       except ValueError:
