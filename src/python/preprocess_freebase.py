@@ -38,14 +38,19 @@ with gzip.open(FREEBASE_DIR + 'freebase-links.txt.gz', 'rt', encoding='utf-8') a
 
 print('Collecting and outputting scores for food entities...')
 
+def flag(name, ty):
+  return '1' if ty in types[name] else '0'
+
 with open(DATA_DIR + 'freebase_foods.tsv', 'w') as out:
+  print('mid\tname\tscore\ttypes\tis_food\tis_dish\tis_beverage\tis_ingredient', file=out)
   with gzip.open(FREEBASE_DIR + 'scores.txt.gz', 'rt', encoding='utf-8') as f:
     for line in f:
       try:
         (s, p, o, dot) = tuple(line.split('\t'))
         if s in types and s in mids:
           type_string = ','.join(sorted(list(types[s])))
-          print('\t'.join([mids[s], s, o, type_string]), file=out)
+          print('\t'.join([mids[s], s, o, type_string,
+                           flag(s, 'Food'), flag(s, 'Dish'), flag(s, 'Beverage'), flag(s, 'Ingredient')]), file=out)
       except ValueError:
         continue
 
