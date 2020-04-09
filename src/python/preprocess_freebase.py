@@ -32,7 +32,7 @@ with gzip.open(FREEBASE_DIR + 'freebase-links.txt.gz', 'rt', encoding='utf-8') a
     try:
       (s, p, o, dot) = tuple(line.split('\t'))
       if s in types:
-        mids[s] = re.sub(r'<http://rdf.freebase.com/ns/(m/.*)>', r'\1', o)
+        mids[s] = re.sub(r'<http://rdf.freebase.com/ns(/m/.*)>', r'\1', o)
     except ValueError:
       continue
 
@@ -53,4 +53,3 @@ with open(DATA_DIR + 'freebase_foods.tsv', 'w') as out:
                            flag(s, 'Food'), flag(s, 'Dish'), flag(s, 'Beverage'), flag(s, 'Ingredient')]), file=out)
       except ValueError:
         continue
-
