@@ -327,10 +327,11 @@ ts_repr <- t(apply(ts_all, 1, function(r) tapply(r, colnames(ts_all), max)))
 ts_repr <- ts_repr[,names(calibration)]
 ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
 ts_repr <- t(t(ts_repr) * calibration)
-matplot(ts_repr[,ncol(ts_repr):1], type='l', lty=1, log='y', col=1:6)
-legend('topright', rev(mid2name(names(calibration))), lty=1, col=1:6, bty='n')
+idx <- ncol(ts_repr):1
+matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
+legend('topright', mid2name(names(calibration))[idx], lty=1, col=1:6, bty='n')
 
-plot(calibration, log='y')
+plot(rev(calibration), log='y', xlab='Anchor index', ylab='Ratio')
 
 # Test binary search.
 # Jever
@@ -345,7 +346,10 @@ b <- binsearch('/m/0jg7r', calibration, plot=TRUE)
 b <- binsearch('/m/0cqt90', calibration, plot=TRUE)
 # FC Ingolstadt
 b <- binsearch('/m/09451k', calibration, plot=TRUE)
-
+# Joe Zawinul
+b <- binsearch('/m/01sqgd', calibration, plot=TRUE)
+# Red Stripe
+b <- binsearch('/m/031j7l', calibration, plot=TRUE)
 
 
 # plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
