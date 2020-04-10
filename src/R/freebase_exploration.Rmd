@@ -14,197 +14,309 @@ options(stringsAsFactors=FALSE)
 DATA_DIR <- sprintf('%s/github/corona-food-trends/data', Sys.getenv('HOME'))
 
 # NUM_TOP_ENT should be a multiple of NUM_VERTICES; NUM_VERTICES should be even.
-NUM_TOP_ENT <- 1000
-NUM_VERTICES <- 20
+NUM_TOP_ENT <- 1500
+NUM_VERTICES <- 40
+RATIO_THRESH <- 10
 TIME <- '2019-08-01 2020-04-08'
+GEO <- ''
 
-mid2name <- function(mid) foods[mid, 'name']
+HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
+names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
 
-foods <- read.table(sprintf('%s/freebase_foods.tsv', DATA_DIR), sep='\t', quote='',
+FOODS <- read.table(sprintf('%s/freebase_foods.tsv', DATA_DIR), sep='\t', quote='',
                     comment.char='', header=TRUE, stringsAsFactors=FALSE)
-foods <- foods[foods$is_dish | foods$is_food,]
-rownames(foods) <- foods$mid
+FOODS <- FOODS[FOODS$is_dish | FOODS$is_food,]
+rownames(FOODS) <- FOODS$mid
 
-# plot(foods$score, panel.first=c(grid()), log='y', type='l')
+BLACKLIST <- c('/m/0bcgdv') # Irvingia gabonensis
 
-# Stratified sampling: 2 per stratum, so we can build a ring without "discontinuities".
-mat <- matrix(foods$mid[1:NUM_TOP_ENT], nrow=NUM_TOP_ENT/NUM_VERTICES*2, ncol=NUM_VERTICES/2)
-VV <- apply(mat, 2, function(r) sample(r, 2))
-V <- c(VV[1,], rev(VV[2,]))
-
-# G <- sample_k_regular(NUM_VERTICES, 4)
-
-G <- make_ring(NUM_VERTICES)
-for (i in 0:(NUM_VERTICES-1)) {
-  left <- ((i-2) %% NUM_VERTICES) + 1
-  right <- ((i+2) %% NUM_VERTICES) + 1
-  if (i+1 < left) G <- G + edge(i+1, left)
-  if (i+1 < right) G <- G + edge(i+1, right)
+mid2name <- function(mid) {
+  lookup <- c(FOODS$name, names(HI_TRAFFIC))
+  names(lookup) <- c(FOODS$mid, HI_TRAFFIC)
+  lookup[mid]
 }
 
-vertex_attr(G) <- list(name=V)
+google <- function(keywords) {
+  gtrends(keywords, geo=GEO, time=TIME, onlyInterest=TRUE)
+}
 
-GG <- G
-vertex_attr(GG) <- list(name=paste(V, mid2name(V), sep='\n'))
-plot(GG, layout=layout.circle)
+keyword_ok <- function(keyword) {
+  tryCatch({
+    google(keyword)
+  }, error = function(e) {
+    FALSE
+  })
+  !(keyword %in% BLACKLIST)
+}
 
-results <- list()
-i <- 0
-for (v in V(G)$name) {
-  i <- i + 1
-  print(sprintf('%d: %s', i, v))
-  keywords <- c(v, neighbors(G, v)$name)
-  trends <- gtrends(keywords, geo='', time=TIME, onlyInterest=TRUE)
-  write.table(trends$interest_over_time, sep="\t", row.names=FALSE, quote=FALSE,
-              file=sprintf('%s/calibration/%s.tsv', DATA_DIR, gsub('/m/', '', v)))
+query_google <- function(keywords) {
+  trends <- google(keywords)
   interest <- trends$interest_over_time[c('date', 'hits', 'keyword')]
-  hits <- reshape(interest, timevar='date', idvar='keyword', direction='wide')
-  rownames(hits) <- hits$keyword
-  hits <- hits[,-1]
-  hits[hits=='<1'] <- '0'
-  results[[v]] <- hits
+  ts <- reshape(interest, timevar='date', idvar='keyword', direction='wide')
+  rownames(ts) <- ts$keyword
+  ts <- ts[,-1]
+  ts[ts=='<1'] <- '0'
+  ts <- t(ts)
+  ts <- apply(ts, 2, as.numeric)
+  list(full=trends, ts=ts)
 }
-
-# sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),
-#         paste(sapply(keywords, function(x) URLencode(x, reserved=TRUE)), collapse=','))
 
 time_series_ok <- function(ts) {
-  ret <- TRUE
-  if (max(ts) < 10) ret <- FALSE
-  # if (sum(ts == 0) > 0.1 * length(ts)) ret <- FALSE
-  ret
+  max(ts) >= RATIO_THRESH
 }
 
-# Compute max ratios.
+load_keyword_ring_graph <- function() {
+  file <- sprintf('%s/calibration/G.RData', DATA_DIR)
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    # Stratified sampling: 2 per stratum, so we can build a ring without "discontinuities".
+    mat <- matrix(FOODS$mid[1:NUM_TOP_ENT], nrow=NUM_TOP_ENT/(NUM_VERTICES/2), ncol=NUM_VERTICES/2)
+    samples2 <- apply(mat, 2, function(r) sample(r, 2))
+    keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,])
+    V <- NULL
+    i <- 1
+    for (k in keywords) {
+      if (keyword_ok(k)) {
+        print(sprintf('%d: Checking %s: ok', i, k))
+        V <- c(V,k)
+      } else {
+        print(sprintf('%d: Checking %s: error', i, k))
+      }
+      i <- i + 1
+    }
+    n <- length(V)
+    G <- make_ring(n)
+    vertex_attr(G) <- list(name=V)
+    for (i in 0:(n-1)) {
+      left <- ((i-2) %% n) + 1
+      right <- ((i+2) %% n) + 1
+      if (i+1 < left) G <- G + edge(i+1, left)
+      if (i+1 < right) G <- G + edge(i+1, right)
+    }
+    save(G, file=file)
+  }
+  return(G)
+}
 
-anchors <- NULL
-v1 <- NULL
-v2 <- NULL
-ratios_vec <- NULL
-ts_all <- NULL
+load_google_results <- function(G) {
+  file <- sprintf('%s/calibration/google_results.RData', DATA_DIR)
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    google_results <- list()
+    i <- 0
+    for (v in V(G)$name) {
+      i <- i + 1
+      keywords <- c(v, neighbors(G, v)$name)
+      print(sprintf('%d: %s (%s), keywords: %s (%s)', i, v, mid2name(v),
+                    paste(keywords, collapse=', '),
+                    paste(mid2name(keywords), collapse=', ')))
+      trends <- query_google(keywords)
+      google_results[[v]] <- trends$ts
+    }
+    save(google_results, file=file)
+  }
+  return(google_results)
+}
 
-for (v in names(results)) {
-  ts <- t(results[[v]])
-  ts <- apply(ts, 2, as.numeric)
-  ts_all <- cbind(ts_all, ts)
-  matplot(ts, type='l', lty=1, main=v)
-  legend('topright', colnames(ts), lty=1, col=1:ncol(ts))
-  for (j in 1:ncol(ts)) {
-    for (k in 1:ncol(ts)) {
-      if (j < k) {
-        if (time_series_ok(ts[,j]) && time_series_ok(ts[,k])) {
-          anchors <- c(anchors, v)
-          v1 <- c(v1, colnames(ts)[j])
-          v2 <- c(v2, colnames(ts)[k])
-          ratios_vec <- c(ratios_vec, max(ts[,j])/max(ts[,k]))
+compute_max_ratios <- function(google_results, plot=FALSE) {
+  anchors <- NULL
+  v1 <- NULL
+  v2 <- NULL
+  ratios_vec <- NULL
+
+  for (v in names(google_results)) {
+    ts <- google_results[[v]]
+    if (plot) {
+      matplot(ts, type='l', lty=1, main=v)
+      legend('topright', colnames(ts), lty=1, col=1:ncol(ts))
+    }
+    for (j in 1:ncol(ts)) {
+      for (k in 1:ncol(ts)) {
+        if (j < k) {
+          if (time_series_ok(ts[,j]) && time_series_ok(ts[,k])) {
+            anchors <- c(anchors, v)
+            v1 <- c(v1, colnames(ts)[j])
+            v2 <- c(v2, colnames(ts)[k])
+            ratios_vec <- c(ratios_vec, max(ts[,j])/max(ts[,k]))
+          }
         }
       }
     }
   }
-}
-
-ratios <- data.frame(anchor=anchors, v1=v1, v2=v2, ratio=ratios_vec)
-
-# Make directed graph where all edges have a ratio of at most 1, by flipping all other edges.
-
-for (r in 1:nrow(ratios)) {
-  if (ratios$ratio[r] > 1) {
-    tmp <- ratios$v1[r]
-    ratios$v1[r] <- ratios$v2[r]
-    ratios$v2[r] <- tmp
-    ratios$ratio[r] <- 1 / ratios$ratio[r]
-  }
-}
-
-# Take care of ratio == 1.
-idx0 <- which(ratios$ratio < 1)
-pair_names <- unique(paste(ratios$v1[idx0], ratios$v2[idx0], sep=' '))
-for (i in 1:nrow(ratios)) {
-  if (ratios$ratio[i] == 1) {
-    if ((paste(ratios$v1[i], ratios$v2[i], sep=' ') %in% pair_names)) {
-      # Nothing to do.
-    } else if ((paste(ratios$v2[i], ratios$v1[i], sep=' ') %in% pair_names)) {
-      tmp <- ratios$v1[i]
-      ratios$v1[i] <- ratios$v2[i]
-      ratios$v2[i] <- tmp
-    } else {
-      tmp <- sort(c(ratios$v1[i], ratios$v2[i]))
-      ratios$v1[i] <- tmp[1]
-      ratios$v2[i] <- tmp[2]
+  
+  ratios <- data.frame(anchor=anchors, v1=v1, v2=v2, ratio=ratios_vec)
+  
+  # Flip edges so they all point from higher- to lower-volume keywords.
+  for (r in 1:nrow(ratios)) {
+    if (ratios$ratio[r] > 1) {
+      tmp <- ratios$v1[r]
+      ratios$v1[r] <- ratios$v2[r]
+      ratios$v2[r] <- tmp
+      ratios$ratio[r] <- 1 / ratios$ratio[r]
     }
   }
+  
+  # Take care of the special case of ratio == 1.
+  idx0 <- which(ratios$ratio < 1)
+  pair_names <- unique(paste(ratios$v1[idx0], ratios$v2[idx0], sep=' '))
+  for (i in 1:nrow(ratios)) {
+    if (ratios$ratio[i] == 1) {
+      if ((paste(ratios$v1[i], ratios$v2[i], sep=' ') %in% pair_names)) {
+        # Nothing to do.
+      } else if ((paste(ratios$v2[i], ratios$v1[i], sep=' ') %in% pair_names)) {
+        tmp <- ratios$v1[i]
+        ratios$v1[i] <- ratios$v2[i]
+        ratios$v2[i] <- tmp
+      } else {
+        tmp <- sort(c(ratios$v1[i], ratios$v2[i]))
+        ratios$v1[i] <- tmp[1]
+        ratios$v2[i] <- tmp[2]
+      }
+    }
+  }
+  
+  ratios_aggr <- as.data.frame(t(simplify2array(by(ratios[,c('v1', 'v2', 'ratio')],
+                                                   paste(ratios$v1, ratios$v2),
+                                                   function(r) c(mean(r$ratio), sd(r$ratio))))))
+  ratios_aggr <- cbind(do.call(rbind, strsplit(rownames(ratios_aggr), ' ')), ratios_aggr)
+  colnames(ratios_aggr) <- c('v1', 'v2', 'mean_ratio', 'sd_ratio')
+  return(ratios_aggr)
 }
 
-pairs <- apply(cbind(ratios$v1, ratios$v2), 1, function(r) paste(r, collapse=' '))
-ratios_aggr <- as.data.frame(t(simplify2array(by(ratios[,c('v1', 'v2', 'ratio')], pairs,
-                                                 function(r) c(mean(r$ratio), sd(r$ratio))))))
-ratios_aggr <- cbind(do.call(rbind, strsplit(rownames(ratios_aggr), ' ')), ratios_aggr)
-colnames(ratios_aggr) <- c('v1', 'v2', 'mean_ratio', 'sd_ratio')
+infer_all_ratios <- function(ratios_aggr) {
+  Vcore <- unique(c(ratios_aggr$v1, ratios_aggr$v2))
+  W0 <- matrix(data=0, nrow=length(Vcore), ncol=length(Vcore), dimnames=list(Vcore,Vcore))
+  A0 <- W0
 
-# Sanity checks.
-# Is D indeed acyclic as it should be?
+  for (u in Vcore) {
+    for (v in Vcore) {
+      # Set diagonal to 1.
+      if (u == v) {
+        ratio <- 1
+      } else {
+        uv <- paste(c(u,v), collapse=' ')
+        ratio <- ratios_aggr[uv, 'mean_ratio']
+      }
+      if (is.finite(ratio)) {
+        W0[u,v] <- ratio
+        W0[v,u] <- 1/ratio
+        A0[u,v] <- 1
+        A0[v,u] <- 1
+      }
+    }
+  }
+  
+  A <- A0
+  W <- W0
+  
+  repeat {
+    AA <- A %*% A
+    # If we already have the ratio, don't recompute it.
+    WW <- A * W + (1-A) * ((W %*% W) / AA)
+    # Print the maximum error.
+    print(max(abs(1-WW*t(WW)), na.rm=TRUE))
+    WW[is.nan(WW)] <- 0
+    W <- WW
+    A_old <- A
+    # Update the binary adjacency matrix.
+    A <- (AA > 0) * 1
+    if (all(A==A_old)) break
+  }
+  
+  return(W)
+}
+
+binsearch <- function(keyword, calibration, plot=FALSE) {
+  lo <- 1
+  hi <- length(calibration)
+  anchors <- names(calibration)
+  while (hi > lo) {
+    pivot <- lo + floor((hi-lo)/2)
+    anchor <- anchors[pivot]
+    print(sprintf('Comparing to %s (%s)', anchor, mid2name(anchor)))
+    ts <- query_google(c(keyword, anchor))$ts
+    max_keyword <- max(ts[,keyword])
+    max_anchor <- max(ts[,anchor])
+    if (plot) {
+      matplot(ts, type='l', lty=1)
+      legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
+    }
+    if (max_keyword >= RATIO_THRESH && max_anchor >= RATIO_THRESH) {
+      print('done!')
+      ratio <- calibration[anchor] * (max_keyword / max_anchor)
+      return(ratio)
+    } else if (max_keyword < RATIO_THRESH) {
+      print('going lower')
+      hi <- pivot
+    } else {
+      print('going higher')
+      lo <- pivot
+    }
+  }
+  if (hi == 1) {
+    warning('Could not calibrate. Time series for keyword too low everywhere.')
+  } else {
+    warning('Could not calibrate. Time series for keyword too high everywhere.')
+  }
+}
+
+### End of function definitions
+
+# Load ring graph.
+G <- load_keyword_ring_graph()
+
+# Draw ring graph.
+GG <- G
+vertex_attr(GG) <- list(name=paste(V(GG)$name, mid2name(V(GG)$name), sep='\n'))
+plot(GG, layout=layout.circle)
+
+# Load Google results.
+google_results <- load_google_results(G)
+ts_all <- do.call(cbind, google_results)
+
+# Compute max ratios.
+ratios_aggr <- compute_max_ratios(google_results, plot=FALSE)
+
+# Make DAG induced by ratios.
 D <- graph_from_data_frame(ratios_aggr)
 
+# Draw DAG.
 DD <- D
 vertex_attr(DD) <- list(name=paste(V(DD)$name, mid2name(V(DD)$name), sep='\n'))
 plot(DD, layout=layout_with_sugiyama(DD)$layout)
 
-if (!is.dag((D))) {
-  warning('Houston, we have a problem: directed graph is not acyclic!')
+# Sanity check: Is D indeed acyclic as it should be?
+if (!is.dag(D)) {
+  warning('Directed graph is not acyclic!')
 }
-# Which keywords are discarded?
+
+# Sanity check: Is D connected?
+if (!is.connected(D)) {
+  warning('Directed graph is not connected!')
+}
+
+# Sanity check: Which keywords are discarded?
 discarded <- setdiff(V(G)$name, V(D)$name)
-for (name in discarded) {
-  mid <- gsub('\n.*', '', name)
-  matplot(ts_all[, colnames(ts_all) == mid], type='l', lty=1, main=name)
-}
+mid2name(discarded)
+# Plot time series of discarded keywords.
+# for (name in discarded) matplot(ts_all[, colnames(ts_all) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
 
 # Propagate ratios through the graph via matrix multiplication.
-
-Vcore <- unique(c(ratios_aggr$v1, ratios_aggr$v2))
-W0 <- matrix(data=0, nrow=length(Vcore), ncol=length(Vcore), dimnames=list(Vcore,Vcore))
-A0 <- W0
-
-for (u in Vcore) {
-  for (v in Vcore) {
-    # Set diagonal to 1.
-    if (u == v) {
-      ratio <- 1
-    } else {
-      uv <- paste(c(u,v), collapse=' ')
-      ratio <- ratios_aggr[uv, 'mean_ratio']
-    }
-    if (is.finite(ratio)) {
-      W0[u,v] <- ratio
-      W0[v,u] <- 1/ratio
-      A0[u,v] <- 1
-      A0[v,u] <- 1
-    }
-  }
-}
-
-A <- A0
-W <- W0
-
-repeat {
-  AA <- A %*% A
-  # If we already have the ratio, don't recompute it.
-  WW <- A * W + (1-A) * ((W %*% W) / AA)
-  # Print the maximum error.
-  print(max(abs(1-WW*t(WW)), na.rm=TRUE))
-  WW[is.nan(WW)] <- 0
-  W <- WW
-  A_old <- A
-  # Update the binary adjacency matrix.
-  A <- (AA > 0) * 1
-  if (all(A==A_old)) break
-}
+W <- infer_all_ratios(ratios_aggr)
 
 # The top keyword is the one with which all other keywords have a ratio < 1.
 top_keyword <- names(which(colSums(W > 1) == 0))
+mid2name(top_keyword)
+
+if (length(top_keyword) > 1) {
+  warning('There are multiple top keywords! Choosing one.')
+  top_keyword <- top_keyword[1]
+}
 
 # Calibrate all other keywords against the top keyword.
-calibration <- sort(W[,top_keyword], decreasing=TRUE)
+calibration <- sort(W[,top_keyword])
 calibration
 mid2name(names(calibration))
 
@@ -213,8 +325,29 @@ ts_repr <- t(apply(ts_all, 1, function(r) tapply(r, colnames(ts_all), max)))
 ts_repr <- ts_repr[,names(calibration)]
 ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
 ts_repr <- t(t(ts_repr) * calibration)
+matplot(ts_repr[,ncol(ts_repr):1], type='l', lty=1, log='y', col=1:6)
+legend('topright', rev(mid2name(names(calibration))), lty=1, col=1:6, bty='n')
 
-matplot(ts_repr, type='l', lty=1, log='y')
-legend('topright', mid2name(names(calibration)), lty=1, col=1:6, bty='n')
+plot(calibration, log='y')
+
+# Test binary search.
+# Jever
+binsearch('/m/0fxy5k', calibration, plot=TRUE)
+# Audi
+binsearch('/m/0h5z20c', calibration, plot=TRUE)
+# Stanford University
+binsearch('/m/06pwq', calibration, plot=TRUE)
+# EPFL
+binsearch('/m/0jg7r', calibration, plot=TRUE)
+# Donald Trump
+binsearch('/m/0cqt90', calibration, plot=TRUE)
+
+
+
+# plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
+# sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),
+#         paste(sapply(keywords, function(x) URLencode(x, reserved=TRUE)), collapse=','))
+
+
 
 ```
