@@ -232,7 +232,9 @@ binsearch <- function(keyword, calibration, plot=FALSE) {
   lo <- 1
   hi <- length(calibration)
   anchors <- names(calibration)
+  iter <- 0
   while (hi > lo) {
+    iter <- iter + 1
     pivot <- lo + floor((hi-lo)/2)
     anchor <- anchors[pivot]
     print(sprintf('Comparing to %s (%s)', anchor, mid2name(anchor)))
@@ -244,14 +246,14 @@ binsearch <- function(keyword, calibration, plot=FALSE) {
       legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
     }
     if (max_keyword >= RATIO_THRESH && max_anchor >= RATIO_THRESH) {
-      print('done!')
       ratio <- calibration[anchor] * (max_keyword / max_anchor)
-      return(ratio)
+      ts_keyword <- ts[,keyword] / max_keyword * ratio
+      return(list(ratio=ratio, iter=iter, ts=ts_keyword))
     } else if (max_keyword < RATIO_THRESH) {
-      print('going lower')
+      print('Going lower')
       hi <- pivot
     } else {
-      print('going higher')
+      print('Going higher')
       lo <- pivot
     }
   }
@@ -332,15 +334,17 @@ plot(calibration, log='y')
 
 # Test binary search.
 # Jever
-binsearch('/m/0fxy5k', calibration, plot=TRUE)
+b <- binsearch('/m/0fxy5k', calibration, plot=TRUE)
 # Audi
-binsearch('/m/0h5z20c', calibration, plot=TRUE)
+b <- binsearch('/m/0h5z20c', calibration, plot=TRUE)
 # Stanford University
-binsearch('/m/06pwq', calibration, plot=TRUE)
+b <- binsearch('/m/06pwq', calibration, plot=TRUE)
 # EPFL
-binsearch('/m/0jg7r', calibration, plot=TRUE)
+b <- binsearch('/m/0jg7r', calibration, plot=TRUE)
 # Donald Trump
-binsearch('/m/0cqt90', calibration, plot=TRUE)
+b <- binsearch('/m/0cqt90', calibration, plot=TRUE)
+# FC Ingolstadt
+b <- binsearch('/m/09451k', calibration, plot=TRUE)
 
 
 
