@@ -13,7 +13,6 @@ DATA_DIR <- sprintf('%s/github/corona-food-trends/data', Sys.getenv('HOME'))
 DEFAULT_CONFIG <- list(num_anchors=100,
                        num_anchor_candidates=2000,
                        thresh_offline=10,
-                       thresh_online=10,
                        timespan='2019-01-01 2019-12-31',
                        geo='',
                        seed=1,
@@ -282,7 +281,7 @@ infer_all_ratios <- function(ratios_aggr) {
   return(W)
 }
 
-binsearch <- function(keyword, calib_max_vol, config, plot=FALSE) {
+binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE) {
   lo <- 1
   hi <- length(calib_max_vol)
   anchors <- names(calib_max_vol)
@@ -299,12 +298,11 @@ binsearch <- function(keyword, calib_max_vol, config, plot=FALSE) {
       matplot(ts, type='l', lty=1, ylim=c(0,100))
       legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
     }
-    t <- config$thresh_online
-    if (max_keyword >= t && max_anchor >= t) {
+    if (max_keyword >= thresh && max_anchor >= thresh) {
       ratio <- calib_max_vol[anchor] * (max_keyword / max_anchor)
       ts_keyword <- ts[,keyword] / max_keyword * ratio
       return(list(ratio=ratio, iter=iter, ts=ts_keyword))
-    } else if (max_keyword < t) {
+    } else if (max_keyword < thresh) {
       print('Going lower')
       hi <- pivot
     } else {
