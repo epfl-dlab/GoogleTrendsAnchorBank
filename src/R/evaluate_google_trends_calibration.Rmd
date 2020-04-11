@@ -8,28 +8,22 @@ editor_options:
 ```{r}
 source(sprintf('%s/github/corona-food-trends/src/R/google_trends_calibration.R', Sys.getenv('HOME')))
 
-# Load ring graph.
-G <- load_keyword_ring_graph()
+config <- DEFAULT_CONFIG
 
-# Draw ring graph.
-GG <- G
-vertex_attr(GG) <- list(name=paste(V(GG)$name, mid2name(V(GG)$name), sep='\n'))
-plot(GG, layout=layout.circle)
+calib <- build_anchor_bank(config)
 
-# Load Google results.
-google_results <- load_google_results(G)
-ts_all <- do.call(cbind, google_results)
+G <- calib$G
+D <- calib$D
+ts <- calib$time_series
+calib_max_vol <- calib$calib_max_vol
 
-# Compute max ratios.
-ratios_aggr <- compute_max_ratios(google_results, plot=FALSE)
-
-# Make DAG induced by ratios.
-D <- graph_from_data_frame(ratios_aggr)
+# Draw anchor ring graph.
+vertex_attr(G) <- list(name=paste(V(G)$name, mid2name(V(G)$name), sep='\n'))
+plot(G, layout=layout.circle)
 
 # Draw DAG.
-DD <- D
-vertex_attr(DD) <- list(name=paste(V(DD)$name, mid2name(V(DD)$name), sep='\n'))
-plot(DD, layout=layout_with_sugiyama(DD)$layout)
+vertex_attr(D) <- list(name=paste(V(D)$name, mid2name(V(D)$name), sep='\n'))
+plot(D, layout=layout_with_sugiyama(D)$layout)
 
 # Sanity check: Is D indeed acyclic as it should be?
 if (!is.dag(D)) {
@@ -41,60 +35,54 @@ if (!is.connected(D)) {
   warning('Directed graph is not connected!')
 }
 
-# Sanity check: Which keywords are discarded?
-discarded <- setdiff(V(G)$name, V(D)$name)
+# Sanity check: Which queries are discarded?
+discarded <- setdiff(V(calib$G)$name, V(calib$D)$name)
 mid2name(discarded)
-# Plot time series of discarded keywords.
-# for (name in discarded) matplot(ts_all[, colnames(ts_all) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
 
-# Propagate ratios through the graph via matrix multiplication.
-W <- infer_all_ratios(ratios_aggr)
-
-# The top keyword is the one with which all other keywords have a ratio < 1.
-top_keyword <- names(which(colSums(W > 1) == 0))
-mid2name(top_keyword)
-
-if (length(top_keyword) > 1) {
-  warning('There are multiple top keywords! Choosing one.')
-  top_keyword <- top_keyword[1]
+# Plot time series of discarded queries, to verify that we discard only queries
+# whose max volume is below config$thresh_offline in all Google Trends results.
+for (name in discarded) {
+  matplot(ts[, colnames(ts) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
 }
 
-# Calibrate all other keywords against the top keyword.
-calibration <- sort(W[,top_keyword])
-calibration
-mid2name(names(calibration))
-
 # Plot all time series in one plot.
-ts_repr <- t(apply(ts_all, 1, function(r) tapply(r, colnames(ts_all), max)))
-ts_repr <- ts_repr[,names(calibration)]
+ts_repr <- t(apply(ts, 1, function(r) tapply(r, colnames(ts), max)))
+ts_repr <- ts_repr[,names(calib_max_vol)]
 ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
-ts_repr <- t(t(ts_repr) * calibration)
+ts_repr <- t(t(ts_repr) * calib_max_vol)
 idx <- ncol(ts_repr):1
+# n <- ncol(ts_repr); idx <- rev(c(seq(1, n, n/16), n))
 matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
-legend('topright', mid2name(names(calibration))[idx], lty=1, col=1:6, bty='n')
+legend('topright', mid2name(names(calib_max_vol))[idx], lty=1, col=1:6, bty='n')
 
 # Plot ratios w.r.t. top keyword.
-plot(rev(calibration), log='y', xlab='Anchor index', ylab='Ratio')
+plot(rev(calib_max_vol), log='y', xlab='Anchor index', ylab='Ratio')
 
 # Test binary search.
 # Jever
-b <- binsearch('/m/0fxy5k', calibration, plot=TRUE)
+b <- binsearch('/m/0fxy5k', calib_max_vol, config, plot=TRUE)
 # Audi
-b <- binsearch('/m/0h5z20c', calibration, plot=TRUE)
+b <- binsearch('/m/0h5z20c', calib_max_vol, config, plot=TRUE)
 # Stanford University
-b <- binsearch('/m/06pwq', calibration, plot=TRUE)
+b <- binsearch('/m/06pwq', calib_max_vol, config, plot=TRUE)
 # EPFL
-b <- binsearch('/m/0jg7r', calibration, plot=TRUE)
+b <- binsearch('/m/0jg7r', calib_max_vol, config, plot=TRUE)
 # Donald Trump
-b <- binsearch('/m/0cqt90', calibration, plot=TRUE)
+b <- binsearch('/m/0cqt90', calib_max_vol, config, plot=TRUE)
 # FC Ingolstadt
-b <- binsearch('/m/09451k', calibration, plot=TRUE)
+b <- binsearch('/m/09451k', calib_max_vol, config, plot=TRUE)
 # Joe Zawinul
-b <- binsearch('/m/01sqgd', calibration, plot=TRUE)
+b <- binsearch('/m/01sqgd', calib_max_vol, config, plot=TRUE)
 # Red Stripe
-b <- binsearch('/m/031j7l', calibration, plot=TRUE)
-# Shandy
-b <- binsearch('/m/01h0lb', calibration, plot=TRUE)
+b <- binsearch('/m/031j7l', calib_max_vol, config, plot=TRUE)
+# Heinsberg
+b <- binsearch('/m/04rf5b', calib_max_vol, config, plot=TRUE)
+
+b1 <- binsearch('/m/09728', calib_max_vol, config, plot=TRUE)
+b2 <- binsearch('/m/03m7wd', calib_max_vol, config, plot=TRUE)
+
+plot(b1$ts, type='l', col='blue', log='y', ylim=c(1e-4,0.3))
+lines(b2$ts, col='red')
 
 # plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
 # sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),

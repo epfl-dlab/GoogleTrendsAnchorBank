@@ -3,15 +3,21 @@ library(igraph)
 
 options(stringsAsFactors=FALSE)
 
+###############################################################################
+# Constants
+###############################################################################
+
 DATA_DIR <- sprintf('%s/github/corona-food-trends/data', Sys.getenv('HOME'))
 
-# NUM_TOP_ENT should be a multiple of NUM_VERTICES; NUM_VERTICES should be even.
-NUM_TOP_ENT <- 1500
-NUM_VERTICES <- 40
-MAX_VOL_THRESH_OFFLINE <- 10
-MAX_VOL_THRESH_ONLINE <- 10
-TIME <- '2019-08-01 2020-04-08'
-GEO <- ''
+# num_anchors should be even; num_anchor_candidates should be a multiple of num_anchors/2.
+DEFAULT_CONFIG <- list(num_anchors=100,
+                       num_anchor_candidates=2000,
+                       thresh_offline=10,
+                       thresh_online=10,
+                       timespan='2019-01-01 2019-12-31',
+                       geo='',
+                       seed=1,
+                       sleep=0.5)
 
 HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
 names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
@@ -23,27 +29,79 @@ rownames(FOODS) <- FOODS$mid
 
 BLACKLIST <- c('/m/0bcgdv') # Irvingia gabonensis
 
+###############################################################################
+# Functions
+###############################################################################
+
+build_anchor_bank <- function(config) {
+  # Load ring graph.
+  G <- load_anchor_ring_graph(config)
+  
+  # Load Google results.
+  google_results <- load_google_results(G, config)
+  time_series <- do.call(cbind, google_results)
+  
+  # Compute max ratios.
+  ratios <- compute_max_ratios(google_results, plot=FALSE)
+  
+  # Make DAG induced by ratios.
+  D <- graph_from_data_frame(ratios)
+  
+  # Sanity check: Is D indeed acyclic as it should be?
+  if (!is.dag(D)) {
+    warning('Directed graph is not acyclic!')
+  }
+  
+  # Sanity check: Is D connected?
+  if (!is.connected(D)) {
+    warning('Directed graph is not connected!')
+  }
+  
+  # Propagate ratios through the graph via matrix multiplication.
+  W <- infer_all_ratios(ratios)
+  err <- max(abs(1-W*t(W)), na.rm=TRUE)
+  
+  # The top keyword is the one with which all other keywords have a ratio < 1.
+  ref_anchor <- names(which(colSums(W > 1) == 0))
+  
+  if (length(ref_anchor) > 1) {
+    warning('There are multiple top keywords! Choosing the one from the largest component.')
+    ref_anchor <- ref_anchor[which.max(colSums(W > 0))]
+  }
+  
+  # Calibrate all other anchors against the top anchor.
+  calib_max_vol <- sort(W[,ref_anchor])
+  
+  list(G=G, time_series=time_series, ratios=ratios, D=D, W=W, err=err, ref_anchor=ref_anchor,
+       calib_max_vol=calib_max_vol)
+}
+
 mid2name <- function(mid) {
   lookup <- c(FOODS$name, names(HI_TRAFFIC))
   names(lookup) <- c(FOODS$mid, HI_TRAFFIC)
   lookup[mid]
 }
 
-google <- function(keywords) {
-  gtrends(keywords, geo=GEO, time=TIME, onlyInterest=TRUE)
+make_RData_file_suffix <- function(config) {
+  paste(sapply(1:length(config), function(i) paste(names(config)[i], config[[i]], sep='=')), collapse='.')
 }
 
-keyword_ok <- function(keyword) {
+google <- function(keywords, config) {
+  Sys.sleep(config$sleep)
+  gtrends(keywords, geo=config$geo, time=config$timespan, onlyInterest=TRUE)
+}
+
+keyword_ok <- function(keyword, config) {
   tryCatch({
-    google(keyword)
+    google(keyword, config)
+    return(!(keyword %in% BLACKLIST))
   }, error = function(e) {
-    FALSE
+    return(FALSE)
   })
-  !(keyword %in% BLACKLIST)
 }
 
-query_google <- function(keywords) {
-  trends <- google(keywords)
+query_google <- function(keywords, config) {
+  trends <- google(keywords, config)
   interest <- trends$interest_over_time[c('date', 'hits', 'keyword')]
   ts <- reshape(interest, timevar='date', idvar='keyword', direction='wide')
   rownames(ts) <- ts$keyword
@@ -54,23 +112,26 @@ query_google <- function(keywords) {
   list(full=trends, ts=ts)
 }
 
-time_series_ok <- function(ts) {
-  max(ts) >= MAX_VOL_THRESH_OFFLINE
+time_series_ok <- function(ts, config) {
+  max(ts) >= config$thresh_offline
 }
 
-load_keyword_ring_graph <- function() {
-  file <- sprintf('%s/calibration/G.RData', DATA_DIR)
+load_anchor_ring_graph <- function(config) {
+  file <- sprintf('%s/calibration/G.%s.RData', DATA_DIR, make_RData_file_suffix(config))
   if (file.exists(file)) {
     load(file)
   } else {
+    N <- config$num_anchor_candidates
+    K <- config$num_anchors/2
     # Stratified sampling: 2 per stratum, so we can build a ring without "discontinuities".
-    mat <- matrix(FOODS$mid[1:NUM_TOP_ENT], nrow=NUM_TOP_ENT/(NUM_VERTICES/2), ncol=NUM_VERTICES/2)
+    mat <- matrix(FOODS$mid[1:N], nrow=N/K, ncol=K)
+    set.seed(config$seed)
     samples2 <- apply(mat, 2, function(r) sample(r, 2))
     keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,])
     V <- NULL
     i <- 1
     for (k in keywords) {
-      if (keyword_ok(k)) {
+      if (keyword_ok(k, config)) {
         print(sprintf('%d: Checking %s: ok', i, k))
         V <- c(V,k)
       } else {
@@ -92,8 +153,8 @@ load_keyword_ring_graph <- function() {
   return(G)
 }
 
-load_google_results <- function(G) {
-  file <- sprintf('%s/calibration/google_results.RData', DATA_DIR)
+load_google_results <- function(G, config) {
+  file <- sprintf('%s/calibration/google_results.%s.RData', DATA_DIR, make_RData_file_suffix(config))
   if (file.exists(file)) {
     load(file)
   } else {
@@ -105,7 +166,7 @@ load_google_results <- function(G) {
       print(sprintf('%d: %s (%s), keywords: %s (%s)', i, v, mid2name(v),
                     paste(keywords, collapse=', '),
                     paste(mid2name(keywords), collapse=', ')))
-      trends <- query_google(keywords)
+      trends <- query_google(keywords, config)
       google_results[[v]] <- trends$ts
     }
     save(google_results, file=file)
@@ -128,7 +189,7 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
     for (j in 1:ncol(ts)) {
       for (k in 1:ncol(ts)) {
         if (j < k) {
-          if (time_series_ok(ts[,j]) && time_series_ok(ts[,k])) {
+          if (time_series_ok(ts[,j], config) && time_series_ok(ts[,k], config)) {
             anchors <- c(anchors, v)
             v1 <- c(v1, colnames(ts)[j])
             v2 <- c(v2, colnames(ts)[k])
@@ -209,7 +270,7 @@ infer_all_ratios <- function(ratios_aggr) {
     # If we already have the ratio, don't recompute it.
     WW <- A * W + (1-A) * ((W %*% W) / AA)
     # Print the maximum error.
-    print(max(abs(1-WW*t(WW)), na.rm=TRUE))
+    # print(max(abs(1-WW*t(WW)), na.rm=TRUE))
     WW[is.nan(WW)] <- 0
     W <- WW
     A_old <- A
@@ -221,28 +282,29 @@ infer_all_ratios <- function(ratios_aggr) {
   return(W)
 }
 
-binsearch <- function(keyword, calibration, plot=FALSE) {
+binsearch <- function(keyword, calib_max_vol, config, plot=FALSE) {
   lo <- 1
-  hi <- length(calibration)
-  anchors <- names(calibration)
+  hi <- length(calib_max_vol)
+  anchors <- names(calib_max_vol)
   iter <- 0
   while (hi > lo) {
     iter <- iter + 1
     pivot <- lo + floor((hi-lo)/2)
     anchor <- anchors[pivot]
     print(sprintf('Comparing to %s (%s)', anchor, mid2name(anchor)))
-    ts <- query_google(c(keyword, anchor))$ts
+    ts <- query_google(c(keyword, anchor), config)$ts
     max_keyword <- max(ts[,keyword])
     max_anchor <- max(ts[,anchor])
     if (plot) {
-      matplot(ts, type='l', lty=1)
+      matplot(ts, type='l', lty=1, ylim=c(0,100))
       legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
     }
-    if (max_keyword >= MAX_VOL_THRESH_ONLINE && max_anchor >= MAX_VOL_THRESH_ONLINE) {
-      ratio <- calibration[anchor] * (max_keyword / max_anchor)
+    t <- config$thresh_online
+    if (max_keyword >= t && max_anchor >= t) {
+      ratio <- calib_max_vol[anchor] * (max_keyword / max_anchor)
       ts_keyword <- ts[,keyword] / max_keyword * ratio
       return(list(ratio=ratio, iter=iter, ts=ts_keyword))
-    } else if (max_keyword < MAX_VOL_THRESH_ONLINE) {
+    } else if (max_keyword < t) {
       print('Going lower')
       hi <- pivot
     } else {
