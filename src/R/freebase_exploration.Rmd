@@ -16,7 +16,8 @@ DATA_DIR <- sprintf('%s/github/corona-food-trends/data', Sys.getenv('HOME'))
 # NUM_TOP_ENT should be a multiple of NUM_VERTICES; NUM_VERTICES should be even.
 NUM_TOP_ENT <- 1500
 NUM_VERTICES <- 40
-RATIO_THRESH <- 10
+MAX_VOL_THRESH_OFFLINE <- 10
+MAX_VOL_THRESH_ONLINE <- 10
 TIME <- '2019-08-01 2020-04-08'
 GEO <- ''
 
@@ -62,7 +63,7 @@ query_google <- function(keywords) {
 }
 
 time_series_ok <- function(ts) {
-  max(ts) >= RATIO_THRESH
+  max(ts) >= MAX_VOL_THRESH_OFFLINE
 }
 
 load_keyword_ring_graph <- function() {
@@ -245,11 +246,11 @@ binsearch <- function(keyword, calibration, plot=FALSE) {
       matplot(ts, type='l', lty=1)
       legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
     }
-    if (max_keyword >= RATIO_THRESH && max_anchor >= RATIO_THRESH) {
+    if (max_keyword >= MAX_VOL_THRESH_ONLINE && max_anchor >= MAX_VOL_THRESH_ONLINE) {
       ratio <- calibration[anchor] * (max_keyword / max_anchor)
       ts_keyword <- ts[,keyword] / max_keyword * ratio
       return(list(ratio=ratio, iter=iter, ts=ts_keyword))
-    } else if (max_keyword < RATIO_THRESH) {
+    } else if (max_keyword < MAX_VOL_THRESH_ONLINE) {
       print('Going lower')
       hi <- pivot
     } else {
@@ -331,6 +332,7 @@ idx <- ncol(ts_repr):1
 matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
 legend('topright', mid2name(names(calibration))[idx], lty=1, col=1:6, bty='n')
 
+# Plot ratios w.r.t. top keyword.
 plot(rev(calibration), log='y', xlab='Anchor index', ylab='Ratio')
 
 # Test binary search.
@@ -350,7 +352,8 @@ b <- binsearch('/m/09451k', calibration, plot=TRUE)
 b <- binsearch('/m/01sqgd', calibration, plot=TRUE)
 # Red Stripe
 b <- binsearch('/m/031j7l', calibration, plot=TRUE)
-
+# Shandy
+b <- binsearch('/m/01h0lb', calibration, plot=TRUE)
 
 # plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
 # sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),
