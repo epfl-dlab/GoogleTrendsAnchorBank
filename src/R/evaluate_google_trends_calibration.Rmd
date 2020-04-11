@@ -10,8 +10,8 @@ source(sprintf('%s/github/corona-food-trends/src/R/google_trends_calibration.R',
 
 config <- DEFAULT_CONFIG
 
+# Build anchor bank.
 calib <- build_anchor_bank(config)
-
 G <- calib$G
 D <- calib$D
 ts <- calib$time_series
