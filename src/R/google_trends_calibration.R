@@ -1,11 +1,3 @@
----
-title: "Freebase food exploration"
-output: html_notebook
-editor_options: 
-  chunk_output_type: console
----
-
-```{r}
 library(gtrendsR)
 library(igraph)
 
@@ -126,7 +118,7 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
   v1 <- NULL
   v2 <- NULL
   ratios_vec <- NULL
-
+  
   for (v in names(google_results)) {
     ts <- google_results[[v]]
     if (plot) {
@@ -190,7 +182,7 @@ infer_all_ratios <- function(ratios_aggr) {
   Vcore <- unique(c(ratios_aggr$v1, ratios_aggr$v2))
   W0 <- matrix(data=0, nrow=length(Vcore), ncol=length(Vcore), dimnames=list(Vcore,Vcore))
   A0 <- W0
-
+  
   for (u in Vcore) {
     for (v in Vcore) {
       # Set diagonal to 1.
@@ -264,101 +256,3 @@ binsearch <- function(keyword, calibration, plot=FALSE) {
     warning('Could not calibrate. Time series for keyword too high everywhere.')
   }
 }
-
-### End of function definitions
-
-# Load ring graph.
-G <- load_keyword_ring_graph()
-
-# Draw ring graph.
-GG <- G
-vertex_attr(GG) <- list(name=paste(V(GG)$name, mid2name(V(GG)$name), sep='\n'))
-plot(GG, layout=layout.circle)
-
-# Load Google results.
-google_results <- load_google_results(G)
-ts_all <- do.call(cbind, google_results)
-
-# Compute max ratios.
-ratios_aggr <- compute_max_ratios(google_results, plot=FALSE)
-
-# Make DAG induced by ratios.
-D <- graph_from_data_frame(ratios_aggr)
-
-# Draw DAG.
-DD <- D
-vertex_attr(DD) <- list(name=paste(V(DD)$name, mid2name(V(DD)$name), sep='\n'))
-plot(DD, layout=layout_with_sugiyama(DD)$layout)
-
-# Sanity check: Is D indeed acyclic as it should be?
-if (!is.dag(D)) {
-  warning('Directed graph is not acyclic!')
-}
-
-# Sanity check: Is D connected?
-if (!is.connected(D)) {
-  warning('Directed graph is not connected!')
-}
-
-# Sanity check: Which keywords are discarded?
-discarded <- setdiff(V(G)$name, V(D)$name)
-mid2name(discarded)
-# Plot time series of discarded keywords.
-# for (name in discarded) matplot(ts_all[, colnames(ts_all) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
-
-# Propagate ratios through the graph via matrix multiplication.
-W <- infer_all_ratios(ratios_aggr)
-
-# The top keyword is the one with which all other keywords have a ratio < 1.
-top_keyword <- names(which(colSums(W > 1) == 0))
-mid2name(top_keyword)
-
-if (length(top_keyword) > 1) {
-  warning('There are multiple top keywords! Choosing one.')
-  top_keyword <- top_keyword[1]
-}
-
-# Calibrate all other keywords against the top keyword.
-calibration <- sort(W[,top_keyword])
-calibration
-mid2name(names(calibration))
-
-# Plot all time series in one plot.
-ts_repr <- t(apply(ts_all, 1, function(r) tapply(r, colnames(ts_all), max)))
-ts_repr <- ts_repr[,names(calibration)]
-ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
-ts_repr <- t(t(ts_repr) * calibration)
-idx <- ncol(ts_repr):1
-matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
-legend('topright', mid2name(names(calibration))[idx], lty=1, col=1:6, bty='n')
-
-# Plot ratios w.r.t. top keyword.
-plot(rev(calibration), log='y', xlab='Anchor index', ylab='Ratio')
-
-# Test binary search.
-# Jever
-b <- binsearch('/m/0fxy5k', calibration, plot=TRUE)
-# Audi
-b <- binsearch('/m/0h5z20c', calibration, plot=TRUE)
-# Stanford University
-b <- binsearch('/m/06pwq', calibration, plot=TRUE)
-# EPFL
-b <- binsearch('/m/0jg7r', calibration, plot=TRUE)
-# Donald Trump
-b <- binsearch('/m/0cqt90', calibration, plot=TRUE)
-# FC Ingolstadt
-b <- binsearch('/m/09451k', calibration, plot=TRUE)
-# Joe Zawinul
-b <- binsearch('/m/01sqgd', calibration, plot=TRUE)
-# Red Stripe
-b <- binsearch('/m/031j7l', calibration, plot=TRUE)
-# Shandy
-b <- binsearch('/m/01h0lb', calibration, plot=TRUE)
-
-# plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
-# sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),
-#         paste(sapply(keywords, function(x) URLencode(x, reserved=TRUE)), collapse=','))
-
-
-
-```
