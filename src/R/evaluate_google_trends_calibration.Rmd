@@ -174,7 +174,7 @@ idx <- order(result$ratio, decreasing=TRUE)
 ts <- result$ts
 bs <- apply(ts, 1, function(x) bootstrap_ci(x,median,1000))
 
-matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=2, bty='n',
+matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=3, bty='n',
         xlab='Week of 2019', ylab='Calibrated search volume')
 i <- 0
 highlights<- c(1,4,7,45,80)
@@ -187,8 +187,8 @@ highlights<- c(1,4,7,45,80)
 #        lwd=3, bty='n', inset=c(0,0.1))
 
 lines(apply(ts, 1, median), type='l', lwd=4)
-lines(bs[1,], type='l', lwd=1)
-lines(bs[3,], type='l', lwd=1)
+lines(bs[1,], type='l', lwd=2)
+lines(bs[3,], type='l', lwd=2)
 
 ```
 
