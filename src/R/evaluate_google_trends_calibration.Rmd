@@ -11,7 +11,7 @@ library(boot)
 source(sprintf('%s/github/corona-food-trends/src/R/google_trends_calibration.R', Sys.getenv('HOME')))
 
 # colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#D55E00", "#0072B2", "#CC79A7", "#F0E442")
+colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#D55E00", "#009E73", "#0072B2", "#CC79A7", "#F0E442")
 
 config <- DEFAULT_CONFIG
 
@@ -60,26 +60,6 @@ b <- binsearch('/m/0fxy5k', calib_max_vol, thresh, config, plot=TRUE)
 b <- binsearch('/m/0h5z20c', calib_max_vol, thresh, config, plot=TRUE)
 # Stanford University
 b <- binsearch('/m/06pwq', calib_max_vol, thresh, config, plot=TRUE)
-# EPFL
-b <- binsearch('/m/0jg7r', calib_max_vol, thresh, config, plot=TRUE)
-# Donald Trump
-b <- binsearch('/m/0cqt90', calib_max_vol, thresh, config, plot=TRUE)
-# FC Ingolstadt
-b <- binsearch('/m/09451k', calib_max_vol, thresh, config, plot=TRUE)
-# Joe Zawinul
-b <- binsearch('/m/01sqgd', calib_max_vol, thresh, config, plot=TRUE)
-# Red Stripe
-b <- binsearch('/m/031j7l', calib_max_vol, thresh, config, plot=TRUE)
-# Heinsberg
-b <- binsearch('/m/04rf5b', calib_max_vol, thresh, config, plot=TRUE)
-
-b1 <- binsearch('/m/09728', calib_max_vol, thresh, config, plot=TRUE)
-b2 <- binsearch('/m/03m7wd', calib_max_vol, thresh, config, plot=TRUE)
-
-plot(b1$ts, type='l', col='blue', log='y', ylim=c(1e-4,0.3))
-lines(b2$ts, col='red')
-
-b2 <- binsearch('/m/04gkckj', calib_max_vol, thresh, config, plot=TRUE)
 
 
 
@@ -88,6 +68,10 @@ b2 <- binsearch('/m/04gkckj', calib_max_vol, thresh, config, plot=TRUE)
 # Bin search results
 
 ```{r}
+
+thresh <- 10
+config$sleep <- 1
+
 # Load entities from Freebase Easy HTML result page.
 get_entities_from_html <- function(file) {
   html <- paste(readLines(file), collapse="\n")
@@ -101,7 +85,7 @@ get_entities_from_html <- function(file) {
   mids_to_names
 }
 
-run_binsearch <- function(dataset, mids_to_names, thresh, N, K) {
+run_binsearch <- function(dataset, mids_to_names, calib_max_vol, thresh, N, K) {
   mids <- names(mids_to_names)
   samples <- mids[seq(1, N, N/K)]
   file <- sprintf('%s/binsearch/%s/results.thresh=%d.N=%d.K=%d.RData', DATA_DIR, dataset, thresh, N, K)
@@ -114,7 +98,7 @@ run_binsearch <- function(dataset, mids_to_names, thresh, N, K) {
     for (mid in samples) {
       i <- i + 1
       message(sprintf('%d: %s (%s)', i, mid, mids_to_names[mid]))
-      b <- binsearch(mid, calib_max_vol, THRESH, config)
+      b <- binsearch(mid, calib_max_vol, thresh, config)
       if (!is.null(b)) results[[mid]] <- b
       else failed <- c(failed, mid)
     }
@@ -138,57 +122,106 @@ bootstrap_ci <- function(x, f, R=1000) {
   c(upper, f(x, na.rm=TRUE), lower)
 }
 
-
-
-THRESH <- 10
-
 ### Bavaria
 
 dataset <- 'bavaria'
-mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
-result <- run_binsearch(dataset, mids_to_names, thresh=THRESH, N=1000, K=100)
-idx <- order(result$ratio, decreasing=TRUE)
-ts <- result$ts
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html',
+                                                DATA_DIR, dataset, dataset))
+mids_to_names[mid_arnstorf] <- 'Arnstorf'
+names_to_mids <- names(mids_to_names)
+names(names_to_mids) <- mids_to_names
+
+highlights <- names_to_mids[c('Munich', 'Garmisch-Partenkirchen', 'Bayreuth',
+                              'Rottach-Egern', 'Arnstorf')]
+
+mid_arnstorf <- '/m/02rg8rj'
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.ARNSTORF.RData', DATA_DIR, dataset, thresh)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_arnstorf <- binsearch(mid_arnstorf, calib_max_vol, thresh, config)
+  save(result_arnstorf, file=file)
+}
+
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.HIGHLIGHTS.RData', DATA_DIR, dataset, thresh)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_highlights <- query_google(highlights, config)
+  save(result_highlights, file=file)
+}
+
+result1 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=100, K=100)
+result2 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=1000, K=100)
+extra_idx <- setdiff(names(result2$iter), names(result1$iter))
+ts <- cbind(result1$ts, result2$ts[,extra_idx])
+iter <- c(result1$iter, result2$iter[extra_idx])
+ratio <- c(result1$ratio, result2$ratio[extra_idx])
+ts <- cbind(ts, result_arnstorf$ts)
+colnames(ts)[ncol(ts)] <- mid_arnstorf
+ts[,mid_arnstorf] <- result_arnstorf$ts
+iter[mid_arnstorf] <- result_arnstorf$iter
+ratio[mid_arnstorf] <- result_arnstorf$ratio
+
+matplot(result_highlights$ts, type='l', lty=1, log='', col=colorblind_col, lwd=3, bty='n',
+        xlab='Week of 2019', ylab='Normalized search volume')
+legend('topright', names(highlights), lty=1, col=colorblind_col, lwd=3, bty='n', inset=c(0,0.4))
+
+matplot(1+result_highlights$ts, type='l', lty=1, log='y', col=colorblind_col, lwd=3, bty='n',
+        xlab='Week of 2019', ylab='Normalized search volume')
+legend('topright', names(highlights), lty=1, col=colorblind_col, lwd=3, bty='n', inset=c(0,0.4))
+
+idx <- order(ratio, decreasing=TRUE)
 matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=2, bty='n',
         xlab='Week of 2019', ylab='Calibrated search volume')
 i <- 0
-highlights <- c(1,4,6,45,99)
 for (h in highlights) {
   col <- colorblind_col[(i %% length(colorblind_col))+1]
-  lines(ts[,idx[h]], lwd=3, col=col)
+  lines(ts[,h], lwd=3, col=col)
   i <- i + 1
 }
-legend('topright', mids_to_names[colnames(ts)[idx[highlights]]], lty=1, col=colorblind_col,
-       lwd=3, bty='n', inset=c(0,0.1))
+legend('topright', names(highlights), lty=1, col=colorblind_col, lwd=3, bty='n', inset=c(0,0.1))
 
-length(failed)
+
+
 barplot(tapply(iter, iter, length))
+summary(iter)
+
+barplot(tapply(iter, cut(ratio, c(0, quantile(ratio))), mean))
+
+iter_bavaria <- iter
 
 
 ### Soccer
 
 dataset <- 'soccer'
 mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
-result <- run_binsearch(dataset, mids_to_names, thresh=THRESH, N=100, K=100)
-idx <- order(result$ratio, decreasing=TRUE)
+result <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=100, K=100)
 ts <- result$ts
+iter <- result$iter
+ratio <- result$ratio
+idx <- order(ratio, decreasing=TRUE)
 bs <- apply(ts, 1, function(x) bootstrap_ci(x,median,1000))
 
-matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=3, bty='n',
+matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=2, bty='n',
         xlab='Week of 2019', ylab='Calibrated search volume')
-i <- 0
-highlights<- c(1,4,7,45,80)
-# for (h in highlights) {
-#   col <- colorblind_col[(i %% length(colorblind_col))+1]
-#   lines(ts[,idx[h]], lwd=3, col=col)
-#   i <- i + 1
-# }
-# legend('topright', mids_to_names[colnames(ts)[idx[highlights]]], lty=1, col=colorblind_col,
-#        lwd=3, bty='n', inset=c(0,0.1))
-
-lines(apply(ts, 1, median), type='l', lwd=4)
+lines(apply(ts, 1, median), type='l', lwd=4, col=colorblind_col[1])
 lines(bs[1,], type='l', lwd=2)
 lines(bs[3,], type='l', lwd=2)
+
+
+length(result$failed)
+
+barplot(tapply(iter, iter, length))
+summary(iter)
+
+iter_soccer <- iter
+
+iter_all <- c(iter_bavaria, iter_soccer)
+
+barplot(tapply(iter, cut(ratio, c(0, quantile(ratio))), mean))
+
+
 
 ```
 

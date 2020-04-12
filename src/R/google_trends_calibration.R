@@ -22,6 +22,9 @@ DEFAULT_CONFIG <- list(num_anchors=100,
 HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
 names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
 
+# LO_TRAFFIC <- c('/m/09xr_3', '/m/0cp4q_')
+# names(LO_TRAFFIC) <- c('FC Wacker Innsbruck', 'Northwood F.C.')
+
 FOODS <- read.table(sprintf('%s/freebase_foods.tsv', DATA_DIR), sep='\t', quote='',
                     comment.char='', header=TRUE, stringsAsFactors=FALSE)
 FOODS <- FOODS[FOODS$is_dish | FOODS$is_food,]
@@ -127,6 +130,7 @@ load_anchor_ring_graph <- function(config) {
     set.seed(config$seed)
     samples2 <- apply(mat, 2, function(r) sample(r, 2))
     keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,])
+    # keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,], LO_TRAFFIC)
     V <- NULL
     i <- 1
     for (k in keywords) {
@@ -302,7 +306,8 @@ binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE, quiet=
         legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
       }
       if (max_keyword >= thresh && max_anchor >= thresh) {
-        ratio <- calib_max_vol[anchor] * (max_keyword / max_anchor)
+        # as.numeric in order to remove anchor name.
+        ratio <- as.numeric(calib_max_vol[anchor]) * (max_keyword / max_anchor)
         ts_keyword <- ts[,keyword] / max_keyword * ratio
         if (!silent) message(sprintf('Done with %s after %d steps', keyword, iter))
         return(list(ratio=ratio, iter=iter, ts=ts_keyword))
@@ -322,6 +327,7 @@ binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE, quiet=
     return(NULL)
   }, error = function(e) {
     message(sprintf('Google gives error for %s', keyword))
+    message(e)
     return(NULL)
   })
 }
