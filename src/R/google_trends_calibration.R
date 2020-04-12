@@ -16,7 +16,8 @@ DEFAULT_CONFIG <- list(num_anchors=100,
                        timespan='2019-01-01 2019-12-31',
                        geo='',
                        seed=1,
-                       sleep=0.5)
+                       sleep=0.5,
+                       randomize_ring_order=FALSE)
 
 HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
 names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
@@ -47,14 +48,10 @@ build_anchor_bank <- function(config) {
   D <- graph_from_data_frame(ratios)
   
   # Sanity check: Is D indeed acyclic as it should be?
-  if (!is.dag(D)) {
-    warning('Directed graph is not acyclic!')
-  }
+  if (!is.dag(D)) warning('Directed graph is not acyclic!')
   
   # Sanity check: Is D connected?
-  if (!is.connected(D)) {
-    warning('Directed graph is not connected!')
-  }
+  if (!is.connected(D)) warning('Directed graph is not connected!')
   
   # Propagate ratios through the graph via matrix multiplication.
   W <- infer_all_ratios(ratios)
@@ -65,7 +62,7 @@ build_anchor_bank <- function(config) {
   
   if (length(ref_anchor) > 1) {
     warning('There are multiple top keywords! Choosing the one from the largest component.')
-    ref_anchor <- ref_anchor[which.max(colSums(W > 0))]
+    ref_anchor <- ref_anchor[which.max(colSums(W[,ref_anchor] > 0))]
   }
   
   # Calibrate all other anchors against the top anchor.
@@ -82,7 +79,10 @@ mid2name <- function(mid) {
 }
 
 make_RData_file_suffix <- function(config) {
-  paste(sapply(1:length(config), function(i) paste(names(config)[i], config[[i]], sep='=')), collapse='.')
+  conf <- config
+  # config$sleep doesn't matter.
+  conf$sleep <- NULL
+  paste(sapply(1:length(conf), function(i) paste(names(conf)[i], conf[[i]], sep='=')), collapse='.')
 }
 
 google <- function(keywords, config) {
@@ -140,6 +140,8 @@ load_anchor_ring_graph <- function(config) {
     }
     n <- length(V)
     G <- make_ring(n)
+    # Randomized baseline to see effect of popularity ordering in ring.
+    if (config$randomize_ring_order) V <- V[sample(n,n)]
     vertex_attr(G) <- list(name=V)
     for (i in 0:(n-1)) {
       left <- ((i-2) %% n) + 1
@@ -281,38 +283,45 @@ infer_all_ratios <- function(ratios_aggr) {
   return(W)
 }
 
-binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE) {
+binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE, quiet=TRUE, silent=FALSE) {
   lo <- 1
   hi <- length(calib_max_vol)
   anchors <- names(calib_max_vol)
   iter <- 0
-  while (hi > lo) {
-    iter <- iter + 1
-    pivot <- lo + floor((hi-lo)/2)
-    anchor <- anchors[pivot]
-    print(sprintf('Comparing to %s (%s)', anchor, mid2name(anchor)))
-    ts <- query_google(c(keyword, anchor), config)$ts
-    max_keyword <- max(ts[,keyword])
-    max_anchor <- max(ts[,anchor])
-    if (plot) {
-      matplot(ts, type='l', lty=1, ylim=c(0,100))
-      legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
+  tryCatch({
+    while (hi > lo) {
+      iter <- iter + 1
+      pivot <- lo + floor((hi-lo)/2)
+      anchor <- anchors[pivot]
+      if (!quiet) message(sprintf('   Comparing to %s (%s)', anchor, mid2name(anchor)))
+      ts <- query_google(c(keyword, anchor), config)$ts
+      max_keyword <- max(ts[,keyword])
+      max_anchor <- max(ts[,anchor])
+      if (plot) {
+        matplot(ts, type='l', lty=1, ylim=c(0,100))
+        legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
+      }
+      if (max_keyword >= thresh && max_anchor >= thresh) {
+        ratio <- calib_max_vol[anchor] * (max_keyword / max_anchor)
+        ts_keyword <- ts[,keyword] / max_keyword * ratio
+        if (!silent) message(sprintf('Done with %s after %d steps', keyword, iter))
+        return(list(ratio=ratio, iter=iter, ts=ts_keyword))
+      } else if (max_keyword < thresh) {
+        if (!quiet) message('   Going lower')
+        hi <- pivot - 1
+      } else {
+        if (!quiet) message('   Going higher')
+        lo <- pivot + 1
+      }
     }
-    if (max_keyword >= thresh && max_anchor >= thresh) {
-      ratio <- calib_max_vol[anchor] * (max_keyword / max_anchor)
-      ts_keyword <- ts[,keyword] / max_keyword * ratio
-      return(list(ratio=ratio, iter=iter, ts=ts_keyword))
-    } else if (max_keyword < thresh) {
-      print('Going lower')
-      hi <- pivot
+    if (hi <= 1) {
+      message('Could not calibrate. Time series for keyword too low everywhere.')
     } else {
-      print('Going higher')
-      lo <- pivot
+      message('Could not calibrate. Time series for keyword too high everywhere.')
     }
-  }
-  if (hi == 1) {
-    warning('Could not calibrate. Time series for keyword too low everywhere.')
-  } else {
-    warning('Could not calibrate. Time series for keyword too high everywhere.')
-  }
+    return(NULL)
+  }, error = function(e) {
+    message(sprintf('Google gives error for %s', keyword))
+    return(NULL)
+  })
 }

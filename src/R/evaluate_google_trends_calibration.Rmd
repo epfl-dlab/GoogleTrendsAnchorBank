@@ -6,7 +6,12 @@ editor_options:
 ---
 
 ```{r}
+library(boot)
+
 source(sprintf('%s/github/corona-food-trends/src/R/google_trends_calibration.R', Sys.getenv('HOME')))
+
+# colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#D55E00", "#0072B2", "#CC79A7", "#F0E442")
 
 config <- DEFAULT_CONFIG
 
@@ -25,18 +30,11 @@ plot(G, layout=layout.circle)
 vertex_attr(D) <- list(name=paste(V(D)$name, mid2name(V(D)$name), sep='\n'))
 plot(D, layout=layout_with_sugiyama(D)$layout)
 
-# Sanity check: Is D indeed acyclic as it should be?
-if (!is.dag(D)) warning('Directed graph is not acyclic!')
-
-# Sanity check: Is D connected?
-if (!is.connected(D)) warning('Directed graph is not connected!')
-
 # Sanity check: Which queries are discarded?
 discarded <- setdiff(V(calib$G)$name, V(calib$D)$name)
 mid2name(discarded)
 
-# Plot time series of discarded queries, to verify that we discard only queries
-# whose max volume is below config$thresh_offline in all Google Trends results.
+# Plot time series of discarded queries.
 for (name in discarded) {
   matplot(ts[, colnames(ts) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
 }
@@ -81,10 +79,148 @@ b2 <- binsearch('/m/03m7wd', calib_max_vol, thresh, config, plot=TRUE)
 plot(b1$ts, type='l', col='blue', log='y', ylim=c(1e-4,0.3))
 lines(b2$ts, col='red')
 
-# plot(FOODS$score, panel.first=c(grid()), log='y', type='l')
-# sprintf('https://trends.google.com/trends/explore?date=%s&q=%s', URLencode(TIME),
-#         paste(sapply(keywords, function(x) URLencode(x, reserved=TRUE)), collapse=','))
+b2 <- binsearch('/m/04gkckj', calib_max_vol, thresh, config, plot=TRUE)
 
 
 
+```
+
+# Bin search results
+
+```{r}
+# Load entities from Freebase Easy HTML result page.
+get_entities_from_html <- function(file) {
+  html <- paste(readLines(file), collapse="\n")
+  chunks <- strsplit(html, 'http://www.freebase.com')[[1]]
+  pairs <- sapply(chunks, function(s) sub('^(/m/.*?)" target="_blank">(.*?)</a>.*', '\\1###\\2', s))
+  names(pairs) <- NULL
+  pairs <- pairs[startsWith(pairs, '/m/')]
+  pairs <- do.call(rbind, strsplit(pairs, '###'))
+  mids_to_names <- pairs[,2]
+  names(mids_to_names) <- pairs[,1]
+  mids_to_names
+}
+
+run_binsearch <- function(dataset, mids_to_names, thresh, N, K) {
+  mids <- names(mids_to_names)
+  samples <- mids[seq(1, N, N/K)]
+  file <- sprintf('%s/binsearch/%s/results.thresh=%d.N=%d.K=%d.RData', DATA_DIR, dataset, thresh, N, K)
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    results <- NULL
+    failed <- NULL
+    i <- 0
+    for (mid in samples) {
+      i <- i + 1
+      message(sprintf('%d: %s (%s)', i, mid, mids_to_names[mid]))
+      b <- binsearch(mid, calib_max_vol, THRESH, config)
+      if (!is.null(b)) results[[mid]] <- b
+      else failed <- c(failed, mid)
+    }
+    save(results, failed, file=file)
+  }
+  iter <- sapply(results, function(x) x$iter)
+  ts <- sapply(results, function(x) x$ts)
+  ratio <- sapply(results, function(x) x$ratio)
+  return(list(iter=iter, ts=ts, ratio=ratio, failed=failed))
+}
+
+bootstrap_ci <- function(x, f, R=1000) {
+  bo <- boot(x, statistic=function(d, i) return(f(d[i], na.rm=TRUE)), R=R)
+  ci <- boot.ci(bo, conf=0.95, type="perc")$perc[4:5]
+  if (is.null(ci)) {
+    upper <- lower <- NA
+  } else {
+    lower <- ci[1]
+    upper <- ci[2]
+  } 
+  c(upper, f(x, na.rm=TRUE), lower)
+}
+
+
+
+THRESH <- 10
+
+### Bavaria
+
+dataset <- 'bavaria'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
+result <- run_binsearch(dataset, mids_to_names, thresh=THRESH, N=1000, K=100)
+idx <- order(result$ratio, decreasing=TRUE)
+ts <- result$ts
+matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=2, bty='n',
+        xlab='Week of 2019', ylab='Calibrated search volume')
+i <- 0
+highlights <- c(1,4,6,45,99)
+for (h in highlights) {
+  col <- colorblind_col[(i %% length(colorblind_col))+1]
+  lines(ts[,idx[h]], lwd=3, col=col)
+  i <- i + 1
+}
+legend('topright', mids_to_names[colnames(ts)[idx[highlights]]], lty=1, col=colorblind_col,
+       lwd=3, bty='n', inset=c(0,0.1))
+
+length(failed)
+barplot(tapply(iter, iter, length))
+
+
+### Soccer
+
+dataset <- 'soccer'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
+result <- run_binsearch(dataset, mids_to_names, thresh=THRESH, N=100, K=100)
+idx <- order(result$ratio, decreasing=TRUE)
+ts <- result$ts
+bs <- apply(ts, 1, function(x) bootstrap_ci(x,median,1000))
+
+matplot(ts[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.1), lwd=2, bty='n',
+        xlab='Week of 2019', ylab='Calibrated search volume')
+i <- 0
+highlights<- c(1,4,7,45,80)
+# for (h in highlights) {
+#   col <- colorblind_col[(i %% length(colorblind_col))+1]
+#   lines(ts[,idx[h]], lwd=3, col=col)
+#   i <- i + 1
+# }
+# legend('topright', mids_to_names[colnames(ts)[idx[highlights]]], lty=1, col=colorblind_col,
+#        lwd=3, bty='n', inset=c(0,0.1))
+
+lines(apply(ts, 1, median), type='l', lwd=4)
+lines(bs[1,], type='l', lwd=1)
+lines(bs[3,], type='l', lwd=1)
+
+```
+
+
+# Baseline with randomized version of ring graph
+
+```{r}
+config_rand <- DEFAULT_CONFIG
+config_rand$randomize_ring_order <- TRUE
+
+# Build anchor bank.
+calib <- build_anchor_bank(config_rand)
+G <- calib$G
+D <- calib$D
+ts <- calib$time_series
+calib_max_vol <- calib$calib_max_vol
+
+# Draw DAG.
+vertex_attr(D) <- list(name=paste(V(D)$name, mid2name(V(D)$name), sep='\n'))
+plot(D, layout=layout_with_sugiyama(D)$layout)
+
+# Plot all time series in one plot.
+ts_repr <- t(apply(ts, 1, function(r) tapply(r, colnames(ts), max)))
+ts_repr <- ts_repr[,names(calib_max_vol)]
+ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
+ts_repr <- t(t(ts_repr) * calib_max_vol)
+idx <- ncol(ts_repr):1
+matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
+legend('topright', mid2name(names(calib_max_vol))[idx], lty=1, col=1:6, bty='n')
+
+# Test binary search.
+thresh <- 10
+# Facebook
+b <- binsearch('/m/02y1vz', calib_max_vol, thresh, config, plot=TRUE)
 ```
