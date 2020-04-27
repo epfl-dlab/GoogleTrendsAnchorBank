@@ -1,2 +1,2 @@
-# Food consumption during the Covid-19 crisis
+# Google Trends Anchor Bank (G-TAB)
 
