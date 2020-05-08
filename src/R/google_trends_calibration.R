@@ -7,7 +7,7 @@ options(stringsAsFactors=FALSE)
 # Constants
 ###############################################################################
 
-DATA_DIR <- sprintf('%s/github/corona-food-trends/data', Sys.getenv('HOME'))
+DATA_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank/data', Sys.getenv('HOME'))
 
 # num_anchors should be even; num_anchor_candidates should be a multiple of num_anchors/2.
 DEFAULT_CONFIG <- list(num_anchors=100,

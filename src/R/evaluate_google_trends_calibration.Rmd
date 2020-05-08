@@ -8,7 +8,7 @@ editor_options:
 ```{r}
 library(boot)
 
-source(sprintf('%s/github/corona-food-trends/src/R/google_trends_calibration.R', Sys.getenv('HOME')))
+source(sprintf('%s/github/GoogleTrendsAnchorBank/src/R/google_trends_calibration.R', Sys.getenv('HOME')))
 
 # Set this to FALSE if you don't want to save plots to PDFs.
 SAVE_PLOTS <- TRUE
@@ -91,7 +91,6 @@ legend('topright', legend=c(expression(paste('Reference query ', italic(Q))), 'N
        bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
 if (SAVE_PLOTS) dev.off()
 
-
 # Test binary search.
 thresh <- 10
 # Jever
@@ -100,15 +99,11 @@ b <- binsearch('/m/0fxy5k', calib_max_vol, thresh, config, plot=TRUE)
 b <- binsearch('/m/0h5z20c', calib_max_vol, thresh, config, plot=TRUE)
 # Stanford University
 b <- binsearch('/m/06pwq', calib_max_vol, thresh, config, plot=TRUE)
-
-
-
 ```
 
 # Bin search results
 
 ```{r}
-
 thresh <- 10
 config$sleep <- 1
 
@@ -209,7 +204,8 @@ par(mar=c(3.5, 3.5, 1.0, 0.2))
 matplot(result_highlights$ts, type='l', lty=1, log='', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
 axis(1); mtext('Week of 2019', side=1, line=2.5)
 axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
-legend('topright', names(highlights), lty=1, col=colorblind_col, lwd=2, bty='n', inset=c(0,0.4))
+idx <- c(1,3,2,4,5)
+legend('topright', names(highlights)[idx], lty=1, col=colorblind_col[idx], lwd=2, bty='n', inset=c(0,0.4))
 if (SAVE_PLOTS) dev.off()
 
 if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LOG.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
