@@ -1,0 +1,4 @@
+Removed queries at iteration 1: ['/m/0rfs2m2', '/m/0cnp1y', '/m/0gzcjz', '/m/0gl3jh5', '/m/02vl8zp', '/m/0x1y1w8', '/m/0b2_6l', '/m/01tqs1', '/m/04jb5kd', '/m/011jxn', '/m/0rp0vlk', '/m/0273qgx', '/m/0h980f3', '/m/014j1m', '/m/0278_js', '/m/0cn1d', '/m/025wxxc', '/m/05n1hk8', '/m/0905g_']
+Removed queries at iteration 2: ['/m/06lh5j', '/m/02q4sty', '/m/0523wqd', '/m/09g6_7k', '/m/0446byb', '/m/0hqwqhm', '/m/0bw3kk', '/m/0416r3y', '/m/066bt5', '/m/01x_c', '/m/05n016l', '/m/0blmsy', '/m/04gkb7l', '/m/0g5q9qw']
+Removed queries at iteration 3: ['/m/04jl4z5', '/m/0p7cg38', '/m/04jmyrb', '/m/02rnfh4', '/m/043sdk', '/m/09l6ys', '/m/03wfhhq', '/m/0vxfrdn']
+Removed queries at iteration 4: ['/m/0h7smk', '/m/07kj1cf', '/m/03stqz', '/m/05pdb4q', '/m/02p0xd4']

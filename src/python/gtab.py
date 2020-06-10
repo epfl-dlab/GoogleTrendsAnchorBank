@@ -11,6 +11,7 @@ import os
 import pickle
 import random
 import time
+import math
 import warnings
 
 import networkx as nx
@@ -69,7 +70,7 @@ class GTAB:
         if use_proxies:
             self.ptrends = TrendReq(hl='en-US', **self.CONN_CONFIG)
         else:
-            self.ptrends = TrendReq(hl='en-US')
+            self.ptrends = TrendReq(hl='en-US', timeout = (20, 20))
 
     ## --- UTILITY METHODS --- #
     def _query_google(self, keywords = ["Keywords"]):
@@ -83,10 +84,13 @@ class GTAB:
         self.ptrends.build_payload(kw_list = keywords, **self.PTRENDS_CONFIG)
         return(self.ptrends.interest_over_time())
 
+    def _is_blacklisted(self, keyword):
+        return not keyword in self.BLACKLIST
+
     def _check_keyword(self, keyword):
         try:
             self._query_google(keywords = keyword)
-            return not keyword in self.BLACKLIST
+            return self._is_blacklisted(keyword)
         except Exception as e:
             print(e)
             if "response" in dir(e):
@@ -98,17 +102,34 @@ class GTAB:
     def _check_ts(self, ts):
         return ts.max().max() >= self.GTAB_CONFIG['thresh_offline']
 
+    def _find_outliers(self, gres):
+        ret = set()
+        for _, val in gres.items():
+            # if any(val.max() < self.GTAB_CONFIG['thresh_offline']):
+            #     ret.add(val.max().idxmax())
+            if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4: # try with 3 as well
+                ret.add(val.max().idxmax())
+
+        return list(ret)
+        
+
+
 
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
         # TODO TEST GEO
-        fpath = os.path.join("data", "google_results_RTEST.pkl") # same nodes are queried as the R implementation
+        # fpath = os.path.join("data", "google_results_RTEST.pkl") # same nodes are queried as the R implementation
+        # fpath = os.path.join("data", "google_test_autotest7.pkl")
+        # fpath = os.path.join("data", "google_test_autotest_time2.pkl")
+        # fpath = os.path.join("data", "google_test_autotest_big.pkl")
         # The following comment block should be used instead of the above line, but we need to find a parameter combination that produces a valid anchor bank automatically.
-        # if self.PTRENDS_CONFIG['geo'] != "":
-        #     fpath = os.path.join("data", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_{self.PTRENDS_CONFIG['geo']}.pkl")
-        # else:
-        #     fpath = os.path.join("data", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}.pkl")
+        if self.PTRENDS_CONFIG['geo'] != "":
+            fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
+            fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
+        else:
+            fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.pkl")
+            fpath_keywords = os.path.join("data", "google_keywords" , f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.pkl")
 
 
         if os.path.exists(fpath):
@@ -117,34 +138,80 @@ class GTAB:
                 ret = pickle.load(f_in)
             return ret
         else:
-            print("Sampling keywords...")
             N = self.GTAB_CONFIG['num_anchor_candidates']
             K = self.GTAB_CONFIG['num_anchors']
 
             ## --- Get stratified samples, 1 per stratum. --- ##
-            random.seed(self.GTAB_CONFIG['seed'])
-            samples = []
-            for j in range(K):
-                start_idx = (j * N) // K
-                end_idx = (((j+1) * N) // K) - 1
-                s1 = random.randint(start_idx, end_idx)
-                samples.append(self.ANCHOR_CANDIDATE_SET.index[s1])
-                    
-            ## --- Query google on keywords and dump the file. --- ##
-            keywords = list(self.HITRAFFIC.values()) + samples
-            assert len(keywords) == (len(samples) + len(self.HITRAFFIC.values()))
-            keywords = [k for k in tqdm(keywords, total = len(keywords)) if self._check_keyword(k)]
-            print(len(keywords))
+            if self.GTAB_CONFIG["kw_file"] == None or self.GTAB_CONFIG["kw_file"].strip() == "":
+                print("Sampling keywords...")
+                random.seed(self.GTAB_CONFIG['seed'])
+                samples = []
+                for j in range(K):
+                    start_idx = (j * N) // K
+                    end_idx = (((j+1) * N) // K) - 1
+                    s1 = random.randint(start_idx, end_idx)
+                    samples.append(self.ANCHOR_CANDIDATE_SET.index[s1])
+
+                keywords = list(self.HITRAFFIC.values()) + samples
+                keywords = [k for k in tqdm(keywords, total = len(keywords)) if self._check_keyword(k)]
+
+            else:
+                print(f"Getting keywords from {self.GTAB_CONFIG['kw_file']}")
+                with open(self.GTAB_CONFIG['kw_file'], 'rb') as f_kw_in:
+                    keywords = pickle.load(f_kw_in)         
+                keywords = [k for k in tqdm(keywords, total = len(keywords)) if self._is_blacklisted(k)]
+
+            with open(fpath_keywords, 'wb') as f_out_keywords:
+                pickle.dump(keywords, f_out_keywords, protocol=4)
             
+            keywords = np.array(keywords)
+            
+            ## --- Query google on keywords and dump the file. --- ##
             print("Querying google...")
-            ret = dict()
+            
             #TODO ADD TRY EXCEPT FOR GOOGLE QUERY
-            for i in tqdm(range(0, len(keywords) - 5 + 1)):
-                df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
-                ret[i] = df_query
-        
+            iter = 0
+            outliers = list()
+            while True:
+                print(f"Iteration {iter}...")
+                ret = dict()
+                print(f"Total outliers: {len(outliers)}")
+                print(outliers)
+                keywords = np.delete(keywords, np.where(np.isin(keywords, outliers))[0])
+                print(f"Total keywords after removing outliers: {len(keywords)}")
+                
+                if len(outliers) > 0:
+                    self._log_con.write(f"Removed queries at iteration {iter}: {str(outliers)}\n")
+                    
+                for i in tqdm(range(0, len(keywords) - 5 + 1)):
+
+                    # while True:
+                    #     try:
+                    #         df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
+                    #         break
+                    #     except:
+                    #         continue 
+                    try:
+                        df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
+                        ret[i] = df_query
+                    except Exception as e:
+                        if "response" in dir(e):
+                            if e.response.status_code == 429:
+                                c = input("Quota reached! Please change IP and press any key to continue.")
+                            else:
+                                print(str(e))
+                        
+                        df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
+                        ret[i] = df_query
+
+
+                outliers = self._find_outliers(ret)
+                if len(outliers) == 0:
+                    break
+                iter += 1
+            
             # object id sanity check
-            print(list(ret.keys()))
+            # print(list(ret.keys()))
             assert id(ret[0]) != id(ret[1])
 
             with open(fpath, 'wb') as f_out:
@@ -153,30 +220,74 @@ class GTAB:
             return(ret)
 
     def _compute_max_ratios(self, google_results):
-        anchors = []
-        v1 = []
-        v2 = []
-        ratios_vec = []
+        t_anchors = []
+        t_v1 = []
+        t_v2 = []
+        t_ratios_vec = []
+        inverse_ratios = dict()
 
         for _, val in google_results.items():
             for j in range(val.shape[1]-1):
                 for k in range(j + 1, val.shape[1]):
                     if(self._check_ts(val.iloc[:, j]) and self._check_ts(val.iloc[:, k])):
-                        anchors.append(val.columns[0]) # first element of group
-                        v1.append(val.columns[j])
-                        v2.append(val.columns[k])
-                        ratios_vec.append(val.iloc[:, j].max().max() / val.iloc[:, k].max().max())
 
+                        t_anchors.append(val.columns[0]) # first element of group
+                        t_v1.append(val.columns[j])
+                        t_v2.append(val.columns[k])
+
+                        vpair = " ".join([val.columns[j], val.columns[k]])
+                        t_ratio = val.iloc[:, j].max().max() / val.iloc[:, k].max().max()
+
+                        if vpair not in inverse_ratios.keys():
+                            inverse_ratios[vpair] = [0, 0] # <, >
+                        if t_ratio < 1.0:
+                            inverse_ratios[vpair][0] += 1
+                        elif t_ratio > 1.0:
+                            inverse_ratios[vpair][1] += 1
+
+                        t_ratios_vec.append(t_ratio)
+                        
+
+        # filter where <>1 inversion happens
+        anchors = []
+        v1 = []
+        v2 = []
+        ratios_vec = []
+
+        for j in range(len(t_ratios_vec)):
+            vpair = " ".join([t_v1[j], t_v2[j]])
+
+            if inverse_ratios[vpair][0] > 0 and inverse_ratios[vpair][1] > 0:
+                if inverse_ratios[vpair][0] >= inverse_ratios[vpair][1]:
+                    if t_ratios_vec[j] < 1.0:
+                        anchors.append(t_anchors[j])
+                        v1.append(t_v1[j])
+                        v2.append(t_v2[j])
+                        ratios_vec.append(t_ratios_vec[j])
+                else:
+                    if t_ratios_vec[j] > 1.0:
+                        anchors.append(t_anchors[j])
+                        v1.append(t_v1[j])
+                        v2.append(t_v2[j])
+                        ratios_vec.append(t_ratios_vec[j])
+            else:
+                anchors.append(t_anchors[j])
+                v1.append(t_v1[j])
+                v2.append(t_v2[j])
+                ratios_vec.append(t_ratios_vec[j])
+        
+            
         # If ratio > 1, flip positions and change ratio value to 1/ratio.
         for j in range(len(ratios_vec)):
-            if ratios_vec[j] > 1: # if ratio >= 1?
-                ratios_vec[j] = 1./ratios_vec[j]
+            vpair = " ".join([v1[j], v2[j]])
+            if ratios_vec[j] > 1.0: # and not inverse_ratios[vpair][0] or not inverse_ratios[vpair][1]:
                 v1[j], v2[j] = v2[j], v1[j]
+                ratios_vec[j] = 1./ratios_vec[j]
         
         # Handle edge-case where ratio == 1
         pair_names = [" ".join(el) for el in zip(np.array(v1)[np.array(ratios_vec) < 1.0], np.array(v2)[np.array(ratios_vec) < 1.0])]
         for i in range(len(ratios_vec)):
-            if ratios_vec[i] == 1:
+            if math.isclose(ratios_vec[i], 1.0):
                 if " ".join([v1[i], v2[i]]) in pair_names:
                     continue
                 elif " ".join([v2[i], v1[i]]) in pair_names:
@@ -239,34 +350,44 @@ class GTAB:
         return W
         
     ## --- "EXPOSED" METHODS --- ##
-    def init(self):
+    def init(self, verbose = False):
         """
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
 
-        self._log_con = open("log.txt", "w")
+        self._log_con = open(os.path.join("log", f"log_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.txt"), 'w')
+        # self._log_con = open("log.txt", "w")
+
+        if verbose:
+            print(self.GTAB_CONFIG)
+            print(self.PTRENDS_CONFIG)
         google_results = self._get_google_results() 
-        time_series = pd.concat([google_results[0], google_results[1]], axis=1)
+        print(f"Total queries (groups of 5 keywords): {len(google_results)}")
+        time_series = pd.concat(google_results, axis=1)
         ratios = self._compute_max_ratios(google_results)   
         G = nx.convert_matrix.from_pandas_edgelist(ratios, 'v1', 'v2', create_using = nx.DiGraph)
 
-        print(nx.number_connected_components(nx.Graph(G)))
         if not nx.is_directed_acyclic_graph(G):
             warnings.warn("Directed graph is not acyclic!") 
+            print(f"Cycles are: {list(nx.algorithms.cycles.simple_cycles(G))}")
+            self._log_con.write(f"Cycles are: {list(nx.algorithms.cycles.simple_cycles(G))}\n")
         if not nx.is_weakly_connected(G):
+            print(f"Num. connected components: {nx.number_connected_components(nx.Graph(G))}")
             warnings.warn("Directed graph is not connected!")
 
-        
-    
         W = self._infer_all_ratios(ratios)
         err = np.nanmax(np.abs(1 - W * W.transpose()))
 
         # colSums equivalent is df.sum(axis = 0)
         ref_anchor = W[(W > 1).sum(axis = 0) == 0].index[0]
         
-        if len(ref_anchor) > 1 and type(ref_anchor) is not str: 
+        if len(ref_anchor) > 1 and type(ref_anchor) is not str and type(ref_anchor) is not np.str_: 
+            # print(ref_anchor)
+            # print(type(ref_anchor))
             ref_anchor = (W.loc[:, ref_anchor] > 0).sum(axis = 0).idxmax()[0]
 
+        self.google_results = google_results
+        self.G = G
         self.ref_anchor = ref_anchor
         self.err = err
         self.W = W
@@ -276,6 +397,7 @@ class GTAB:
         self._init_done = True
 
         self._log_con.close()
+        print("Done.")
 
 
     def new_query(self, keyword):
@@ -331,5 +453,5 @@ class GTAB:
 if __name__ == '__main__':
 
     t = GTAB(use_proxies = False)
-    t.init()
+    t.init(verbose = True)
    

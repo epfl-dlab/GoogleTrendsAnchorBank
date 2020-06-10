@@ -1,0 +1,3 @@
+Removed queries at iteration 1: ['/m/0bp_wy', '/m/03c8xt9', '/m/06w7f26', '/m/054hcy', '/m/08bk3g', '/m/0kpqd', '/m/0cnp1y', '/m/0f9p0f', '/m/05t4pp', '/m/079dl7', '/m/06mnj7', '/m/025rthl', '/m/09gqg6c', '/m/02wwzm8', '/m/088vrn', '/m/04sg5']
+Removed queries at iteration 2: ['/m/07zw4b', '/m/03qj7cp', '/m/04cym9']
+Cycles are: [('/m/025sft7', '/m/02w2hqc'), ('/m/02w2hqc', '/m/025sft7')]
