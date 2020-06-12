@@ -102,6 +102,14 @@ class GTAB:
     def _check_ts(self, ts):
         return ts.max().max() >= self.GTAB_CONFIG['thresh_offline']
 
+    def _check_group(self, val):
+        ret = None
+        idx = None
+        if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4: # try with 3 as well
+            ret = val.max().idxmax()
+            idx = np.where(val.columns == ret)
+        return ret, idx
+
     def _find_outliers(self, gres):
         ret = set()
         for _, val in gres.items():
@@ -124,7 +132,11 @@ class GTAB:
         # fpath = os.path.join("data", "google_test_autotest_time2.pkl")
         # fpath = os.path.join("data", "google_test_autotest_big.pkl")
         # The following comment block should be used instead of the above line, but we need to find a parameter combination that produces a valid anchor bank automatically.
-        if self.PTRENDS_CONFIG['geo'] != "":
+
+        if self.GTAB_CONFIG["anchor_file"].strip() != "" and self.GTAB_CONFIG["anchor_file"] != None:
+            fpath = os.path.join("data", "google_results", self.GTAB_CONFIG["anchor_file"])
+            fpath_keywords = os.path.join("data", "google_keywords", self.GTAB_CONFIG["anchor_file"])
+        elif self.PTRENDS_CONFIG['geo'].strip() != "":
             fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
             fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
         else:
@@ -168,50 +180,66 @@ class GTAB:
             
             ## --- Query google on keywords and dump the file. --- ##
             print("Querying google...")
-            
-            #TODO ADD TRY EXCEPT FOR GOOGLE QUERY
-            iter = 0
-            outliers = list()
+    
+        
+            ret = dict()                
+
+            max_i = 0
+            i = 0
+            lim = len(keywords) - 5 + 1
+            prog_bar = tqdm(total = lim)
+
             while True:
-                print(f"Iteration {iter}...")
-                ret = dict()
-                print(f"Total outliers: {len(outliers)}")
-                print(outliers)
-                keywords = np.delete(keywords, np.where(np.isin(keywords, outliers))[0])
-                print(f"Total keywords after removing outliers: {len(keywords)}")
-                
-                if len(outliers) > 0:
-                    self._log_con.write(f"Removed queries at iteration {iter}: {str(outliers)}\n")
-                    
-                for i in tqdm(range(0, len(keywords) - 5 + 1)):
-
-                    # while True:
-                    #     try:
-                    #         df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
-                    #         break
-                    #     except:
-                    #         continue 
-                    try:
-                        df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
-                        ret[i] = df_query
-                    except Exception as e:
-                        if "response" in dir(e):
-                            if e.response.status_code == 429:
-                                c = input("Quota reached! Please change IP and press any key to continue.")
-                            else:
-                                print(str(e))
-                        
-                        df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
-                        ret[i] = df_query
-
-
-                outliers = self._find_outliers(ret)
-                if len(outliers) == 0:
+                if i >= lim:
                     break
-                iter += 1
-            
+                
+                try:
+                    df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
+                except Exception as e:
+                    if "response" in dir(e):
+                        if e.response.status_code == 429:
+                            c = input("Quota reached! Please change IP and press any key to continue.")
+                            
+                            df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
+                        else:
+                            print(str(e))
+
+                outlier_name, outlier_idx = self._check_group(df_query)
+
+
+                if outlier_name == None:
+                    ret[i] = df_query
+                else:
+                    self._log_con.write(f"Removed bad keyword: {str(outlier_name)}\n")
+                    print(f"\nRemoved bad keyword: {str(outlier_name)}\n")
+                    print(df_query)
+                    # print(outlier_idx[0][0])
+                    outlier_idx = outlier_idx[0][0]
+                    # print(keywords)
+                    keywords = np.delete(keywords, i + outlier_idx)
+                    # print(keywords)
+                    curr_i = i
+                    i += outlier_idx - 5
+                    lim -= 1
+                    for t_i in range(i+1, curr_i):
+                        # print(t_i, end = " ")
+                        if t_i in ret:
+                            # print(ret[t_i])
+                            del ret[t_i]
+                    prog_bar.update(0)
+
+                i += 1
+                max_i = max(i, max_i)
+                if i == max_i:
+                    prog_bar.update(1)
+
+            if max_i > lim:
+                print(max_i)
+                print(lim)
+                raise ValueError("RIP")
+            prog_bar.close()
+
             # object id sanity check
-            # print(list(ret.keys()))
             assert id(ret[0]) != id(ret[1])
 
             with open(fpath, 'wb') as f_out:
