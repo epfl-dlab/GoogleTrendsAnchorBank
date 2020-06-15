@@ -439,7 +439,7 @@ class GTAB:
             fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.tsv")
 
         print(f"Saving anchorbank to {fname}...")
-        self.calib_max_vol.to_csv(fname, sep = '\t')
+        self.calib_max_vol.to_csv(fname, sep = '\t', header = False)
 
         
 
