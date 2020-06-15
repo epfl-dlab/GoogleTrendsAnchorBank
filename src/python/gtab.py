@@ -79,7 +79,7 @@ class GTAB:
             keywords = [keywords]
     
         if len(keywords) > 5:
-            raise ValueError("Query keywords must be less than 5.")
+            raise ValueError("Query keywords must be at most than 5.")
 
         self.ptrends.build_payload(kw_list = keywords, **self.PTRENDS_CONFIG)
         return(self.ptrends.interest_over_time())
@@ -126,16 +126,16 @@ class GTAB:
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        # TODO TEST GEO
         # fpath = os.path.join("data", "google_results_RTEST.pkl") # same nodes are queried as the R implementation
         # fpath = os.path.join("data", "google_test_autotest7.pkl")
         # fpath = os.path.join("data", "google_test_autotest_time2.pkl")
         # fpath = os.path.join("data", "google_test_autotest_big.pkl")
         # The following comment block should be used instead of the above line, but we need to find a parameter combination that produces a valid anchor bank automatically.
 
+        # TODO: make the settings as a suffix, you use it a lot
         if self.GTAB_CONFIG["anchor_file"].strip() != "" and self.GTAB_CONFIG["anchor_file"] != None:
-            fpath = os.path.join("data", "google_results", self.GTAB_CONFIG["anchor_file"])
-            fpath_keywords = os.path.join("data", "google_keywords", self.GTAB_CONFIG["anchor_file"])
+            fpath = os.path.join("data", "google_results", self.GTAB_CONFIG["anchor_file"] + ".pkl")
+            fpath_keywords = os.path.join("data", "google_keywords", self.GTAB_CONFIG["anchor_file"] + ".pkl")
         elif self.PTRENDS_CONFIG['geo'].strip() != "":
             fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
             fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
@@ -414,6 +414,7 @@ class GTAB:
             # print(type(ref_anchor))
             ref_anchor = (W.loc[:, ref_anchor] > 0).sum(axis = 0).idxmax()[0]
 
+    
         self.google_results = google_results
         self.G = G
         self.ref_anchor = ref_anchor
@@ -423,6 +424,18 @@ class GTAB:
         self.ratios = ratios    
         self.time_series = time_series
         self._init_done = True
+
+        if self.GTAB_CONFIG["anchor_file"].strip() != "" and self.GTAB_CONFIG["anchor_file"] != None:
+            fname = os.path.join("data", "google_anchorbanks", self.GTAB_CONFIG["anchor_file"] + ".tsv")
+        elif self.PTRENDS_CONFIG['geo'].strip() != "":
+            fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.tsv")    
+        else:
+            fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.tsv")
+
+        self.calib_max_vol.to_csv(fname, sep = '\t')
+
+        
+
 
         self._log_con.close()
         print("Done.")
