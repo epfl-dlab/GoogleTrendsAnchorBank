@@ -4,14 +4,15 @@
 # 1.) US, Sweden, Italy, Switzerland
 # 2.) Germany, UK, Spain
 
-import copy
 import ast
 import codecs
+import copy
+import datetime
+import math
 import os
 import pickle
 import random
 import time
-import math
 import warnings
 
 import networkx as nx
@@ -19,6 +20,7 @@ import numpy as np
 import pandas as pd
 from pytrends.request import TrendReq
 from tqdm import tqdm
+
 
 class GTAB:
 
@@ -64,7 +66,7 @@ class GTAB:
         self.ANCHOR_CANDIDATE_SET.rename(index = {k: v for k, v in enumerate(list(self.ANCHOR_CANDIDATE_SET['mid']))}, inplace = True)
         mask = (np.array(self.ANCHOR_CANDIDATE_SET['is_dish'] == 1) | np.array(self.ANCHOR_CANDIDATE_SET['is_food'] == 1))
         self.ANCHOR_CANDIDATE_SET = self.ANCHOR_CANDIDATE_SET[mask]
-        self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t',  'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr' , 'Airbnb': '/m/010qmszp'}#, 'Coca-Cola': '/m/01yvs'}
+        self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll', 'Amazon.com': '/m/0mgkg', 'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t',  'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr' , 'Airbnb': '/m/010qmszp'}#, 'Coca-Cola': '/m/01yvs'}
         self._init_done = False
         
         if use_proxies:
@@ -188,6 +190,7 @@ class GTAB:
             i = 0
             lim = len(keywords) - 5 + 1
             prog_bar = tqdm(total = lim)
+            bad_queries = 0
 
             while True:
                 if i >= lim:
@@ -206,13 +209,14 @@ class GTAB:
 
                 outlier_name, outlier_idx = self._check_group(df_query)
 
-
+                
                 if outlier_name == None:
                     ret[i] = df_query
                 else:
+                    bad_queries += 1
                     self._log_con.write(f"Removed bad keyword: {str(outlier_name)}\n")
                     print(f"\nRemoved bad keyword: {str(outlier_name)}\n")
-                    print(df_query)
+                    # print(df_query)
                     # print(outlier_idx[0][0])
                     outlier_idx = outlier_idx[0][0]
                     # print(keywords)
@@ -238,11 +242,12 @@ class GTAB:
                 print(lim)
                 raise ValueError("RIP")
             prog_bar.close()
-
+            self._log_con.write(f"Total of {bad_queries} bad keywords removed.\n")
             # object id sanity check
             assert id(ret[0]) != id(ret[1])
 
             with open(fpath, 'wb') as f_out:
+                print(f"Saving anchorbank (pkl) to {fpath}...")
                 pickle.dump(ret, f_out, protocol=4)
 
             return(ret)
@@ -383,7 +388,8 @@ class GTAB:
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
 
-        self._log_con = open(os.path.join("log", f"log_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.txt"), 'w')
+        self._log_con = open(os.path.join("log", f"log_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.txt"), 'a')
+        self._log_con.write(f"\n{datetime.datetime.now()}")
         # self._log_con = open("log.txt", "w")
 
         if verbose:
@@ -408,7 +414,7 @@ class GTAB:
 
         # colSums equivalent is df.sum(axis = 0)
         ref_anchor = W[(W > 1).sum(axis = 0) == 0].index[0]
-        
+        print(f"ref_anchors are {ref_anchor}...")
         if len(ref_anchor) > 1 and type(ref_anchor) is not str and type(ref_anchor) is not np.str_: 
             # print(ref_anchor)
             # print(type(ref_anchor))
@@ -432,6 +438,7 @@ class GTAB:
         else:
             fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.tsv")
 
+        print(f"Saving anchorbank to {fname}...")
         self.calib_max_vol.to_csv(fname, sep = '\t')
 
         
@@ -495,4 +502,3 @@ if __name__ == '__main__':
 
     t = GTAB(use_proxies = False)
     t.init(verbose = True)
-   
