@@ -6,7 +6,7 @@ options(stringsAsFactors=FALSE)
 ###############################################################################
 # Constants
 ###############################################################################
-# DATA_DIR <- "../../data/"
+#DATA_DIR <- "../../data/"
 DATA_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank/data', Sys.getenv('HOME'))
 
 # num_anchors should be even; num_anchor_candidates should be a multiple of num_anchors/2.
@@ -48,28 +48,33 @@ build_anchor_bank <- function(config) {
   ratios <- compute_max_ratios(google_results, plot=FALSE)
   
   # Make DAG induced by ratios.
-  D <- graph_from_data_frame(ratios)
+  # D <- graph_from_data_frame(ratios)
   
   # Sanity check: Is D indeed acyclic as it should be?
-  if (!is.dag(D)) warning('Directed graph is not acyclic!')
+  # if (!is.dag(D)) warning('Directed graph is not acyclic!')
   
   # Sanity check: Is D connected?
-  if (!is.connected(D)) warning('Directed graph is not connected!')
+  # if (!is.connected(D)) warning('Directed graph is not connected!')
   
   # Propagate ratios through the graph via matrix multiplication.
   W <- infer_all_ratios(ratios)
   err <- max(abs(1-W*t(W)), na.rm=TRUE)
-  
+
+  opt_query_set <- find_optimal_query_set(W)
+
   # The top keyword is the one with which all other keywords have a ratio < 1.
-  ref_anchor <- names(which(colSums(W > 1) == 0))
-  
-  if (length(ref_anchor) > 1) {
-    warning('There are multiple top keywords! Choosing the one from the largest component.')
-    ref_anchor <- ref_anchor[which.max(colSums(W[,ref_anchor] > 0))]
-  }
+  # top_anchor <- opt_query_set$mids[1]
   
   # Calibrate all other anchors against the top anchor.
-  calib_max_vol <- sort(W[,ref_anchor])
+  Ws <- build_optimal_anchor_bank(opt_query_set$mids)
+  W <- Ws$W
+  W_hi <- Ws$W_hi
+  W_lo <- Ws$W_lo
+
+  ordered_mids <- colnames(W)[order(W[1,])]
+  median_mid <- ordered_mids[floor(length(ordered_mids)/2)]
+
+  ...........................
   
   list(G=G, time_series=time_series, ratios=ratios, D=D, W=W, err=err, ref_anchor=ref_anchor,
        calib_max_vol=calib_max_vol)
@@ -179,11 +184,36 @@ load_google_results <- function(G, config) {
   return(google_results)
 }
 
+compute_hi_and_lo <- function(max1, max2) {
+  if (max1 < 100) {
+    hi1 <- max1 + 0.5
+    lo1 <- max1 - 0.5
+  } else {
+    hi1 <- lo1 <- 100
+  }
+  if (max2 < 100) {
+    hi2 <- max2 + 0.5
+    lo2 <- max2 - 0.5
+  } else {
+    hi2 <- lo2 <- 100
+  }
+  if (max1 == 100 && max2 == 100) {
+    lo1 <- lo2 <- 99.5
+  }
+  result <- c(lo1, hi1, lo2, hi2)
+  names(result) <- c('lo1', 'hi1', 'lo2', 'hi2')
+  return(result)
+}
+
 compute_max_ratios <- function(google_results, plot=FALSE) {
   anchors <- NULL
   v1 <- NULL
   v2 <- NULL
   ratios_vec <- NULL
+  ratios_lo_vec <- NULL
+  ratios_hi_vec <- NULL
+  errors_vec <- NULL
+  log_errors_vec <- NULL
   
   for (v in names(google_results)) {
     ts <- google_results[[v]]
@@ -193,99 +223,167 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
     }
     for (j in 1:ncol(ts)) {
       for (k in 1:ncol(ts)) {
-        if (j < k) {
+        if (j != k) {
           if (time_series_ok(ts[,j], config) && time_series_ok(ts[,k], config)) {
             anchors <- c(anchors, v)
             v1 <- c(v1, colnames(ts)[j])
             v2 <- c(v2, colnames(ts)[k])
-            ratios_vec <- c(ratios_vec, max(ts[,j])/max(ts[,k]))
+            max1 <- max(ts[,j])
+            max2 <- max(ts[,k])
+            hi_and_lo <- compute_hi_and_lo(max1, max2)
+            hi1 <- hi_and_lo['hi1']
+            lo1 <- hi_and_lo['lo1']
+            hi2 <- hi_and_lo['hi2']
+            lo2 <- hi_and_lo['lo2']
+            ratios_vec <- c(ratios_vec, max1/max2)
+            ratios_lo_vec <- c(ratios_lo_vec, lo1/hi2)
+            ratios_hi_vec <- c(ratios_hi_vec, hi1/lo2)
+            errors_vec <- c(errors_vec, hi1/lo1 * hi2/lo2)
+            log_errors_vec <- c(log_errors_vec, log(hi1/lo1*hi2/lo2))
           }
         }
       }
     }
   }
   
-  ratios <- data.frame(anchor=anchors, v1=v1, v2=v2, ratio=ratios_vec)
+  ratios <- data.frame(v1=v1, v2=v2, anchor=anchors,
+                       ratio=ratios_vec, ratio_lo=ratios_lo_vec, ratio_hi=ratios_hi_vec,
+                       error=errors_vec, weight=log_errors_vec)
   
-  # Flip edges so they all point from higher- to lower-volume keywords.
-  for (r in 1:nrow(ratios)) {
-    if (ratios$ratio[r] > 1) {
-      tmp <- ratios$v1[r]
-      ratios$v1[r] <- ratios$v2[r]
-      ratios$v2[r] <- tmp
-      ratios$ratio[r] <- 1 / ratios$ratio[r]
-    }
-  }
-  
-  # Take care of the special case of ratio == 1.
-  idx0 <- which(ratios$ratio < 1)
-  pair_names <- unique(paste(ratios$v1[idx0], ratios$v2[idx0], sep=' '))
-  for (i in 1:nrow(ratios)) {
-    if (ratios$ratio[i] == 1) {
-      if ((paste(ratios$v1[i], ratios$v2[i], sep=' ') %in% pair_names)) {
-        # Nothing to do.
-      } else if ((paste(ratios$v2[i], ratios$v1[i], sep=' ') %in% pair_names)) {
-        tmp <- ratios$v1[i]
-        ratios$v1[i] <- ratios$v2[i]
-        ratios$v2[i] <- tmp
-      } else {
-        tmp <- sort(c(ratios$v1[i], ratios$v2[i]))
-        ratios$v1[i] <- tmp[1]
-        ratios$v2[i] <- tmp[2]
-      }
-    }
-  }
-  
-  ratios_aggr <- as.data.frame(t(simplify2array(by(ratios[,c('v1', 'v2', 'ratio')],
-                                                   paste(ratios$v1, ratios$v2),
-                                                   function(r) c(mean(r$ratio), sd(r$ratio))))))
-  ratios_aggr <- cbind(do.call(rbind, strsplit(rownames(ratios_aggr), ' ')), ratios_aggr)
-  colnames(ratios_aggr) <- c('v1', 'v2', 'mean_ratio', 'sd_ratio')
-  return(ratios_aggr)
+  return(ratios)
 }
 
-infer_all_ratios <- function(ratios_aggr) {
-  Vcore <- unique(c(ratios_aggr$v1, ratios_aggr$v2))
-  W0 <- matrix(data=0, nrow=length(Vcore), ncol=length(Vcore), dimnames=list(Vcore,Vcore))
-  A0 <- W0
+infer_all_ratios <- function(ratios) {
+  graph <- graph_from_data_frame(ratios)
+  if (!is.connected(graph)) warning('Graph is not connected!')
+  epaths <- lapply(as.list(V(graph)$name), function(v) shortest_paths(graph, from=v, mode='out', output='epath')$epath)
+  names(epaths) <- V(graph)$name
+
+  # d <- distances(graph, mode='out')
+  # idx <- sort(rownames(d))
+  # d <- d[idx,idx]
   
-  for (u in Vcore) {
-    for (v in Vcore) {
-      # Set diagonal to 1.
-      if (u == v) {
-        ratio <- 1
-      } else {
-        uv <- paste(c(u,v), collapse=' ')
-        ratio <- ratios_aggr[uv, 'mean_ratio']
-      }
-      if (is.finite(ratio)) {
-        W0[u,v] <- ratio
-        W0[v,u] <- 1/ratio
-        A0[u,v] <- 1
-        A0[v,u] <- 1
-      }
-    }
+  aggr <- function(graph, epaths, attr) {
+    mat <- t(sapply(epaths, function(epaths_for_source)
+      sapply(epaths_for_source, function(es) prod(edge_attr(graph, attr, es)))))
+    colnames(mat) <- V(graph)$name
+    return(mat)
   }
   
-  A <- A0
-  W <- W0
+  W     <- aggr(graph, epaths, 'ratio')
+  W_hi  <- aggr(graph, epaths, 'ratio_hi')
+  W_lo  <- aggr(graph, epaths, 'ratio_lo')
+  W_err <- aggr(graph, epaths, 'error')
   
-  repeat {
-    AA <- A %*% A
-    # If we already have the ratio, don't recompute it.
-    WW <- A * W + (1-A) * ((W %*% W) / AA)
-    # Print the maximum error.
-    # print(max(abs(1-WW*t(WW)), na.rm=TRUE))
-    WW[is.nan(WW)] <- 0
-    W <- WW
-    A_old <- A
-    # Update the binary adjacency matrix.
-    A <- (AA > 0) * 1
-    if (all(A==A_old)) break
-  }
+  # Sanity check: W_hi/W_lo == W_err
+  # max(W_hi/W_lo - W_err)
   
   return(W)
 }
+
+find_optimal_query_set <- function(W) {
+  get_extreme <- function(sign) {
+    ext <- names(which(apply(sign*W <= sign, 2, all)))
+    if (length(ext) > 1) {
+      warning(sprintf('There are multiple extreme keywords of sign %d! Choosing the one from the largest component.', sign))
+      ext <- ext[which.max(colSums(W[,ext] > 0))]
+    }
+    return(ext)
+  }
+  top <- get_extreme(1)
+  bot <- get_extreme(-1)
+
+  D <- graph_from_adjacency_matrix(abs(log(W)-1), weighted=TRUE)
+  sp <- shortest_paths(D, from=top, to=bot, mode='out', output='both')
+  vpath <- sp$vpath[[1]]
+  epath <- sp$epath[[1]]
+  ratios <- apply(ends(D, epath), 1, function(vs) W[vs[2],vs[1]])
+  return(list(mids=vpath$name, ratios=ratios))
+}
+
+#########################################
+build_optimal_anchor_bank <- function(mids) {
+  N <- length(mids)
+  file <- sprintf('%s/calibration/pairwise_ts.%s.RData', DATA_DIR, make_RData_file_suffix(config))
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    pairwise_ts <- list()
+    for (i in 2:N) {
+      keywords <- mids[(i-1):i]
+      mid_pair <- paste(keywords, collapse=' ')
+      name_pair <- paste(mid2name(keywords), collapse=', ')
+      print(sprintf('%d: keywords: %s (%s)', i, mid_pair, name_pair))
+      trends <- query_google(keywords, config)
+      pairwise_ts[[mid_pair]] <- trends$ts
+    }
+    save(pairwise_ts, file=file)
+  }
+
+  # Add ratio 1 for reference query itself.
+  pairwise_max_ratios <- c(1, sapply(pairwise_ts, function(ts) max(ts[,2])/100))
+  pairwise_max_ratios_hi <- c(1, sapply(pairwise_ts, function(ts) (max(ts[,2])+0.5)/100))
+  pairwise_max_ratios_lo <- c(1, sapply(pairwise_ts, function(ts) (max(ts[,2])-0.5)/100))
+  names(pairwise_max_ratios) <- names(pairwise_max_ratios_hi) <- names(pairwise_max_ratios_lo) <- mids
+  
+  W <- W_hi <- W_lo <- matrix(nrow=N, ncol=N, dimnames=list(mids, mids))
+  for (i in 1:N)    W[i,] <- cumprod(pairwise_max_ratios[1:N])/prod(pairwise_max_ratios[1:i])
+  for (i in 1:N) W_hi[i,] <- cumprod(pairwise_max_ratios_hi[1:N])/prod(pairwise_max_ratios_hi[1:i])
+  for (i in 1:N) W_lo[i,] <- cumprod(pairwise_max_ratios_lo[1:N])/prod(pairwise_max_ratios_lo[1:i])
+  
+  return(list(W=W, W_hi=W_hi, W_lo=W_lo))
+}
+
+# Visualize step sizes.
+plot(log(sort(W[fb,])), panel.first=grid())
+es <- epaths[[fb]][[which(names(epaths)==names(which.max(W[fb,])))]]
+abline(h=cumsum(c(0, log(es$ratio))), col='green')
+abline(h=log(1/calib_max_vol), col='red')
+#########################################
+
+
+# infer_all_ratios__OLD <- function(ratios_aggr) {
+#   Vcore <- unique(c(ratios_aggr$v1, ratios_aggr$v2))
+#   W0 <- matrix(data=0, nrow=length(Vcore), ncol=length(Vcore), dimnames=list(Vcore,Vcore))
+#   A0 <- W0
+#   
+#   for (u in Vcore) {
+#     for (v in Vcore) {
+#       # Set diagonal to 1.
+#       if (u == v) {
+#         ratio <- 1
+#       } else {
+#         uv <- paste(c(u,v), collapse=' ')
+#         ratio <- ratios_aggr[uv, 'mean_ratio']
+#       }
+#       if (is.finite(ratio)) {
+#         W0[u,v] <- ratio
+#         W0[v,u] <- 1/ratio
+#         A0[u,v] <- 1
+#         A0[v,u] <- 1
+#       }
+#     }
+#   }
+#   
+#   A <- A0
+#   W <- W0
+#   
+#   repeat {
+#     AA <- A %*% A
+#     # If we already have the ratio, don't recompute it.
+#     WW <- A * W + (1-A) * ((W %*% W) / AA)
+#     # Print the maximum error.
+#     # print(max(abs(1-WW*t(WW)), na.rm=TRUE))
+#     WW[is.nan(WW)] <- 0
+#     W <- WW
+#     A_old <- A
+#     # Update the binary adjacency matrix.
+#     A <- (AA > 0) * 1
+#     if (all(A==A_old)) break
+#   }
+#   
+#   return(W)
+# }
 
 binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE, quiet=TRUE, silent=FALSE) {
   lo <- 1
