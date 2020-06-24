@@ -3,6 +3,12 @@ library(igraph)
 
 options(stringsAsFactors=FALSE)
 
+###### TODO:
+# - add more high-traffic queries, so we get closer to a ratio of e at the top
+# - use line graph instead of ring graph
+# - discard bad queries on the fly (those that break the chain and those for which Google gives an error); add them to a persistent blacklist in a file
+# - rename variables to more closely match the nomenclature and notation of the paper
+
 ###############################################################################
 # Constants
 ###############################################################################
@@ -21,9 +27,6 @@ DEFAULT_CONFIG <- list(num_anchors=100,
 HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
 names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
 
-# LO_TRAFFIC <- c('/m/09xr_3', '/m/0cp4q_')
-# names(LO_TRAFFIC) <- c('FC Wacker Innsbruck', 'Northwood F.C.')
-
 FOODS <- read.table(sprintf('%s/freebase_foods.tsv', DATA_DIR), sep='\t', quote='',
                     comment.char='', header=TRUE, stringsAsFactors=FALSE)
 FOODS <- FOODS[FOODS$is_dish | FOODS$is_food,]
@@ -37,7 +40,6 @@ BLACKLIST <- c('/m/0bcgdv') # Irvingia gabonensis
 
 build_anchor_bank <- function(config) {
   # Load ring graph.
-  # TODO: use line graph instead!
   G <- load_anchor_ring_graph(config)
   
   # Load Google results.
@@ -48,7 +50,6 @@ build_anchor_bank <- function(config) {
   ratios <- compute_max_ratios(google_results, plot=FALSE)
   
   # Estimate max ratios for all query pairs.
-  ### TODO: rename to R!
   Ws0 <- infer_all_ratios(ratios)
   W0 <- Ws0$W
   W0_hi <- Ws0$W_hi
@@ -76,13 +77,15 @@ build_anchor_bank <- function(config) {
   ref_anchor <- names(which.min(abs(W[top_anchor,] - median(W0[top_anchor,]))))
   
   # The final anchor bank consists of the optimal query set calibrated against the reference anchor.
-  anchor_bank <- W[ref_anchor,]
   # We also provide the upper and lower bounds for each max ratio.
-  hi <- W_hi[ref_anchor,]
-  lo <- W_lo[ref_anchor,]
+  anchor_bank <- W[ref_anchor,]
+  anchor_bank_hi <- W_hi[ref_anchor,]
+  anchor_bank_lo <- W_lo[ref_anchor,]
   
-  list(anchor_bank=anchor_bank, ref_anchor=ref_anchor, hi=hi, lo=lo,
-       W=W, W_hi=W_hi, W_lo=W_lo, W0=W0, W0_hi=W0_hi, W0_lo=W0_lo, W0_paths=W0_paths,
+  list(anchor_bank=anchor_bank, anchor_bank_hi=anchor_bank_hi, anchor_bank_lo=anchor_bank_lo,
+       ref_anchor=ref_anchor,
+       W=W, W_hi=W_hi, W_lo=W_lo,
+       W0=W0, W0_hi=W0_hi, W0_lo=W0_lo, W0_paths=W0_paths,
        G=G, time_series=time_series, ratios=ratios)
 }
 
@@ -216,8 +219,8 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
   v1 <- NULL
   v2 <- NULL
   ratios <- NULL
-  ratios_lo <- NULL
   ratios_hi <- NULL
+  ratios_lo <- NULL
   errors <- NULL
   log_errors <- NULL
   
@@ -236,11 +239,11 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
             v2 <- c(v2, colnames(ts)[k])
             max1 <- max(ts[,j])
             max2 <- max(ts[,k])
-            hi_and_lo <- compute_hi_and_lo(max1, max2)
-            hi1 <- hi_and_lo['hi1']
-            lo1 <- hi_and_lo['lo1']
-            hi2 <- hi_and_lo['hi2']
-            lo2 <- hi_and_lo['lo2']
+            hilo <- compute_hi_and_lo(max1, max2)
+            hi1 <- hilo['hi1']
+            lo1 <- hilo['lo1']
+            hi2 <- hilo['hi2']
+            lo2 <- hilo['lo2']
             ratios <- c(ratios, max2/max1)
             ratios_hi <- c(ratios_hi, hi2/lo1)
             ratios_lo <- c(ratios_lo, lo2/hi1)
@@ -252,9 +255,9 @@ compute_max_ratios <- function(google_results, plot=FALSE) {
     }
   }
   
-  data.frame(v1=v1, v2=v2, anchor=anchors,
-             ratio=ratios, ratio_hi=ratios_hi, ratio_lo=ratios_lo,
-             error=errors, weight=log_errors)
+  return(data.frame(v1=v1, v2=v2, anchor=anchors,
+                    ratio=ratios, ratio_hi=ratios_hi, ratio_lo=ratios_lo,
+                    error=errors, weight=log_errors))
 }
 
 infer_all_ratios <- function(ratios) {
@@ -263,29 +266,31 @@ infer_all_ratios <- function(ratios) {
   # Sanity check: Is graph connected?
   if (!is.connected(graph)) warning('Graph is not connected!')
 
+  # Compute shortest paths between all pairs of nodes, where log errors serve as edge weights.
   paths <- lapply(as.list(V(graph)$name), function(v) shortest_paths(graph, from=v, mode='out', output='epath')$epath)
   names(paths) <- V(graph)$name
 
-  aggr <- function(graph, paths, attr) {
+  # Helper function for computing the product of edge attributes along paths and storing the results in a matrix.
+  multiply <- function(attr) {
     mat <- t(sapply(paths, function(paths_for_source)
       sapply(paths_for_source, function(es) prod(edge_attr(graph, attr, es)))))
     colnames(mat) <- V(graph)$name
     return(mat)
   }
-  
-  W     <- aggr(graph, paths, 'ratio')
-  W_hi  <- aggr(graph, paths, 'ratio_hi')
-  W_lo  <- aggr(graph, paths, 'ratio_lo')
+  W <- multiply('ratio')
+  W_hi <- multiply('ratio_hi')
+  W_lo <- multiply('ratio_lo')
 
   return(list(W=W, W_hi=W_hi, W_lo=W_lo, paths=paths))
 }
 
 find_optimal_query_set <- function(W0) {
+  # Helper function for getting the most and least frequent queries from the matrix W0.
   get_extreme <- function(type=c('top', 'bottom')) {
     sign <- if (type == 'top') 1 else if (type == 'bottom') -1 else stop("type must be 'top' or 'bottom'")
     ext <- names(which(apply(sign*W0 <= sign, 1, all)))
     if (length(ext) > 1) {
-      warning(sprintf('There are multiple extreme keywords of sign %d! Choosing the one from the largest component.', sign))
+      warning(sprintf('There are multiple %s keywords! Choosing the one from the largest component.', type))
       ext <- ext[which.max(colSums(W0[,ext] > 0))]
     }
     return(ext)
@@ -339,46 +344,73 @@ build_optimal_anchor_bank <- function(mids) {
   return(list(W=W, W_hi=W_hi, W_lo=W_lo))
 }
 
-binsearch <- function(keyword, calib_max_vol, thresh, config, plot=FALSE, quiet=TRUE, silent=FALSE) {
-  lo <- 1
-  hi <- length(calib_max_vol)
-  anchors <- names(calib_max_vol)
+binsearch <- function(query, anchor_bank, anchor_bank_hi, anchor_bank_lo, config,
+                      first_comparison=NULL, thresh=100/exp(1), plot=FALSE, quiet=TRUE, silent=FALSE) {
+  left <- 1
+  right <- length(anchor_bank)
+  anchors <- names(anchor_bank)
   iter <- 0
   tryCatch({
-    while (hi > lo) {
+    while (right > left) {
       iter <- iter + 1
-      pivot <- lo + floor((hi-lo)/2)
+      if (iter == 1) {
+        pivot <- if (is.null(first_comparison)) which(anchor_bank==1) else first_comparison
+      } else {
+        pivot <- left + floor((right-left)/2)
+      }
       anchor <- anchors[pivot]
       if (!quiet) message(sprintf('   Comparing to %s (%s)', anchor, mid2name(anchor)))
-      ts <- query_google(c(keyword, anchor), config)$ts
-      max_keyword <- max(ts[,keyword])
+      ts <- query_google(c(query, anchor), config)$ts
+      max_query <- max(ts[,query])
       max_anchor <- max(ts[,anchor])
       if (plot) {
         matplot(ts, type='l', lty=1, ylim=c(0,100))
-        legend('topright', c(keyword, mid2name(anchor)), lty=1, col=1:2, bty='n')
+        legend('topright', c(query, mid2name(anchor)), lty=1, col=1:2, bty='n')
       }
-      if (max_keyword >= thresh && max_anchor >= thresh) {
-        # as.numeric in order to remove anchor name.
-        ratio <- as.numeric(calib_max_vol[anchor]) * (max_keyword / max_anchor)
-        ts_keyword <- ts[,keyword] / max_keyword * ratio
-        if (!silent) message(sprintf('Done with %s after %d steps', keyword, iter))
-        return(list(ratio=ratio, iter=iter, ts=ts_keyword))
-      } else if (max_keyword < thresh) {
+      if (max_query >= thresh && max_anchor >= thresh) {
+        max_hilo <- compute_hi_and_lo(max_query, max_anchor)
+        # as.numeric in order to remove item names.
+        max_query_hi <- as.numeric(max_hilo['hi1'])
+        max_query_lo <- as.numeric(max_hilo['lo1'])
+        max_anchor_hi <- as.numeric(max_hilo['hi2'])
+        max_anchor_lo <- as.numeric(max_hilo['lo2'])
+        # Compute hi and lo for the query time series.
+        ts_hilo <- sapply(ts[,query], function(x) compute_hi_and_lo(100, x))
+        ts_query_hi <- ts_hilo['hi2',]
+        ts_query_lo <- ts_hilo['lo2',]
+        # The above call to compute_hi_and_lo will change 100 to 99.5. Undo this if there is exactly
+        # one value of 100, since then there is no uncertainty that that value is the true maximum.
+        if (sum(ts[,query]==100) == 1) ts_query_lo[ts[,query]==100] <- 100
+
+        ratio_anchor <- as.numeric(anchor_bank[anchor])
+        ratio_anchor_hi <- as.numeric(anchor_bank_hi[anchor])
+        ratio_anchor_lo <- as.numeric(anchor_bank_lo[anchor])
+        ratio <- ratio_anchor * (max_query / max_anchor)
+        ratio_hi <- ratio_anchor_hi * (max_query_hi / max_anchor_lo)
+        ratio_lo <- ratio_anchor_lo * (max_query_lo / max_anchor_hi)
+        ts_query <- ts[,query] / max_query * ratio
+        ts_query_hi <- ts_query_hi / max_query_lo * ratio_hi
+        ts_query_lo <- ts_query_lo / max_query_hi * ratio_lo
+        if (!silent) message(sprintf('Done with %s after %d steps', query, iter))
+        return(list(ratio=ratio, ratio_hi=ratio_hi, ratio_lo=ratio_lo,
+                    ts=ts_query, ts_hi=ts_query_hi, ts_lo=ts_query_lo,
+                    iter=iter))
+      } else if (max_query < thresh) {
         if (!quiet) message('   Going lower')
-        hi <- pivot - 1
+        left <- pivot + 1
       } else {
         if (!quiet) message('   Going higher')
-        lo <- pivot + 1
+        right <- pivot - 1
       }
     }
-    if (hi <= 1) {
-      message('Could not calibrate. Time series for keyword too low everywhere.')
+    if (right <= 1) {
+      message('Could not calibrate. Time series for query too low everywhere.')
     } else {
-      message('Could not calibrate. Time series for keyword too high everywhere.')
+      message('Could not calibrate. Time series for query too high everywhere.')
     }
     return(NULL)
   }, error = function(e) {
-    message(sprintf('Google gives error for %s', keyword))
+    message(sprintf('Google gives error for %s', query))
     message(e)
     return(NULL)
   })
