@@ -1,0 +1,420 @@
+---
+title: "Freebase food exploration"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(boot)
+
+source(sprintf('%s/github/GoogleTrendsAnchorBank/src/R/google_trends_calibration_NEW.R', Sys.getenv('HOME')))
+
+# Set this to FALSE if you don't want to save plots to PDFs.
+SAVE_PLOTS <- TRUE
+
+PLOT_DIR <- sprintf('%s/plots', DATA_DIR)
+
+# colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#D55E00", "#009E73", "#0072B2", "#CC79A7", "#F0E442")
+
+config <- DEFAULT_CONFIG
+
+# Build anchor bank.
+ab <- build_anchor_bank(config)
+G <- ab$G
+ts <- ab$time_series
+anchor_bank <- ab$anchor_bank
+anchor_bank_hi <- ab$anchor_bank_hi
+anchor_bank_lo <- ab$anchor_bank_lo
+ref_anchor <- ab$ref_anchor
+top_anchor <- names(anchor_bank[1])
+```
+
+# Visualize step sizes
+
+We plot the calibrated max search interest of the initial anchor bank.
+Green represents the queries along a shortest path from the top query (Facebook) to the bottom query.
+Red is the smaller, final anchor bank, with the reference query in bold (the query that's closest to the median of the initial anchor bank, in order to approximate the overall median of Google queries).
+
+```{r}
+plot(log(sort(ab$W0[top_anchor,])), panel.first=grid())
+bottom_anchor <- names(which.min(ab$W0[top_anchor,]))
+es <- ab$W0_paths[[top_anchor]][[which(names(ab$W0_paths)==bottom_anchor)]]
+# Green: path from top to bottom with initial anchor bank.
+abline(h=cumsum(c(0, log(es$ratio))), col='green')
+# Red: path from top to bottom with smaller, optimized anchor bank.
+abline(h=log(ab$W[top_anchor,]), col='red')
+# Bold red: reference anchor.
+abline(h=log(ab$W[top_anchor,ref_anchor]), col='red', lwd=3)
+```
+
+# Theoretical analysis
+
+$f(r,R)$ is the cumulative rounding error when comparing two queries of ratio $R$ when using an anchor bank where neighboring anchor queries are evenly spaced with a constant ratio $r$.
+$F(r,R)$ is a smooth approximation of $f$ (exact where $R$ is a power of $r$).
+First, we plot $f(r,R)$ as a function of $r$, for various choices of $R$.
+Then, we plot $f$ as a function of $R$ for the optimal choice $r=e$.
+
+```{r}
+eps <- 1/200
+f <- function(r, R) {
+  logR <- log(R)/log(r)
+  res <- R / r^(ceiling(logR)-1)
+  ((1+eps*r)/(1-eps*r))^(ceiling(logR)-1) * (1+eps*res)/(1-eps*res)
+}
+F <- function(r, R) ((1+eps*r)/(1-eps*r))^(log(R)/log(r))
+
+# Plot f(r,R) as a function of r, for various choices of R.
+Rs <-10^seq(0, 7, 0.01)
+rs <-seq(1.4, 10, 0.01)
+e <- exp(1)
+par(mfrow=c(2,3))
+for (R in 10^(1:6)) {
+  ylim=c(1, max(F(rs,10^6)))
+  plot(rs, f(rs,R), log='', type='l', main=sprintf('R = 1e%d', log10(R)), ylim=ylim,
+       panel.first=c(grid(), lines(rs, F(rs,R), col='red'), abline(v=e, col='green')))
+}
+# Plot f as a function of R, for the optimal choice r=e.
+par(mfrow=c(1,1))
+plot(Rs, f(e,Rs), log='x', type='l', panel.first=c(grid(), lines(Rs, F(e,Rs), col='red')))
+```
+
+# Comparison of initial and final anchor banks
+
+Consider the anchor queries of the final anchor bank and compare their noise factor in the initial anchor bank (blue) to their noise factor in the final anchor bank (green).
+As we can see, the final anchor bank comes very close to the theoretical minimum noise factor (black), whereas the initial anchor bank is quite far away as chains get longer.
+Note: the x-axis shows $m_Q/m_x$, where $x$ is an anchor query, and $Q$ is the reference query (Facebook). (Maybe better to use $m_x/m_Q$ instead.)
+The horizontal lines show the lower and upper bounds for the ratios.
+
+```{r}
+idx <- colnames(ab$W)
+W0_hi <- ab$W0_hi[idx,idx]
+W0_lo <- ab$W0_lo[idx,idx]
+W_hi <- ab$W_hi
+W_lo <- ab$W_lo
+
+# To make it fit with the math, we need to flip the ratios. Maybe change the math...
+hi0 <- 1/W0_lo[top_anchor,]
+lo0 <- 1/W0_hi[top_anchor,]
+hi1 <- 1/W_lo[top_anchor,]
+lo1 <- 1/W_hi[top_anchor,]
+
+R_range <- range(c(lo1, lo0, hi1, hi0))
+R <- 10^seq(floor(log10(R_range)[1]), ceiling(log10(R_range)[2]), 0.01)
+plot(R, f(e,R), log='x', type='l', panel.first=c(grid(), lines(R, F(e,R), col='red')), ylim=range(c(F(e,R), hi0/lo0)))
+segments(x0=lo0, y0=hi0/lo0, x1=hi0, col='blue', lwd=3)
+segments(x0=lo1, y0=hi1/lo1, x1=hi1, col='green', lwd=3)
+```
+
+
+
+
+
+
+
+
+
+################################################################################################
+# TODO: what comes below must be adapted to the new setup!!!
+################################################################################################
+
+
+
+
+
+
+
+```{r}
+# Draw anchor ring graph.
+vertex_attr(G) <- list(name=paste(V(G)$name, mid2name(V(G)$name), sep='\n'))
+plot(G, layout=layout.circle)
+
+# Plot time series of discarded queries.
+for (name in discarded) {
+  matplot(ts[, colnames(ts) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
+}
+
+# Plot all time series in one plot.
+ts_repr <- t(apply(ts, 1, function(r) tapply(r, colnames(ts), max)))
+ts_repr <- ts_repr[,names(calib_max_vol)]
+ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
+ts_repr <- t(t(ts_repr) * calib_max_vol)
+idx <- ncol(ts_repr):1
+# n <- ncol(ts_repr); idx <- rev(c(seq(1, n, n/16), n))
+matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
+legend('topright', mid2name(names(calib_max_vol))[idx], lty=1, col=1:6, bty='n')
+
+# Plot ratios w.r.t. top keyword.
+if (SAVE_PLOTS) pdf(sprintf('%s/anchor_ratios.pdf', PLOT_DIR), width=2, height=3.25, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+col_nav <- colorblind_col[1]
+col_ref <- colorblind_col[4]
+col_rest <- colorblind_col[5]
+y <- rev(calib_max_vol)
+navquery_idx <- which(mid2name(names(y)) %in% setdiff(mid2name(HI_TRAFFIC), c('Facebook', 'Coca-Cola')))
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+plot(setdiff(1:length(y), navquery_idx), y[-navquery_idx], log='y', xlab='', ylab='', bty='n', lwd=1, col=col_rest,
+     axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
+axis(1)
+mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
+ticks <- 10^(-5:0)
+axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
+mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
+
+# Reference query.
+points(1, 1, pch=20, col=col_ref, cex=2)
+text(5, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=30)
+
+# Nav queries
+points(navquery_idx, y[navquery_idx], lwd=1, col=col_nav)
+xoff <- c(0,5,0,0,5)
+text(navquery_idx + xoff, y[navquery_idx], mid2name(names(y[navquery_idx])), adj=c(-0.1,0), srt=30, col=col_nav)
+
+# Other queries
+idx <- seq(17, 57, 10)
+text(idx, y[idx], mid2name(names(y[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
+idx <- seq(67, length(y), 10)
+text(idx, y[idx], mid2name(names(y[idx])), adj=c(1.2,1), srt=30, col=col_rest)
+
+col <- c(col_ref, col_nav, col_rest)
+legend('topright', legend=c(expression(paste('Reference query ', italic(Q))), 'Navigational queries', 'Food queries'),
+       bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
+if (SAVE_PLOTS) dev.off()
+
+# Test binary search.
+thresh <- 10
+# Jever
+b <- binsearch('/m/0fxy5k', anchor_bank, anchor_bank_hi, anchor_bank_lo, config, plot=TRUE, quiet=FALSE)
+# Audi
+b <- binsearch('/m/0h5z20c', anchor_bank, anchor_bank_hi, anchor_bank_lo, config, plot=TRUE, quiet=FALSE)
+# Stanford University
+b <- binsearch('/m/06pwq', anchor_bank, anchor_bank_hi, anchor_bank_lo, config, plot=TRUE, quiet=FALSE)
+
+plot(b$ts, type='l', log='y', ylim=c(1e-5,1e5)); dispersion(1:length(b$ts), b$ts, b$ts_hi, b$ts_lo, intervals=FALSE, arrow.gap=0, arrow.cap=0, col='red')
+```
+
+# Bin search results
+
+```{r}
+thresh <- 10
+config$sleep <- 1
+
+# Load entities from Freebase Easy HTML result page.
+get_entities_from_html <- function(file) {
+  html <- paste(readLines(file), collapse="\n")
+  chunks <- strsplit(html, 'http://www.freebase.com')[[1]]
+  pairs <- sapply(chunks, function(s) sub('^(/m/.*?)" target="_blank">(.*?)</a>.*', '\\1###\\2', s))
+  names(pairs) <- NULL
+  pairs <- pairs[startsWith(pairs, '/m/')]
+  pairs <- do.call(rbind, strsplit(pairs, '###'))
+  mids_to_names <- pairs[,2]
+  names(mids_to_names) <- pairs[,1]
+  mids_to_names
+}
+
+run_binsearch <- function(dataset, mids_to_names, calib_max_vol, thresh, N, K) {
+  mids <- names(mids_to_names)
+  samples <- mids[seq(1, N, N/K)]
+  file <- sprintf('%s/binsearch/%s/results.thresh=%d.N=%d.K=%d.RData', DATA_DIR, dataset, thresh, N, K)
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    results <- NULL
+    failed <- NULL
+    i <- 0
+    for (mid in samples) {
+      i <- i + 1
+      message(sprintf('%d: %s (%s)', i, mid, mids_to_names[mid]))
+      b <- binsearch(mid, calib_max_vol, thresh, config)
+      if (!is.null(b)) results[[mid]] <- b
+      else failed <- c(failed, mid)
+    }
+    save(results, failed, file=file)
+  }
+  iter <- sapply(results, function(x) x$iter)
+  ts <- sapply(results, function(x) x$ts)
+  ratio <- sapply(results, function(x) x$ratio)
+  return(list(iter=iter, ts=ts, ratio=ratio, failed=failed))
+}
+
+bootstrap_ci <- function(x, f, R=1000) {
+  bo <- boot(x, statistic=function(d, i) return(f(d[i], na.rm=TRUE)), R=R)
+  ci <- boot.ci(bo, conf=0.95, type="perc")$perc[4:5]
+  if (is.null(ci)) {
+    upper <- lower <- NA
+  } else {
+    lower <- ci[1]
+    upper <- ci[2]
+  } 
+  c(upper, f(x, na.rm=TRUE), lower)
+}
+
+### Bavaria
+
+dataset <- 'bavaria'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html',
+                                                DATA_DIR, dataset, dataset))
+mid_arnstorf <- '/m/02rg8rj'
+mids_to_names[mid_arnstorf] <- 'Arnstorf'
+names_to_mids <- names(mids_to_names)
+names(names_to_mids) <- mids_to_names
+
+highlights <- names_to_mids[c('Munich', 'Garmisch-Partenkirchen', 'Bayreuth',
+                              'Rottach-Egern', 'Arnstorf')]
+
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.ARNSTORF.RData', DATA_DIR, dataset, thresh)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_arnstorf <- binsearch(mid_arnstorf, calib_max_vol, thresh, config)
+  save(result_arnstorf, file=file)
+}
+
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.HIGHLIGHTS.RData', DATA_DIR, dataset, thresh)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_highlights <- query_google(highlights, config)
+  save(result_highlights, file=file)
+}
+
+result1 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=100, K=100)
+result2 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=1000, K=100)
+extra_idx <- setdiff(names(result2$iter), names(result1$iter))
+ts_bavaria <- cbind(result1$ts, result2$ts[,extra_idx])
+iter_bavaria <- c(result1$iter, result2$iter[extra_idx])
+ratio_bavaria <- c(result1$ratio, result2$ratio[extra_idx])
+ts_bavaria <- cbind(ts_bavaria, result_arnstorf$ts)
+colnames(ts_bavaria)[ncol(ts_bavaria)] <- mid_arnstorf
+ts_bavaria[,mid_arnstorf] <- result_arnstorf$ts
+iter_bavaria[mid_arnstorf] <- result_arnstorf$iter
+ratio_bavaria[mid_arnstorf] <- result_arnstorf$ratio
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LINEAR.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+matplot(result_highlights$ts, type='l', lty=1, log='', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
+idx <- c(1,3,2,4,5)
+legend('topright', names(highlights)[idx], lty=1, col=colorblind_col[idx], lwd=2, bty='n', inset=c(0,0.4))
+if (SAVE_PLOTS) dev.off()
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LOG.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+matplot(1+result_highlights$ts, type='l', lty=1, log='y', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+idx <- order(ratio_bavaria, decreasing=TRUE)
+matplot(ts_bavaria[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.05), lwd=1, bty='n', xlab='', ylab='',
+        axes=FALSE, ylim=c(1e-6, 0.1))
+
+ticks <- 10^(-6:-1)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2, at=ticks, labels=sprintf('1e-%d', 6:1)); mtext('Calibrated search interest', side=2, line=2.5)
+i <- 0
+for (h in highlights) {
+  col <- colorblind_col[(i %% length(colorblind_col))+1]
+  lines(ts_bavaria[,h], lwd=2, col=col)
+  i <- i + 1
+}
+# legend('topleft',    names(highlights[1:3]), lty=1, col=colorblind_col[1:3], lwd=2, bty='n', inset=c(0,0.15))
+# legend('bottomleft', names(highlights[4:5]), lty=1, col=colorblind_col[4:5], lwd=2, bty='n', inset=c(0,0))
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_bavaria.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 0.5, 0.8))
+freq <- tapply(iter_bavaria, iter_bavaria, length)
+freq <- rev(freq / sum(freq))
+barplot(freq, horiz=TRUE, las=1, border=NA, xlim=c(0, 0.5))
+mtext('Relative frequency', side=1, line=2.5)
+mtext('Google Trends requests per search query', side=2, line=2.5)
+legend('bottomright', legend=c(sprintf('Mean: %.2f', mean(iter_bavaria)), sprintf('Median: %s', median(iter_bavaria))),
+       bty='n', inset=c(0.1,0.1))
+if (SAVE_PLOTS) dev.off()
+
+
+### Soccer
+
+dataset <- 'soccer'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
+result <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=thresh, N=100, K=100)
+ts_soccer <- result$ts
+iter_soccer <- result$iter
+ratio_soccer <- result$ratio
+bs <- apply(ts_soccer, 1, function(x) bootstrap_ci(x,median,1000))
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_soccer_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+idx <- order(ratio_soccer, decreasing=TRUE)
+matplot(ts_soccer[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.08), lwd=1, bty='n', xlab='', ylab='',
+        axes=FALSE, ylim=c(1e-6, 0.1))
+ticks <- 10^(-6:-1)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2, at=ticks, labels=sprintf('1e-%d', 6:1)); mtext('Calibrated search interest', side=2, line=2.5)
+lines(apply(ts_soccer, 1, median), type='l', lwd=2, col=colorblind_col[1])
+lines(bs[1,], type='l', lwd=1)
+lines(bs[3,], type='l', lwd=1)
+legend('bottomleft', legend=c('Median', '95% CI'), lty=1, lwd=c(2,1), bty='n', inset=c(0,0))
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_soccer.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 0.5, 0.8))
+freq <- tapply(iter_soccer, iter_soccer, length)
+for (i in as.character(1:5)) if (!(i %in% names(freq))) freq[i] <- 0
+freq <- rev(freq / sum(freq))
+barplot(freq, horiz=TRUE, las=1, border=NA, xlim=c(0, 0.7))
+mtext('Relative frequency', side=1, line=2.5)
+mtext('Google Trends requests per search query', side=2, line=2.5)
+legend('bottomright', legend=c(sprintf('Mean: %.2f', mean(iter_soccer)), sprintf('Median: %s', median(iter_soccer))),
+       bty='n', inset=c(0.1,0.1))
+if (SAVE_PLOTS) dev.off()
+
+
+```
+
+
+# Baseline with randomized version of ring graph
+
+```{r}
+config_rand <- DEFAULT_CONFIG
+config_rand$randomize_ring_order <- TRUE
+
+# Build anchor bank.
+calib <- build_anchor_bank(config_rand)
+G <- calib$G
+D <- calib$D
+ts <- calib$time_series
+calib_max_vol <- calib$calib_max_vol
+
+# Draw DAG.
+vertex_attr(D) <- list(name=paste(V(D)$name, mid2name(V(D)$name), sep='\n'))
+plot(D, layout=layout_with_sugiyama(D)$layout)
+
+# Plot all time series in one plot.
+ts_repr <- t(apply(ts, 1, function(r) tapply(r, colnames(ts), max)))
+ts_repr <- ts_repr[,names(calib_max_vol)]
+ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
+ts_repr <- t(t(ts_repr) * calib_max_vol)
+idx <- ncol(ts_repr):1
+matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
+legend('topright', mid2name(names(calib_max_vol))[idx], lty=1, col=1:6, bty='n')
+
+# Test binary search.
+thresh <- 10
+# Facebook
+b <- binsearch('/m/02y1vz', calib_max_vol, thresh, config, plot=TRUE)
+```
