@@ -58,26 +58,47 @@ Then, we plot $f$ as a function of $R$ for the optimal choice $r=e$.
 
 ```{r}
 eps <- 1/200
-f <- function(r, R) {
-  logR <- log(R)/log(r)
-  res <- R / r^(ceiling(logR)-1)
-  ((1+eps*r)/(1-eps*r))^(ceiling(logR)-1) * (1+eps*res)/(1-eps*res)
+eta_jagged <- function(c, r) {
+  logr <- log(r)/log(c)
+  res <- r / c^(ceiling(logr)-1)
+  ((c+eps)/(c-eps))^(ceiling(logr)-1) * (res+eps)/(res-eps)
 }
-F <- function(r, R) ((1+eps*r)/(1-eps*r))^(log(R)/log(r))
+eta <- function(c, r) ((c+eps)/(c-eps))^(log(r)/log(c))
 
-# Plot f(r,R) as a function of r, for various choices of R.
-Rs <-10^seq(0, 7, 0.01)
-rs <-seq(1.4, 10, 0.01)
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/eta_as_fct_of_c.pdf', PLOT_DIR), width=3.4, height=3.4, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+# par(mar=c(3.5, 3.5, 1.0, 0.2))
+# Plot f(c,r) as a function of c, for various choices of r.
+c <- seq(0.1, 0.72, 0.01)
 e <- exp(1)
 par(mfrow=c(2,3))
-for (R in 10^(1:6)) {
-  ylim=c(1, max(F(rs,10^6)))
-  plot(rs, f(rs,R), log='', type='l', main=sprintf('R = 1e%d', log10(R)), ylim=ylim,
-       panel.first=c(grid(), lines(rs, F(rs,R), col='red'), abline(v=e, col='green')))
+for (r in 0.1^(2:7)) {
+  ylim=c(1, max(eta(c,0.1^7)))
+  plot(c, eta(c,r), log='', type='l', main=sprintf('r* = 1e%d', log10(r)), ylim=ylim,
+       xlab='c', ylab=expression(eta(c)), bty='n',
+       panel.first=abline(v=1/e, col='red'))
+  x <- r^(1/(1:50))
+  points(x, eta(x,r))
 }
+if (SAVE_PLOTS) dev.off()
+
+
+# # Plot f(c,r) as a function of c, for various choices of r.
+# c <- seq(0.1, 0.72, 0.01)
+# e <- exp(1)
+# par(mfrow=c(2,3))
+# for (r in 0.1^(1:6)) {
+#   ylim=c(1, max(eta(c,0.1^6)))
+#   plot(c, eta_jagged(c,r), log='', type='l', main=sprintf('R = 1e%d', log10(r)), ylim=ylim,
+#        panel.first=c(grid(), lines(c, eta(c,r), col='red'), abline(v=1/e, col='green')))
+# }
+
 # Plot f as a function of R, for the optimal choice r=e.
+r <- 0.1^seq(0, 7, 0.01)
 par(mfrow=c(1,1))
-plot(Rs, f(e,Rs), log='x', type='l', panel.first=c(grid(), lines(Rs, F(e,Rs), col='red')))
+plot(r, eta_jagged(1/e,r), log='x', type='l', panel.first=c(grid(), lines(r, eta(1/e,r), col='red')))
 ```
 
 # Comparison of initial and final anchor banks
@@ -94,17 +115,39 @@ W0_lo <- ab$W0_lo[idx,idx]
 W_hi <- ab$W_hi
 W_lo <- ab$W_lo
 
-# To make it fit with the math, we need to flip the ratios. Maybe change the math...
-hi0 <- 1/W0_lo[top_anchor,]
-lo0 <- 1/W0_hi[top_anchor,]
-hi1 <- 1/W_lo[top_anchor,]
-lo1 <- 1/W_hi[top_anchor,]
+hi0 <- W0_hi[top_anchor,]
+lo0 <- W0_lo[top_anchor,]
+hi1 <- W_hi[top_anchor,]
+lo1 <- W_lo[top_anchor,]
 
-R_range <- range(c(lo1, lo0, hi1, hi0))
-R <- 10^seq(floor(log10(R_range)[1]), ceiling(log10(R_range)[2]), 0.01)
-plot(R, f(e,R), log='x', type='l', panel.first=c(grid(), lines(R, F(e,R), col='red')), ylim=range(c(F(e,R), hi0/lo0)))
-segments(x0=lo0, y0=hi0/lo0, x1=hi0, col='blue', lwd=3)
-segments(x0=lo1, y0=hi1/lo1, x1=hi1, col='green', lwd=3)
+
+if (SAVE_PLOTS) pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.4, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+# par(mar=c(3.5, 3.5, 1.0, 0.2))
+r_range <- range(c(lo1, lo0, hi1, hi0))
+r <- 10^seq(floor(log10(r_range)[1]), 0, 0.01)
+plot(r, eta(1/e,r), log='x', type='l', ylim=range(c(eta(1/e,r), hi0/lo0)), lwd=1, col='black',
+     axes=FALSE, bty='n', xlab='r*', ylab=expression(paste(bar(eta), "(r*)")))
+axis(1, at=10^seq(floor(log10(r_range)[1]), 0))
+axis(2)
+segments(x0=lo0, y0=hi0/lo0, x1=hi0, col=colorblind_col[3], lwd=3)
+segments(x0=lo1, y0=hi1/lo1, x1=hi1, col=colorblind_col[2], lwd=3)
+if (SAVE_PLOTS) dev.off()
+
+
+
+
+# To make it fit with the math, we need to flip the ratios. Maybe change the math...
+# hi0 <- 1/W0_lo[top_anchor,]
+# lo0 <- 1/W0_hi[top_anchor,]
+# hi1 <- 1/W_lo[top_anchor,]
+# lo1 <- 1/W_hi[top_anchor,]
+
+# R_range <- range(c(lo1, lo0, hi1, hi0))
+# R <- 10^seq(floor(log10(R_range)[1]), ceiling(log10(R_range)[2]), 0.01)
+# plot(R, f(e,R), log='x', type='l', panel.first=c(grid(), lines(R, F(e,R), col='red')), ylim=range(c(F(e,R), hi0/lo0)))
+# segments(x0=lo0, y0=hi0/lo0, x1=hi0, col='blue', lwd=3)
+# segments(x0=lo1, y0=hi1/lo1, x1=hi1, col='green', lwd=3)
 ```
 
 

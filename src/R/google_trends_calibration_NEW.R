@@ -1,5 +1,6 @@
 library(gtrendsR)
 library(igraph)
+library(Matrix)
 
 options(stringsAsFactors=FALSE)
 
