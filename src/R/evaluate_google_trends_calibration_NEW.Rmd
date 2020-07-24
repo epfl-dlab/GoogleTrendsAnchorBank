@@ -20,15 +20,19 @@ colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#D55E00", "#009E73", "#007
 
 config <- DEFAULT_CONFIG
 
+######################## TODO: Use FB as ref query again!
+######################## TODO: Change choice of first anchor in binsearch!
+
 # Build anchor bank.
 ab <- build_anchor_bank(config)
 G <- ab$G
 ts <- ab$time_series
+ref_anchor <- ab$ref_anchor
+median_anchor <- ab$median_anchor
 anchor_bank <- ab$anchor_bank
 anchor_bank_hi <- ab$anchor_bank_hi
 anchor_bank_lo <- ab$anchor_bank_lo
-ref_anchor <- ab$ref_anchor
-top_anchor <- names(anchor_bank[1])
+anchor_bank_init <- sort(ab$W0[ref_anchor,], decreasing=TRUE)
 ```
 
 # Visualize step sizes
@@ -38,15 +42,15 @@ Green represents the queries along a shortest path from the top query (Facebook)
 Red is the smaller, final anchor bank, with the reference query in bold (the query that's closest to the median of the initial anchor bank, in order to approximate the overall median of Google queries).
 
 ```{r}
-plot(log(sort(ab$W0[top_anchor,])), panel.first=grid())
-bottom_anchor <- names(which.min(ab$W0[top_anchor,]))
-es <- ab$W0_paths[[top_anchor]][[which(names(ab$W0_paths)==bottom_anchor)]]
+plot(log(sort(ab$W0[ref_anchor,])), panel.first=grid())
+bottom_anchor <- names(which.min(ab$W0[ref_anchor,]))
+es <- ab$W0_paths[[ref_anchor]][[which(names(ab$W0_paths)==bottom_anchor)]]
 # Green: path from top to bottom with initial anchor bank.
 abline(h=cumsum(c(0, log(es$ratio))), col='green')
 # Red: path from top to bottom with smaller, optimized anchor bank.
-abline(h=log(ab$W[top_anchor,]), col='red')
+abline(h=log(ab$W[ref_anchor,]), col='red')
 # Bold red: reference anchor.
-abline(h=log(ab$W[top_anchor,ref_anchor]), col='red', lwd=3)
+abline(h=log(ab$W[ref_anchor,ref_anchor]), col='red', lwd=3)
 ```
 
 # Theoretical analysis
@@ -65,11 +69,8 @@ eta_jagged <- function(c, r) {
 }
 eta <- function(c, r) ((c+eps)/(c-eps))^(log(r)/log(c))
 
-
-
 if (SAVE_PLOTS) pdf(sprintf('%s/eta_as_fct_of_c.pdf', PLOT_DIR), width=3.4, height=3.4, pointsize=6,
                       family='Helvetica', useDingbats=FALSE)
-# par(mar=c(3.5, 3.5, 1.0, 0.2))
 # Plot f(c,r) as a function of c, for various choices of r.
 c <- seq(0.1, 0.72, 0.01)
 e <- exp(1)
@@ -83,22 +84,6 @@ for (r in 0.1^(2:7)) {
   points(x, eta(x,r))
 }
 if (SAVE_PLOTS) dev.off()
-
-
-# # Plot f(c,r) as a function of c, for various choices of r.
-# c <- seq(0.1, 0.72, 0.01)
-# e <- exp(1)
-# par(mfrow=c(2,3))
-# for (r in 0.1^(1:6)) {
-#   ylim=c(1, max(eta(c,0.1^6)))
-#   plot(c, eta_jagged(c,r), log='', type='l', main=sprintf('R = 1e%d', log10(r)), ylim=ylim,
-#        panel.first=c(grid(), lines(c, eta(c,r), col='red'), abline(v=1/e, col='green')))
-# }
-
-# Plot f as a function of R, for the optimal choice r=e.
-r <- 0.1^seq(0, 7, 0.01)
-par(mfrow=c(1,1))
-plot(r, eta_jagged(1/e,r), log='x', type='l', panel.first=c(grid(), lines(r, eta(1/e,r), col='red')))
 ```
 
 # Comparison of initial and final anchor banks
@@ -120,10 +105,8 @@ lo0 <- W0_lo[top_anchor,]
 hi1 <- W_hi[top_anchor,]
 lo1 <- W_lo[top_anchor,]
 
-
 if (SAVE_PLOTS) pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.4, pointsize=6,
                       family='Helvetica', useDingbats=FALSE)
-# par(mar=c(3.5, 3.5, 1.0, 0.2))
 r_range <- range(c(lo1, lo0, hi1, hi0))
 r <- 10^seq(floor(log10(r_range)[1]), 0, 0.01)
 plot(r, eta(1/e,r), log='x', type='l', ylim=range(c(eta(1/e,r), hi0/lo0)), lwd=1, col='black',
@@ -133,21 +116,6 @@ axis(2)
 segments(x0=lo0, y0=hi0/lo0, x1=hi0, col=colorblind_col[3], lwd=3)
 segments(x0=lo1, y0=hi1/lo1, x1=hi1, col=colorblind_col[2], lwd=3)
 if (SAVE_PLOTS) dev.off()
-
-
-
-
-# To make it fit with the math, we need to flip the ratios. Maybe change the math...
-# hi0 <- 1/W0_lo[top_anchor,]
-# lo0 <- 1/W0_hi[top_anchor,]
-# hi1 <- 1/W_lo[top_anchor,]
-# lo1 <- 1/W_hi[top_anchor,]
-
-# R_range <- range(c(lo1, lo0, hi1, hi0))
-# R <- 10^seq(floor(log10(R_range)[1]), ceiling(log10(R_range)[2]), 0.01)
-# plot(R, f(e,R), log='x', type='l', panel.first=c(grid(), lines(R, F(e,R), col='red')), ylim=range(c(F(e,R), hi0/lo0)))
-# segments(x0=lo0, y0=hi0/lo0, x1=hi0, col='blue', lwd=3)
-# segments(x0=lo1, y0=hi1/lo1, x1=hi1, col='green', lwd=3)
 ```
 
 
@@ -173,57 +141,58 @@ if (SAVE_PLOTS) dev.off()
 vertex_attr(G) <- list(name=paste(V(G)$name, mid2name(V(G)$name), sep='\n'))
 plot(G, layout=layout.circle)
 
-# Plot time series of discarded queries.
-for (name in discarded) {
-  matplot(ts[, colnames(ts) == gsub('\n.*', '', name)], type='l', lty=1, main=name)
-}
-
 # Plot all time series in one plot.
 ts_repr <- t(apply(ts, 1, function(r) tapply(r, colnames(ts), max)))
-ts_repr <- ts_repr[,names(calib_max_vol)]
+ts_repr <- ts_repr[,names(anchor_bank)]
 ts_repr <- apply(ts_repr, 2, function(c) c/max(c))
-ts_repr <- t(t(ts_repr) * calib_max_vol)
-idx <- ncol(ts_repr):1
-# n <- ncol(ts_repr); idx <- rev(c(seq(1, n, n/16), n))
-matplot(ts_repr[,idx], type='l', lty=1, log='y', col=1:6)
-legend('topright', mid2name(names(calib_max_vol))[idx], lty=1, col=1:6, bty='n')
+ts_repr <- t(t(ts_repr) * anchor_bank)
+matplot(ts_repr, type='l', lty=1, log='y', col=1:6)
+legend('topright', mid2name(names(anchor_bank)), lty=1, col=1:6, bty='n')
+
+plot_anchor_bank <- function(anchor_bank, xoff_refquery, xoff_navquery) {
+  col_nav <- colorblind_col[1]
+  col_ref <- colorblind_col[4]
+  col_rest <- colorblind_col[5]
+  y <- anchor_bank
+  navquery_idx <- which(mid2name(names(y)) %in% setdiff(mid2name(HI_TRAFFIC), c('Facebook', 'Coca-Cola')))
+  par(mar=c(3.5, 3.5, 1.0, 0.2))
+  plot(setdiff(1:length(y), navquery_idx), y[-navquery_idx], log='y', xlab='', ylab='', bty='n', lwd=1, col=col_rest,
+       axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
+  axis(1)
+  mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
+  ticks <- 10^(-5:0)
+  axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
+  mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
+
+  # Legend
+  col <- c(col_ref, col_nav, col_rest)
+  legend('topright', legend=c(expression(paste('Reference query ', italic(Q))), 'Navigational queries', 'Food queries'),
+         bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
+  
+  # Reference query.
+  points(1, 1, pch=20, col=col_ref, cex=2)
+  text(1 + xoff_refquery, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=30)
+
+  # Nav queries
+  points(navquery_idx, y[navquery_idx], lwd=1, col=col_nav)
+  text(navquery_idx + xoff_navquery, y[navquery_idx], mid2name(names(y[navquery_idx])), adj=c(-0.1,0), srt=30, col=col_nav)
+}
 
 # Plot ratios w.r.t. top keyword.
 if (SAVE_PLOTS) pdf(sprintf('%s/anchor_ratios.pdf', PLOT_DIR), width=2, height=3.25, pointsize=6,
                       family='Helvetica', useDingbats=FALSE)
-col_nav <- colorblind_col[1]
-col_ref <- colorblind_col[4]
-col_rest <- colorblind_col[5]
-y <- rev(calib_max_vol)
-navquery_idx <- which(mid2name(names(y)) %in% setdiff(mid2name(HI_TRAFFIC), c('Facebook', 'Coca-Cola')))
-par(mar=c(3.5, 3.5, 1.0, 0.2))
-plot(setdiff(1:length(y), navquery_idx), y[-navquery_idx], log='y', xlab='', ylab='', bty='n', lwd=1, col=col_rest,
-     axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
-axis(1)
-mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
-ticks <- 10^(-5:0)
-axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
-mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
-
-# Reference query.
-points(1, 1, pch=20, col=col_ref, cex=2)
-text(5, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=30)
-
-# Nav queries
-points(navquery_idx, y[navquery_idx], lwd=1, col=col_nav)
-xoff <- c(0,5,0,0,5)
-text(navquery_idx + xoff, y[navquery_idx], mid2name(names(y[navquery_idx])), adj=c(-0.1,0), srt=30, col=col_nav)
-
-# Other queries
+plot_anchor_bank(anchor_bank_init, xoff_refquery=4, xoff_navquery=c(0,5,0,0,5))
 idx <- seq(17, 57, 10)
-text(idx, y[idx], mid2name(names(y[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
-idx <- seq(67, length(y), 10)
-text(idx, y[idx], mid2name(names(y[idx])), adj=c(1.2,1), srt=30, col=col_rest)
-
-col <- c(col_ref, col_nav, col_rest)
-legend('topright', legend=c(expression(paste('Reference query ', italic(Q))), 'Navigational queries', 'Food queries'),
-       bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
+text(idx, anchor_bank_init[idx], mid2name(names(anchor_bank_init[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
+idx <- seq(67, length(anchor_bank_init), 10)
+text(idx, anchor_bank_init[idx], mid2name(names(anchor_bank_init[idx])), adj=c(1.2,1), srt=30, col=col_rest)
 if (SAVE_PLOTS) dev.off()
+
+########################################
+plot_anchor_bank(anchor_bank, xoff_refquery=0.1, xoff_navquery=c(0,0))
+idx <- 4:11
+text(idx, anchor_bank[idx], mid2name(names(anchor_bank[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
+########################################
 
 # Test binary search.
 thresh <- 10

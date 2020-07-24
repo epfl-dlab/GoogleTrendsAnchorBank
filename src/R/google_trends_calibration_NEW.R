@@ -73,9 +73,10 @@ build_anchor_bank <- function(config) {
 
   # The top most frequent query.
   top_anchor <- opt_query_set$mids[1]
+  ref_anchor <- top_anchor
   
   # The anchor from the optimal set that is closest to the median of the larger set.
-  ref_anchor <- names(which.min(abs(W[top_anchor,] - median(W0[top_anchor,]))))
+  median_anchor <- names(which.min(abs(W[ref_anchor,] - median(W0[ref_anchor,]))))
   
   # The final anchor bank consists of the optimal query set calibrated against the reference anchor.
   # We also provide the upper and lower bounds for each max ratio.
@@ -84,7 +85,7 @@ build_anchor_bank <- function(config) {
   anchor_bank_lo <- W_lo[ref_anchor,]
   
   list(anchor_bank=anchor_bank, anchor_bank_hi=anchor_bank_hi, anchor_bank_lo=anchor_bank_lo,
-       ref_anchor=ref_anchor,
+       ref_anchor=ref_anchor, median_anchor=median_anchor,
        W=W, W_hi=W_hi, W_lo=W_lo,
        W0=W0, W0_hi=W0_hi, W0_lo=W0_lo, W0_paths=W0_paths,
        G=G, time_series=time_series, ratios=ratios)
