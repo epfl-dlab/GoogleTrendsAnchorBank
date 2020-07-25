@@ -160,7 +160,7 @@ col <- c(col_ref, col_init, col_opt)
 legend('topright', legend=c(expression(paste('Reference query ', italic(Q))),
                             expression(paste('Initial anchor bank ', italic(A))),
                             expression(paste('Optimized anchor bank ', italic(A), '*'))),
-       bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
+       bty='n', pch=c(20,1,20), pt.cex=c(2,1,2), col=col, text.col=col)
 if (SAVE_PLOTS) dev.off()
 ```
 
