@@ -100,13 +100,14 @@ W0_lo <- ab$W0_lo[idx,idx]
 W_hi <- ab$W_hi
 W_lo <- ab$W_lo
 
-hi0 <- W0_hi[top_anchor,]
-lo0 <- W0_lo[top_anchor,]
-hi1 <- W_hi[top_anchor,]
-lo1 <- W_lo[top_anchor,]
+hi0 <- W0_hi[ref_anchor,]
+lo0 <- W0_lo[ref_anchor,]
+hi1 <- W_hi[ref_anchor,]
+lo1 <- W_lo[ref_anchor,]
 
 if (SAVE_PLOTS) pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.4, pointsize=6,
                       family='Helvetica', useDingbats=FALSE)
+par(mfrow=c(1,1))
 r_range <- range(c(lo1, lo0, hi1, hi0))
 r <- 10^seq(floor(log10(r_range)[1]), 0, 0.01)
 plot(r, eta(1/e,r), log='x', type='l', ylim=range(c(eta(1/e,r), hi0/lo0)), lwd=1, col='black',
@@ -116,27 +117,7 @@ axis(2)
 segments(x0=lo0, y0=hi0/lo0, x1=hi0, col=colorblind_col[3], lwd=3)
 segments(x0=lo1, y0=hi1/lo1, x1=hi1, col=colorblind_col[2], lwd=3)
 if (SAVE_PLOTS) dev.off()
-```
 
-
-
-
-
-
-
-
-
-################################################################################################
-# TODO: what comes below must be adapted to the new setup!!!
-################################################################################################
-
-
-
-
-
-
-
-```{r}
 # Draw anchor ring graph.
 vertex_attr(G) <- list(name=paste(V(G)$name, mid2name(V(G)$name), sep='\n'))
 plot(G, layout=layout.circle)
@@ -149,51 +130,45 @@ ts_repr <- t(t(ts_repr) * anchor_bank)
 matplot(ts_repr, type='l', lty=1, log='y', col=1:6)
 legend('topright', mid2name(names(anchor_bank)), lty=1, col=1:6, bty='n')
 
-plot_anchor_bank <- function(anchor_bank, xoff_refquery, xoff_navquery) {
-  col_nav <- colorblind_col[1]
-  col_ref <- colorblind_col[4]
-  col_rest <- colorblind_col[5]
-  y <- anchor_bank
-  navquery_idx <- which(mid2name(names(y)) %in% setdiff(mid2name(HI_TRAFFIC), c('Facebook', 'Coca-Cola')))
-  par(mar=c(3.5, 3.5, 1.0, 0.2))
-  plot(setdiff(1:length(y), navquery_idx), y[-navquery_idx], log='y', xlab='', ylab='', bty='n', lwd=1, col=col_rest,
-       axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
-  axis(1)
-  mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
-  ticks <- 10^(-5:0)
-  axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
-  mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
-
-  # Legend
-  col <- c(col_ref, col_nav, col_rest)
-  legend('topright', legend=c(expression(paste('Reference query ', italic(Q))), 'Navigational queries', 'Food queries'),
-         bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
-  
-  # Reference query.
-  points(1, 1, pch=20, col=col_ref, cex=2)
-  text(1 + xoff_refquery, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=30)
-
-  # Nav queries
-  points(navquery_idx, y[navquery_idx], lwd=1, col=col_nav)
-  text(navquery_idx + xoff_navquery, y[navquery_idx], mid2name(names(y[navquery_idx])), adj=c(-0.1,0), srt=30, col=col_nav)
-}
-
-# Plot ratios w.r.t. top keyword.
-if (SAVE_PLOTS) pdf(sprintf('%s/anchor_ratios.pdf', PLOT_DIR), width=2, height=3.25, pointsize=6,
+# Visualize the initial and optimized anchor banks.
+if (SAVE_PLOTS) pdf(sprintf('%s/anchor_bank.pdf', PLOT_DIR), width=2, height=3.25, pointsize=6,
                       family='Helvetica', useDingbats=FALSE)
-plot_anchor_bank(anchor_bank_init, xoff_refquery=4, xoff_navquery=c(0,5,0,0,5))
-idx <- seq(17, 57, 10)
-text(idx, anchor_bank_init[idx], mid2name(names(anchor_bank_init[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
-idx <- seq(67, length(anchor_bank_init), 10)
-text(idx, anchor_bank_init[idx], mid2name(names(anchor_bank_init[idx])), adj=c(1.2,1), srt=30, col=col_rest)
+col_ref <- colorblind_col[4]
+col_opt <- 'black'
+col_init <- 'gray'
+y <- anchor_bank_init
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+plot(y, log='y', xlab='', ylab='', bty='n', lwd=1, col=col_init, axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
+axis(1)
+mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
+ticks <- 10^(-5:0)
+axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
+mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
+# Reference query.
+points(1, 1, pch=20, col=col_ref, cex=2)
+text(5, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=10)
+# Optimized anchor bank
+idx <- which(names(anchor_bank_init) %in% names(anchor_bank))[-1] # -1 to remove the ref query
+yy <- y[idx]
+points(idx, yy, pch=20, col='black', cex=2)
+idx1 <- idx[1:6]
+text(idx1, y[idx1], mid2name(names(y[idx1])), adj=c(-0.2, 0), srt=10)
+idx2 <- idx[7:10]
+text(idx2, y[idx2], mid2name(names(y[idx2])), adj=c(1.1, 1), srt=10)
+# Legend
+col <- c(col_ref, col_init, col_opt)
+legend('topright', legend=c(expression(paste('Reference query ', italic(Q))),
+                            expression(paste('Initial anchor bank ', italic(A))),
+                            expression(paste('Optimized anchor bank ', italic(A), '*'))),
+       bty='n', pch=c(20,1,1), pt.cex=c(2,1,1), col=col, text.col=col)
 if (SAVE_PLOTS) dev.off()
+```
 
-########################################
-plot_anchor_bank(anchor_bank, xoff_refquery=0.1, xoff_navquery=c(0,0))
-idx <- 4:11
-text(idx, anchor_bank[idx], mid2name(names(anchor_bank[idx])), adj=c(-0.1,0), srt=30, col=col_rest)
-########################################
+################################################################################################
+# TODO: what comes below must be adapted to the new setup!!!
+################################################################################################
 
+```{r}
 # Test binary search.
 thresh <- 10
 # Jever
