@@ -1,12 +1,19 @@
 ---
-title: Evaluation of Google Trends Anchor Bank for CIKM'20 paper 'Calibration of Google
-  Trends Time Series'
+title: Calibration of Google Trends Time Series
 output:
   html_document:
     df_print: paged
 editor_options:
   chunk_output_type: console
 ---
+
+This is the script to produce all results of the following paper:
+
+Robert West. Evaluation of Google Trends Anchor Bank. In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
+
+Note that, whereas the results in the paper were produced with an R implementation, we have since switched over to Python.
+The R implementation used in this script is not updated anymore.
+If you are interested in using Google Trends Anchor Bank (G-TAB) in your own research, please use the Python implementation available at `[https://github.com/epfl-dlab/GoogleTrendsAnchorBank](https://github.com/epfl-dlab/GoogleTrendsAnchorBank)`.
 
 # Load libraries and define functions and global variables
 
@@ -50,7 +57,7 @@ get_entities_from_html <- function(file) {
 }
 
 # Helper function for running binary search on a set of queries.
-run_binsearch <- function(dataset, mids_to_names, calib_max_vol, thresh, N, K) {
+run_binsearch <- function(dataset, mids_to_names, anchor_bank, thresh, N, K) {
   mids <- names(mids_to_names)
   samples <- mids[seq(1, N, N/K)]
   file <- sprintf('%s/binsearch/%s/results.thresh=%d.N=%d.K=%d.RData', DATA_DIR, dataset, thresh, N, K)
@@ -63,7 +70,7 @@ run_binsearch <- function(dataset, mids_to_names, calib_max_vol, thresh, N, K) {
     for (mid in samples) {
       i <- i + 1
       message(sprintf('%d: %s (%s)', i, mid, mids_to_names[mid]))
-      b <- binsearch(mid, calib_max_vol, thresh, config)
+      b <- binsearch(mid, anchor_bank, thresh, config)
       if (!is.null(b)) results[[mid]] <- b
       else failed <- c(failed, mid)
     }
@@ -92,7 +99,6 @@ bootstrap_ci <- function(x, f, R=1000) {
 # Build the anchor bank
 
 ```{r}
-# Build anchor bank.
 ab <- build_anchor_bank(config)
 G <- ab$G
 ts <- ab$time_series
@@ -162,9 +168,15 @@ plot(b$ts, type='l', log='y', ylim=c(1e-5,1))
 dispersion(1:length(b$ts), b$ts, b$ts_hi, b$ts_lo, intervals=FALSE, arrow.gap=0, arrow.cap=0, col='red')
 ```
 
-# Example results 1: Bavarian towns
+# Example results
+
+## Example 1: Bavarian towns
 
 ```{r}
+# Note: these results were produced using the initial anchor bank, before optimizing it as
+# described in Appendix A of the CIKM'20 paper.
+abank <- anchor_bank_init
+
 dataset <- 'bavaria'
 mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html',
                                                 DATA_DIR, dataset, dataset))
@@ -180,7 +192,7 @@ file <- sprintf('%s/binsearch/%s/results.thresh=%d.ARNSTORF.RData', DATA_DIR, da
 if (file.exists(file)) {
   load(file)
 } else {
-  result_arnstorf <- binsearch(mid_arnstorf, calib_max_vol, THRESH, config)
+  result_arnstorf <- binsearch(mid_arnstorf, abank, THRESH, config)
   save(result_arnstorf, file=file)
 }
 
@@ -192,8 +204,8 @@ if (file.exists(file)) {
   save(result_highlights, file=file)
 }
 
-result1 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=100, K=100)
-result2 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=1000, K=100)
+result1 <- run_binsearch(dataset, mids_to_names, abank, thresh=THRESH, N=100, K=100)
+result2 <- run_binsearch(dataset, mids_to_names, abank, thresh=THRESH, N=1000, K=100)
 extra_idx <- setdiff(names(result2$iter), names(result1$iter))
 ts_bavaria <- cbind(result1$ts, result2$ts[,extra_idx])
 iter_bavaria <- c(result1$iter, result2$iter[extra_idx])
@@ -255,12 +267,12 @@ legend('bottomright', legend=c(sprintf('Mean: %.2f', mean(iter_bavaria)), sprint
 if (SAVE_PLOTS) dev.off()
 ```
 
-# Example results 2: Soccer clubs
+## Example 2: Soccer clubs
 
 ```{r}
 dataset <- 'soccer'
 mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
-result <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=100, K=100)
+result <- run_binsearch(dataset, mids_to_names, abank, thresh=THRESH, N=100, K=100)
 ts_soccer <- result$ts
 iter_soccer <- result$iter
 ratio_soccer <- result$ratio

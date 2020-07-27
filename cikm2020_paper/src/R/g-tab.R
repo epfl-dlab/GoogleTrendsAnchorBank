@@ -4,15 +4,10 @@ library(Matrix)
 
 options(stringsAsFactors=FALSE)
 
-###### TODO:
-# - add more high-traffic queries, so we get closer to a ratio of e at the top
-# - use line graph instead of ring graph
-# - discard bad queries on the fly (those that break the chain and those for which Google gives an error); add them to a persistent blacklist in a file
-# - rename variables to more closely match the nomenclature and notation of the paper
-
 ###############################################################################
 # Constants
 ###############################################################################
+
 # Root directory of the GitHub repo.
 BASE_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank', Sys.getenv('HOME'))
 
@@ -27,14 +22,22 @@ DEFAULT_CONFIG <- list(num_anchors=100,
                        seed=1,
                        sleep=0.5)
 
-HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
-names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
-
+# Food queries from which anchor queries will be selected.
 FOODS <- read.table(sprintf('%s/freebase_foods.tsv', DATA_DIR), sep='\t', quote='',
                     comment.char='', header=TRUE, stringsAsFactors=FALSE)
 FOODS <- FOODS[FOODS$is_dish | FOODS$is_food,]
 rownames(FOODS) <- FOODS$mid
 
+# A set of high-traffic navigational queries, which will populate the upper end of the anchor bank,
+# as food queries, which are used for the rest of the anchor bank, are not sufficiently frequently
+# searched for on Google in order to cover the whole range of search frequencies.
+HI_TRAFFIC <- c('/m/03vgrr', '/m/0289n8t', '/m/02y1vz', '/m/019rl6', '/m/0b2334', '/m/010qmszp', '/m/01yvs')
+names(HI_TRAFFIC) <- c('LinkedIn', 'Twitter', 'Facebook', 'Yahoo!', 'Reddit', 'Airbnb', 'Coca-Cola')
+
+# Manually constructed blacklist of queries that should not be used as anchor queries as they would
+# break the chain that transitively connects the most to the least frequently searched-for anchor queries).
+# In the up-to-date Python library, we have implemented a method for detecting and removing such
+# "rogue queries" on the fly, but we did not add the feature to this outdated, proof-of-concept R code.
 BLACKLIST <- c('/m/0bcgdv') # Irvingia gabonensis
 
 ###############################################################################
@@ -43,6 +46,10 @@ BLACKLIST <- c('/m/0bcgdv') # Irvingia gabonensis
 
 build_anchor_bank <- function(config) {
   # Load ring graph.
+  # Note: Arranging queries in a ring is not strictly necessary; it would actually suffice to arrange
+  # the queries in a simple linear array (as also visualized in Fig. 2 of the CIKM'20 paper).
+  # In the Python library, the simpler setup is used, whereas in this outdated, proof-of-concept
+  # R code, we didn't make the change.
   G <- load_anchor_ring_graph(config)
   
   # Load Google results.
@@ -64,7 +71,7 @@ build_anchor_bank <- function(config) {
   if (err > 1e-12) warning("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].")
 
   # Find an ordered subset of queries (from highest to lowest query volume, according to W0),
-  # such that the ratio of neighboring queries is approximately e.
+  # such that the ratio of neighboring queries is approximately 1/e (cf. Appendix A of CIKM'20 paper).
   opt_query_set <- find_optimal_query_set(W0)
 
   # Query Google Trends to get max ratios for neighboring queries in the optimal subset.
@@ -150,7 +157,6 @@ load_anchor_ring_graph <- function(config) {
     set.seed(config$seed)
     samples2 <- apply(mat, 2, function(r) sample(r, 2))
     keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,])
-    # keywords <- c(rev(samples2[1,]), HI_TRAFFIC, samples2[2,], LO_TRAFFIC)
     V <- NULL
     i <- 1
     for (k in keywords) {
@@ -350,8 +356,10 @@ build_optimal_anchor_bank <- function(mids) {
   return(list(W=W, W_hi=W_hi, W_lo=W_lo))
 }
 
-binsearch <- function(query, anchor_bank, anchor_bank_hi, anchor_bank_lo, config,
-                      first_comparison=NULL, thresh=100/exp(1), plot=FALSE, quiet=TRUE, silent=FALSE) {
+# Online binary search.
+binsearch <- function(query, anchor_bank, anchor_bank_hi, anchor_bank_lo, config, first_comparison=NULL,
+                      # 100/e is the optimal threshold as derived in Appendix A of the CIKM'20 paper.
+                      thresh=100/exp(1), plot=FALSE, quiet=TRUE, silent=FALSE) {
   left <- 1
   right <- length(anchor_bank)
   anchors <- names(anchor_bank)
