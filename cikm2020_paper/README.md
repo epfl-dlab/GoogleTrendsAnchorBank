@@ -6,7 +6,7 @@ This directory contains all code and data to reproduce the results published in 
 
 Note that, whereas the results in the paper were produced with an R implementation, we have since switched over to Python.
 The R implementation that was used for the paper and that is contained in this directory is not updated anymore.
-If you are interested in using Google Trends Anchor Bank (G-TAB) in your own research, please use the Python implementation available at [https://github.com/epfl-dlab/GoogleTrendsAnchorBank/src/python](https://github.com/epfl-dlab/GoogleTrendsAnchorBank/src/python) instead.
+If you are interested in using Google Trends Anchor Bank (G-TAB) in your own research, please use the [Python implementation](https://github.com/epfl-dlab/GoogleTrendsAnchorBank/src/python) instead.
 
 Directory contents:
 
