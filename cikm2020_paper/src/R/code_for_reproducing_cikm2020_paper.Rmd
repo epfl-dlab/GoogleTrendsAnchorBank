@@ -9,11 +9,11 @@ editor_options:
 
 This is the script to produce all results of the following paper:
 
-Robert West. Evaluation of Google Trends Anchor Bank. In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
+Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
 
 Note that, whereas the results in the paper were produced with an R implementation, we have since switched over to Python.
 The R implementation used in this script is not updated anymore.
-If you are interested in using Google Trends Anchor Bank (G-TAB) in your own research, please use the Python implementation available at `[https://github.com/epfl-dlab/GoogleTrendsAnchorBank](https://github.com/epfl-dlab/GoogleTrendsAnchorBank)`.
+If you are interested in using Google Trends Anchor Bank (G-TAB) in your own research, please instead use the Python implementation available at [https://github.com/epfl-dlab/GoogleTrendsAnchorBank](https://github.com/epfl-dlab/GoogleTrendsAnchorBank).
 
 # Load libraries and define functions and global variables
 
