@@ -1,0 +1,363 @@
+---
+title: Evaluation of Google Trends Anchor Bank for CIKM'20 paper 'Calibration of Google
+  Trends Time Series'
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+# Load libraries and define functions and global variables
+
+```{r}
+library(boot)
+library(plotrix)
+
+# Root directory of the GitHub repo.
+BASE_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank', Sys.getenv('HOME'))
+
+# Load the functions for constructing the anchor bank.
+source(sprintf('%s/cikm2020_paper/src/R/g-tab.R', BASE_DIR))
+
+# Set this to FALSE if you don't want to save plots to PDFs.
+SAVE_PLOTS <- FALSE
+
+PLOT_DIR <- sprintf('%s/cikm2020_paper/plots', BASE_DIR)
+
+colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#D55E00", "#009E73", "#0072B2", "#CC79A7", "#F0E442")
+
+config <- DEFAULT_CONFIG
+# During binary search, sleep for 1 sec between queries.
+config$sleep <- 1
+
+# The threshold used for deciding when to stop the binary search. As derived in the appendix of
+# the paper, THRESH=e would be ideal, but we use THRESH=10, since this is the value that was used
+# to obtain the results in the paper.
+THRESH <- 10
+
+# Load entities from Freebase Easy HTML result page.
+get_entities_from_html <- function(file) {
+  html <- paste(readLines(file), collapse="\n")
+  chunks <- strsplit(html, 'http://www.freebase.com')[[1]]
+  pairs <- sapply(chunks, function(s) sub('^(/m/.*?)" target="_blank">(.*?)</a>.*', '\\1###\\2', s))
+  names(pairs) <- NULL
+  pairs <- pairs[startsWith(pairs, '/m/')]
+  pairs <- do.call(rbind, strsplit(pairs, '###'))
+  mids_to_names <- pairs[,2]
+  names(mids_to_names) <- pairs[,1]
+  mids_to_names
+}
+
+# Helper function for running binary search on a set of queries.
+run_binsearch <- function(dataset, mids_to_names, calib_max_vol, thresh, N, K) {
+  mids <- names(mids_to_names)
+  samples <- mids[seq(1, N, N/K)]
+  file <- sprintf('%s/binsearch/%s/results.thresh=%d.N=%d.K=%d.RData', DATA_DIR, dataset, thresh, N, K)
+  if (file.exists(file)) {
+    load(file)
+  } else {
+    results <- NULL
+    failed <- NULL
+    i <- 0
+    for (mid in samples) {
+      i <- i + 1
+      message(sprintf('%d: %s (%s)', i, mid, mids_to_names[mid]))
+      b <- binsearch(mid, calib_max_vol, thresh, config)
+      if (!is.null(b)) results[[mid]] <- b
+      else failed <- c(failed, mid)
+    }
+    save(results, failed, file=file)
+  }
+  iter <- sapply(results, function(x) x$iter)
+  ts <- sapply(results, function(x) x$ts)
+  ratio <- sapply(results, function(x) x$ratio)
+  return(list(iter=iter, ts=ts, ratio=ratio, failed=failed))
+}
+
+# Helper function for bootstrapping 95% CIs.
+bootstrap_ci <- function(x, f, R=1000) {
+  bo <- boot(x, statistic=function(d, i) return(f(d[i], na.rm=TRUE)), R=R)
+  ci <- boot.ci(bo, conf=0.95, type="perc")$perc[4:5]
+  if (is.null(ci)) {
+    upper <- lower <- NA
+  } else {
+    lower <- ci[1]
+    upper <- ci[2]
+  } 
+  c(upper, f(x, na.rm=TRUE), lower)
+}
+```
+
+# Build the anchor bank
+
+```{r}
+# Build anchor bank.
+ab <- build_anchor_bank(config)
+G <- ab$G
+ts <- ab$time_series
+ref_anchor <- ab$ref_anchor
+median_anchor <- ab$median_anchor
+anchor_bank <- ab$anchor_bank
+anchor_bank_hi <- ab$anchor_bank_hi
+anchor_bank_lo <- ab$anchor_bank_lo
+anchor_bank_init <- sort(ab$W0[ref_anchor,], decreasing=TRUE)
+```
+
+# Visualize the initial and optimized anchor banks
+
+```{r}
+if (SAVE_PLOTS) pdf(sprintf('%s/anchor_bank.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+col_ref <- colorblind_col[4]
+col_opt <- 'black'
+col_init <- 'gray'
+y <- anchor_bank_init
+par(mar=c(3.5, 3.5, 0.2, 0.2))
+plot(y, log='y', xlab='', ylab='', bty='n', lwd=1, col=col_init, axes=FALSE, xlim=c(0, length(y)), ylim=c(1e-5, 3))
+axis(1)
+mtext(expression(paste('Index of anchor query ', italic(x))), side=1, line=2.5)
+ticks <- 10^(-5:0)
+axis(2, at=ticks, labels=sprintf('1e%s', c(-(5:1), '+0')))
+mtext(expression(paste('Calibrated maximum search interest ', italic(R)[x])), side=2, line=2.5)
+# Reference query.
+points(1, 1, pch=20, col=col_ref, cex=2)
+text(5, 1, mid2name(names(y[1])), adj=c(0,0), col=col_ref, srt=10)
+# Optimized anchor bank
+idx <- which(names(anchor_bank_init) %in% names(anchor_bank))[-1] # -1 to remove the ref query
+yy <- y[idx]
+points(idx, yy, pch=20, col='black', cex=2)
+idx1 <- idx[1:6]
+text(idx1, y[idx1], mid2name(names(y[idx1])), adj=c(-0.2, 0), srt=10)
+idx2 <- idx[7:10]
+text(idx2, y[idx2], mid2name(names(y[idx2])), adj=c(1.1, 1), srt=10)
+# Legend
+col <- c(col_ref, col_init, col_opt)
+legend('topright', legend=c(expression(paste('Reference query ', italic(Q))),
+                            expression(paste('Initial anchor bank ', italic(A))),
+                            expression(paste('Optimized anchor bank ', italic(A), '*'))),
+       bty='n', pch=c(20,1,20), pt.cex=c(2,1,2), col=col, text.col=col)
+if (SAVE_PLOTS) dev.off()
+```
+
+# Test the binary search
+
+```{r}
+# Jever
+b <- binsearch('/m/0fxy5k', anchor_bank, anchor_bank_hi, anchor_bank_lo, config,
+               first_comparison=median_anchor, thresh=THRESH, plot=TRUE, quiet=FALSE)
+# Audi
+b <- binsearch('/m/0h5z20c', anchor_bank, anchor_bank_hi, anchor_bank_lo, config,
+               first_comparison=median_anchor, thresh=THRESH, plot=TRUE, quiet=FALSE)
+# Stanford University
+b <- binsearch('/m/06pwq', anchor_bank, anchor_bank_hi, anchor_bank_lo, config,
+               first_comparison=median_anchor, thresh=THRESH, plot=TRUE, quiet=FALSE)
+```
+
+Plot the time series for the last query with upper and lower bounds, based on the largest possible (unknown) rounding errors.
+
+```{r}
+# Plot upper and lower bounds.
+plot(b$ts, type='l', log='y', ylim=c(1e-5,1))
+dispersion(1:length(b$ts), b$ts, b$ts_hi, b$ts_lo, intervals=FALSE, arrow.gap=0, arrow.cap=0, col='red')
+```
+
+# Example results 1: Bavarian towns
+
+```{r}
+dataset <- 'bavaria'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html',
+                                                DATA_DIR, dataset, dataset))
+mid_arnstorf <- '/m/02rg8rj'
+mids_to_names[mid_arnstorf] <- 'Arnstorf'
+names_to_mids <- names(mids_to_names)
+names(names_to_mids) <- mids_to_names
+
+highlights <- names_to_mids[c('Munich', 'Garmisch-Partenkirchen', 'Bayreuth',
+                              'Rottach-Egern', 'Arnstorf')]
+
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.ARNSTORF.RData', DATA_DIR, dataset, THRESH)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_arnstorf <- binsearch(mid_arnstorf, calib_max_vol, THRESH, config)
+  save(result_arnstorf, file=file)
+}
+
+file <- sprintf('%s/binsearch/%s/results.thresh=%d.HIGHLIGHTS.RData', DATA_DIR, dataset, THRESH)
+if (file.exists(file)) {
+  load(file)
+} else {
+  result_highlights <- query_google(highlights, config)
+  save(result_highlights, file=file)
+}
+
+result1 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=100, K=100)
+result2 <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=1000, K=100)
+extra_idx <- setdiff(names(result2$iter), names(result1$iter))
+ts_bavaria <- cbind(result1$ts, result2$ts[,extra_idx])
+iter_bavaria <- c(result1$iter, result2$iter[extra_idx])
+ratio_bavaria <- c(result1$ratio, result2$ratio[extra_idx])
+ts_bavaria <- cbind(ts_bavaria, result_arnstorf$ts)
+colnames(ts_bavaria)[ncol(ts_bavaria)] <- mid_arnstorf
+ts_bavaria[,mid_arnstorf] <- result_arnstorf$ts
+iter_bavaria[mid_arnstorf] <- result_arnstorf$iter
+ratio_bavaria[mid_arnstorf] <- result_arnstorf$ratio
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LINEAR.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+matplot(result_highlights$ts, type='l', lty=1, log='', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
+idx <- c(1,3,2,4,5)
+legend('topright', names(highlights)[idx], lty=1, col=colorblind_col[idx], lwd=2, bty='n', inset=c(0,0.4))
+if (SAVE_PLOTS) dev.off()
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LOG.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+matplot(1+result_highlights$ts, type='l', lty=1, log='y', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+idx <- order(ratio_bavaria, decreasing=TRUE)
+matplot(ts_bavaria[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.05), lwd=1, bty='n', xlab='', ylab='',
+        axes=FALSE, ylim=c(1e-6, 0.1))
+
+ticks <- 10^(-6:-1)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2, at=ticks, labels=sprintf('1e-%d', 6:1)); mtext('Calibrated search interest', side=2, line=2.5)
+i <- 0
+for (h in highlights) {
+  col <- colorblind_col[(i %% length(colorblind_col))+1]
+  lines(ts_bavaria[,h], lwd=2, col=col)
+  i <- i + 1
+}
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_bavaria.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 0.5, 0.8))
+freq <- tapply(iter_bavaria, iter_bavaria, length)
+freq <- rev(freq / sum(freq))
+barplot(freq, horiz=TRUE, las=1, border=NA, xlim=c(0, 0.5))
+mtext('Relative frequency', side=1, line=2.5)
+mtext('Google Trends requests per search query', side=2, line=2.5)
+legend('bottomright', legend=c(sprintf('Mean: %.2f', mean(iter_bavaria)), sprintf('Median: %s', median(iter_bavaria))),
+       bty='n', inset=c(0.1,0.1))
+if (SAVE_PLOTS) dev.off()
+```
+
+# Example results 2: Soccer clubs
+
+```{r}
+dataset <- 'soccer'
+mids_to_names <- get_entities_from_html(sprintf('%s/binsearch/%s/freebase_easy_%s.html', DATA_DIR, dataset, dataset))
+result <- run_binsearch(dataset, mids_to_names, calib_max_vol, thresh=THRESH, N=100, K=100)
+ts_soccer <- result$ts
+iter_soccer <- result$iter
+ratio_soccer <- result$ratio
+bs <- apply(ts_soccer, 1, function(x) bootstrap_ci(x,median,1000))
+
+if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_soccer_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 1.0, 0.2))
+idx <- order(ratio_soccer, decreasing=TRUE)
+matplot(ts_soccer[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.08), lwd=1, bty='n', xlab='', ylab='',
+        axes=FALSE, ylim=c(1e-6, 0.1))
+ticks <- 10^(-6:-1)
+axis(1); mtext('Week of 2019', side=1, line=2.5)
+axis(2, at=ticks, labels=sprintf('1e-%d', 6:1)); mtext('Calibrated search interest', side=2, line=2.5)
+lines(apply(ts_soccer, 1, median), type='l', lwd=2, col=colorblind_col[1])
+lines(bs[1,], type='l', lwd=1)
+lines(bs[3,], type='l', lwd=1)
+legend('bottomleft', legend=c('Median', '95% CI'), lty=1, lwd=c(2,1), bty='n', inset=c(0,0))
+if (SAVE_PLOTS) dev.off()
+
+
+if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_soccer.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mar=c(3.5, 3.5, 0.5, 0.8))
+freq <- tapply(iter_soccer, iter_soccer, length)
+for (i in as.character(1:5)) if (!(i %in% names(freq))) freq[i] <- 0
+freq <- rev(freq / sum(freq))
+barplot(freq, horiz=TRUE, las=1, border=NA, xlim=c(0, 0.7))
+mtext('Relative frequency', side=1, line=2.5)
+mtext('Google Trends requests per search query', side=2, line=2.5)
+legend('bottomright', legend=c(sprintf('Mean: %.2f', mean(iter_soccer)), sprintf('Median: %s', median(iter_soccer))),
+       bty='n', inset=c(0.1,0.1))
+if (SAVE_PLOTS) dev.off()
+```
+
+# Theoretical analysis
+
+This code supplements the theoretical analysis of the appendix of the CIKM'20 paper.
+
+```{r}
+eps <- 1/200
+eta <- function(c, r) ((c+eps)/(c-eps))^(log(r)/log(c))
+e <- exp(1)
+
+# Unused.
+eta_jagged <- function(c, r) {
+  logr <- log(r)/log(c)
+  res <- r / c^(ceiling(logr)-1)
+  ((c+eps)/(c-eps))^(ceiling(logr)-1) * (res+eps)/(res-eps)
+}
+```
+
+Plot $\eta(c,r^*)$ as a function of $c$, for various choices of $r^*$.
+
+```{r}
+if (SAVE_PLOTS) pdf(sprintf('%s/eta_as_fct_of_c.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+c <- seq(0.1, 0.72, 0.01)
+par(mfrow=c(2,3))
+for (r in 0.1^(2:7)) {
+  ylim=c(1, max(eta(c,0.1^7)))
+  plot(c, eta(c,r), log='', type='l', main=sprintf('r* = 1e%d', log10(r)), ylim=ylim,
+       xlab='c', ylab=expression(eta(c)), bty='n',
+       panel.first=abline(v=1/e, col=colorblind_col[4]))
+  x <- r^(1/(1:50))
+  points(x, eta(x,r))
+}
+if (SAVE_PLOTS) dev.off()
+```
+
+# Comparison of initial and final anchor banks
+
+As we see, the optimized anchor bank comes much closer to the theoretical lower bound of the bound ratio.
+
+```{r}
+idx <- colnames(ab$W)
+W0_hi <- ab$W0_hi[idx,idx]
+W0_lo <- ab$W0_lo[idx,idx]
+W_hi <- ab$W_hi
+W_lo <- ab$W_lo
+
+hi0 <- W0_hi[ref_anchor,]
+lo0 <- W0_lo[ref_anchor,]
+hi1 <- W_hi[ref_anchor,]
+lo1 <- W_lo[ref_anchor,]
+
+if (SAVE_PLOTS) pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
+                      family='Helvetica', useDingbats=FALSE)
+par(mfrow=c(1,1))
+par(mar=c(4, 4, 0.2, 0.2))
+r_range <- range(c(lo1, lo0, hi1, hi0))
+r <- 10^seq(floor(log10(r_range)[1]), 0, 0.01)
+plot(r, eta(1/e,r), log='x', type='l', ylim=range(c(eta(1/e,r), hi0/lo0)), lwd=1, col='black',
+     axes=FALSE, bty='n', xlab='r*', ylab=expression(paste(bar(eta), "(r*)")))
+axis(1, at=10^seq(floor(log10(r_range)[1]), 0))
+axis(2)
+segments(x0=lo0, y0=hi0/lo0, x1=hi0, col=colorblind_col[3], lwd=3)
+segments(x0=lo1, y0=hi1/lo1, x1=hi1, col=colorblind_col[2], lwd=3)
+if (SAVE_PLOTS) dev.off()
+```

@@ -13,8 +13,10 @@ options(stringsAsFactors=FALSE)
 ###############################################################################
 # Constants
 ###############################################################################
-#DATA_DIR <- "../../data/"
-DATA_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank/data', Sys.getenv('HOME'))
+# Root directory of the GitHub repo.
+BASE_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank', Sys.getenv('HOME'))
+
+DATA_DIR <- sprintf('%s/cikm2020_paper/data', BASE_DIR)
 
 # num_anchors should be even; num_anchor_candidates should be a multiple of num_anchors/2.
 DEFAULT_CONFIG <- list(num_anchors=100,
@@ -73,11 +75,13 @@ build_anchor_bank <- function(config) {
 
   # The top most frequent query.
   top_anchor <- opt_query_set$mids[1]
+
+  # The reference query.
   ref_anchor <- top_anchor
   
   # The anchor from the optimal set that is closest to the median of the larger set.
   median_anchor <- names(which.min(abs(W[ref_anchor,] - median(W0[ref_anchor,]))))
-  
+
   # The final anchor bank consists of the optimal query set calibrated against the reference anchor.
   # We also provide the upper and lower bounds for each max ratio.
   anchor_bank <- W[ref_anchor,]
@@ -356,7 +360,7 @@ binsearch <- function(query, anchor_bank, anchor_bank_hi, anchor_bank_lo, config
     while (right > left) {
       iter <- iter + 1
       if (iter == 1) {
-        pivot <- if (is.null(first_comparison)) which(anchor_bank==1) else first_comparison
+        pivot <- if (is.null(first_comparison)) ceiling(length(anchor_bank)/2) else which(names(anchor_bank)==first_comparison)
       } else {
         pivot <- left + floor((right-left)/2)
       }
