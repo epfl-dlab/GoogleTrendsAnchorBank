@@ -1,5 +1,3 @@
-R/
 .vscode/
-**.R
 __pycache__
 test.py
