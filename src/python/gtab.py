@@ -1,17 +1,13 @@
-# TODO:
-#   add plots
-# Make anchor banks for 
-# 1.) US, Sweden, Italy, Switzerland
-# 2.) Germany, UK, Spain
-
 import ast
 import codecs
 import copy
 import datetime
+import glob
 import math
 import os
 import pickle
 import random
+import sys
 import time
 import warnings
 
@@ -23,6 +19,28 @@ from tqdm import tqdm
 
 
 class GTAB:
+
+    # Static methods
+    
+    @staticmethod
+    def __delete_all_files():
+
+        """
+            Deletes all saved anchorbanks, keywords, results and pairs. Be very careful!
+        """
+        dirs = ("google_anchorbanks", "google_keywords", "google_pairs", "google_results")
+
+        files = []
+        for d in dirs:
+            files += glob.glob(os.path.join("data", d, "*"))
+            files += glob.glob(os.path.join("logs", "*"))
+        
+        print(f"This will delete the following files: {files}")
+        c = input("Are you sure? (y/n): ")
+        if c[0].lower() == 'y':
+            print("Deleting...")
+            for f in files:
+                os.remove(f)
 
     def __init__(self, ptrends_config = None, gtab_config = None, conn_config = None, blacklist = None, use_proxies = False):
         """
@@ -60,13 +78,16 @@ class GTAB:
         else:
             self.BLACKLIST = blacklist
 
-        with open(os.path.join("data", "anchor_candidates.tsv"), 'r', encoding = 'utf-8') as f_anchor_set:
+        with open(os.path.join("data", "anchor_candidates_all.tsv"), 'r', encoding = 'utf-8') as f_anchor_set:
             self.ANCHOR_CANDIDATE_SET = pd.read_csv(f_anchor_set, sep = '\t')
 
         self.ANCHOR_CANDIDATE_SET.rename(index = {k: v for k, v in enumerate(list(self.ANCHOR_CANDIDATE_SET['mid']))}, inplace = True)
         mask = (np.array(self.ANCHOR_CANDIDATE_SET['is_dish'] == 1) | np.array(self.ANCHOR_CANDIDATE_SET['is_food'] == 1))
         self.ANCHOR_CANDIDATE_SET = self.ANCHOR_CANDIDATE_SET[mask]
-        self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll', 'Amazon.com': '/m/0mgkg', 'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t',  'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr' , 'Airbnb': '/m/010qmszp'}#, 'Coca-Cola': '/m/01yvs'}
+        if self.GTAB_CONFIG['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATE_SET):
+            self.GTAB_CONFIG['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATE_SET)
+
+        self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll', 'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_', 'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph', 'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr' , 'Airbnb': '/m/010qmszp'}#, 'Coca-Cola': '/m/01yvs'}
         self._init_done = False
         
         if use_proxies:
@@ -75,6 +96,15 @@ class GTAB:
             self.ptrends = TrendReq(hl='en-US', timeout = (20, 20))
 
     ## --- UTILITY METHODS --- #
+
+    def _print_and_log(self, text):
+        print(text)
+        self._log_con.write(text + '\n')
+
+
+    def _make_file_suffix(self):
+        return "_".join([f"{k}={v}" for k, v in self.GTAB_CONFIG.items()]) + "_" + "_".join([f"{k}={v}" for k, v in self.PTRENDS_CONFIG.items()])
+
     def _query_google(self, keywords = ["Keywords"]):
         time.sleep(self.GTAB_CONFIG['sleep'])
         if type(keywords) == str:
@@ -94,71 +124,162 @@ class GTAB:
             self._query_google(keywords = keyword)
             return self._is_blacklisted(keyword)
         except Exception as e:
-            print(e)
+            self._print_and_log(f"Bad keyword '{keyword}', because {str(e)}")
             if "response" in dir(e):
                 if e.response.status_code == 429:
                     raise ConnectionError("Code 429: Query limit reached on this IP!")
-            self._log_con.write(f"Bad keyword '{keyword}', because {str(e)}`\n")
+
             return False
     
     def _check_ts(self, ts):
         return ts.max().max() >= self.GTAB_CONFIG['thresh_offline']
 
-    def _check_group(self, val):
-        ret = None
-        idx = None
-        if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4: # try with 3 as well
-            ret = val.max().idxmax()
-            idx = np.where(val.columns == ret)
-        return ret, idx
-
-    def _find_outliers(self, gres):
-        ret = set()
-        for _, val in gres.items():
-            # if any(val.max() < self.GTAB_CONFIG['thresh_offline']):
-            #     ret.add(val.max().idxmax())
-            if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4: # try with 3 as well
-                ret.add(val.max().idxmax())
-
-        return list(ret)
+    def _find_nans(self, W0):
+        nans = set()
+        idxs = set()
+        for row in range(W0.shape[0]):
+            for col in range(W0.shape[1]):
+                if np.isnan(W0.iloc[row, col]):
+                    # print(W0.index[row], W0.index[col])
+                    nans.add(W0.index[row])
+                    idxs.add(row)
         
+        ret = list(zip(nans, idxs))
+        return sorted(ret, key = lambda x: x[1])
 
 
+
+    def _diagnose_keywords(self, rez_dict):
+
+        ret_keys = []
+        for gres in rez_dict.values():
+            ret_keys.append(list(gres.columns))
+        for i in range(len(ret_keys)-1):
+            for t_idx in range(1, 5):
+                if ret_keys[i][t_idx] != ret_keys[i+1][t_idx-1]:
+                    self._print_and_log("Non-continuous groups at: ")
+                    self._print_and_log(f"{str(ret_keys[i])}")
+                    self._print_and_log(f"{str(ret_keys[i+1])}")
+                    self._error_flag = True
+
+
+        return True
+
+    def _check_groups(self, gres):
+
+        ret = []
+        for val in gres.values():
+            if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4: # try with 3 as well, less restrictive
+                ret.append(val.max().idxmax())
+                
+        return ret
+
+
+    def _find_bads(self, gres, keywords):
+
+        ret = {k[1]: [k[0], 0] for k in enumerate(keywords)}
+        for val in gres.values():
+            bads = list(val.columns[val.max() < self.GTAB_CONFIG['thresh_offline']])
+            for b in bads:
+                ret[b][1] += 1
+    
+        return ret
+
+    def _diagnose_bads(self, gres, keywords):
+        
+        ret = []
+        # new heuristic
+        # count each bad occurence per keyword
+        bad_dict = self._find_bads(gres, keywords)    
+        # which are always bad?
+        bad_kws1 = [k for k, v in bad_dict.items() if v[1] >= 5]
+        # find their index in the original list
+        bad_idxs1 = [bad_dict[kw][0] for kw in bad_kws1]
+
+        # old heuristic
+        bad_kws2 = self._check_groups(gres)
+        bad_idxs2 = [bad_dict[kw][0] for kw in bad_kws2 if bad_dict[kw][0] < len(gres) - 4]
+
+        ret = sorted(bad_idxs1 + bad_idxs2)
+
+        print(f"Total bad: {len(ret)}")
+        # self._print_and_log(f"Total bad: {len(bad_idxs)}")
+
+
+        return ret
+
+        
 
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        # fpath = os.path.join("data", "google_results_RTEST.pkl") # same nodes are queried as the R implementation
-        # fpath = os.path.join("data", "google_test_autotest7.pkl")
-        # fpath = os.path.join("data", "google_test_autotest_time2.pkl")
-        # fpath = os.path.join("data", "google_test_autotest_big.pkl")
-        # The following comment block should be used instead of the above line, but we need to find a parameter combination that produces a valid anchor bank automatically.
+        fpath = os.path.join("data", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
 
-        # TODO: make the settings as a suffix, you use it a lot
-        if self.GTAB_CONFIG["anchor_file"].strip() != "" and self.GTAB_CONFIG["anchor_file"] != None:
-            fpath = os.path.join("data", "google_results", self.GTAB_CONFIG["anchor_file"] + ".pkl")
-            fpath_keywords = os.path.join("data", "google_keywords", self.GTAB_CONFIG["anchor_file"] + ".pkl")
-        elif self.PTRENDS_CONFIG['geo'].strip() != "":
-            fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
-            fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.pkl")
-        else:
-            fpath = os.path.join("data", "google_results", f"google_results_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.pkl")
-            fpath_keywords = os.path.join("data", "google_keywords" , f"google_keywords_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.pkl")
-
-
-        if os.path.exists(fpath):
-            print(f"Loading google results from {fpath}...") 
+        if os.path.exists(fpath):   
+            self._print_and_log(f"Loading google results from {fpath}...")
             with open(fpath, 'rb') as f_in:
                 ret = pickle.load(f_in)
+            self._diagnose_keywords(ret)
             return ret
         else:
+
+            def get_kws(req_rng, new_kws):
+                
+                ret = []
+                for j in range(req_rng[0], req_rng[1] + 1):
+                    if not new_kws[j][1]:
+                        continue
+                    t = []
+                    cnt = 0
+                    idx = 0
+                    while cnt < 5:
+                        if new_kws[j + idx][1]:
+                            t.append(new_kws[j + idx][0])
+                            cnt += 1
+                        idx += 1
+                    ret.append(t)
+                return ret
+
+            def compute_requery_ranges(bad_idxs):
+
+                ret = []
+                ret_cnts = []
+                i = 0
+                while i < len(bad_idxs):
+                    L = bad_idxs[i] - 4
+                    R = bad_idxs[i]
+                    next_i = i + 1
+
+                    counter = 1
+                    while True:
+                        if next_i >= len(bad_idxs):
+                            ret.append((L, R))
+                            ret_cnts.append(counter)
+                            break
+
+                        if R >= bad_idxs[next_i] - 4:
+                            R = bad_idxs[next_i]
+                            next_i += 1
+                            counter += 1
+                        else:
+                            ret.append((L, R))
+                            ret_cnts.append(counter)
+                            break
+                    i = next_i
+
+                return ret, ret_cnts
+
             N = self.GTAB_CONFIG['num_anchor_candidates']
             K = self.GTAB_CONFIG['num_anchors']
 
             ## --- Get stratified samples, 1 per stratum. --- ##
-            if self.GTAB_CONFIG["kw_file"] == None or self.GTAB_CONFIG["kw_file"].strip() == "":
-                print("Sampling keywords...")
+            if not os.path.exists(fpath_keywords):
+
+                self._print_and_log("Sampling keywords...")
                 random.seed(self.GTAB_CONFIG['seed'])
+                np.random.seed(self.GTAB_CONFIG['seed'])
+
                 samples = []
                 for j in range(K):
                     start_idx = (j * N) // K
@@ -170,8 +291,8 @@ class GTAB:
                 keywords = [k for k in tqdm(keywords, total = len(keywords)) if self._check_keyword(k)]
 
             else:
-                print(f"Getting keywords from {self.GTAB_CONFIG['kw_file']}")
-                with open(self.GTAB_CONFIG['kw_file'], 'rb') as f_kw_in:
+                print(f"Getting keywords from {fpath_keywords}")
+                with open(fpath_keywords, 'rb') as f_kw_in:
                     keywords = pickle.load(f_kw_in)         
                 keywords = [k for k in tqdm(keywords, total = len(keywords)) if self._is_blacklisted(k)]
 
@@ -181,279 +302,352 @@ class GTAB:
             keywords = np.array(keywords)
             
             ## --- Query google on keywords and dump the file. --- ##
-            print("Querying google...")
+            self._print_and_log("Querying google...")
     
-        
-            ret = dict()                
-
-            max_i = 0
-            i = 0
-            lim = len(keywords) - 5 + 1
-            prog_bar = tqdm(total = lim)
-            bad_queries = 0
-
-            while True:
-                if i >= lim:
-                    break
+            t_ret = dict()                
+            for i in tqdm(range(len(keywords) - 4)):
                 
                 try:
                     df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
                 except Exception as e:
                     if "response" in dir(e):
                         if e.response.status_code == 429:
-                            c = input("Quota reached! Please change IP and press any key to continue.")
-                            
+                            c = input("Quota reached! Please change IP and press any key to continue.") 
                             df_query = self._query_google(keywords = keywords[i:i+5]).iloc[:, 0:5]
                         else:
-                            print(str(e))
+                            self._print_and_log(str(e))
+                t_ret[i] = df_query
 
-                outlier_name, outlier_idx = self._check_group(df_query)
+            self._print_and_log("Removing bad queries...")        
+            no_passes = 0
+            bad_queries_total = 0
+            while True:
+                ret = dict()
+                new_kws = [[kw, True] for kw in keywords]
 
+                bad_idxs = self._diagnose_bads(t_ret, keywords)
+                bad_queries_total += len(bad_idxs)
+
+                # no bads? done.
+                if not bad_idxs:
+                    ret = copy.deepcopy(t_ret)
+                    break
+                no_passes +=1 
                 
-                if outlier_name == None:
-                    ret[i] = df_query
-                else:
-                    bad_queries += 1
-                    self._log_con.write(f"Removed bad keyword: {str(outlier_name)}\n")
-                    print(f"\nRemoved bad keyword: {str(outlier_name)}\n")
-                    # print(df_query)
-                    # print(outlier_idx[0][0])
-                    outlier_idx = outlier_idx[0][0]
-                    # print(keywords)
-                    keywords = np.delete(keywords, i + outlier_idx)
-                    # print(keywords)
-                    curr_i = i
-                    i += outlier_idx - 5
-                    lim -= 1
-                    for t_i in range(i+1, curr_i):
-                        # print(t_i, end = " ")
-                        if t_i in ret:
-                            # print(ret[t_i])
-                            del ret[t_i]
-                    prog_bar.update(0)
+                # flag the keywords that are bad
+                for b in bad_idxs:
+                    new_kws[b][1] = False
 
-                i += 1
-                max_i = max(i, max_i)
-                if i == max_i:
-                    prog_bar.update(1)
+                # update the keywords
+                keywords = [el[0] for el in new_kws if el[1]]
+                
+                # compute where we should requerry                
+                requery_ranges, requery_counts = compute_requery_ranges(bad_idxs = bad_idxs)
 
-            if max_i > lim:
-                print(max_i)
-                print(lim)
-                raise ValueError("RIP")
-            prog_bar.close()
-            self._log_con.write(f"Total of {bad_queries} bad keywords removed.\n")
+                idx_new = 0
+                start_copy = 0
+                for req_rng, req_cnt in zip(requery_ranges, requery_counts):
+            
+                    # copy the query groups that don't change... assuming the first 5 don't break
+                    for j in range(start_copy, req_rng[0]):
+                        ret[idx_new] = copy.deepcopy(t_ret[j])
+                        idx_new += 1
+                    start_copy = req_rng[1] + 1 
+
+                    # ...requery the ones that do
+                    kw_groups = get_kws(req_rng, new_kws)
+                    for kw_group in tqdm(kw_groups):
+
+                        try:
+                            df_query = self._query_google(keywords = kw_group).iloc[:, 0:5]
+                        except Exception as e:
+                            if "response" in dir(e):
+                                if e.response.status_code == 429:
+                                    c = input("Quota reached! Please change IP and press any key to continue.") 
+                                    df_query = self._query_google(keywords = kw_group).iloc[:, 0:5]
+                                else:
+                                    self._print_and_log(str(e))
+                        
+                        ret[idx_new] = df_query
+                        idx_new += 1
+                        
+                if start_copy < len(t_ret):
+                    for j in range(start_copy, len(t_ret)):
+                        ret[idx_new] = copy.deepcopy(t_ret[j])
+                        idx_new += 1 
+
+                self._diagnose_keywords(ret)
+                t_ret = copy.deepcopy(ret)
+
+            self._print_and_log("Diagnostics done!")
+            
+            # log how many keywords are removed
+            self._print_and_log(f"A total of {bad_queries_total} bad keywords removed.")
             # object id sanity check
             assert id(ret[0]) != id(ret[1])
 
             with open(fpath, 'wb') as f_out:
-                print(f"Saving anchorbank (pkl) to {fpath}...")
+                self._print_and_log(f"Saving google results as '{fpath}'...")
                 pickle.dump(ret, f_out, protocol=4)
 
             return(ret)
 
+    def _compute_hi_and_lo(self, max1, max2):
+        
+        if max1 < 100:
+            hi1 = max1 + 0.5
+            lo1 = max1 - 0.5
+        else:
+            hi1 = 100
+            lo1 = 100
+        
+        if max2 < 100:
+            hi2 = max2 + 0.5
+            lo2 = max2 - 0.5
+        else:
+            hi2 = 100
+            lo2 = 100
+
+        if max1 == 100 and max2 == 100:
+            lo1 = 99.5
+            lo2 = 99.5
+        
+        return lo1, hi1, lo2, hi2
+
     def _compute_max_ratios(self, google_results):
-        t_anchors = []
-        t_v1 = []
-        t_v2 = []
-        t_ratios_vec = []
-        inverse_ratios = dict()
-
-        for _, val in google_results.items():
-            for j in range(val.shape[1]-1):
-                for k in range(j + 1, val.shape[1]):
-                    if(self._check_ts(val.iloc[:, j]) and self._check_ts(val.iloc[:, k])):
-
-                        t_anchors.append(val.columns[0]) # first element of group
-                        t_v1.append(val.columns[j])
-                        t_v2.append(val.columns[k])
-
-                        vpair = " ".join([val.columns[j], val.columns[k]])
-                        t_ratio = val.iloc[:, j].max().max() / val.iloc[:, k].max().max()
-
-                        if vpair not in inverse_ratios.keys():
-                            inverse_ratios[vpair] = [0, 0] # <, >
-                        if t_ratio < 1.0:
-                            inverse_ratios[vpair][0] += 1
-                        elif t_ratio > 1.0:
-                            inverse_ratios[vpair][1] += 1
-
-                        t_ratios_vec.append(t_ratio)
-                        
-
-        # filter where <>1 inversion happens
+        
         anchors = []
-        v1 = []
-        v2 = []
-        ratios_vec = []
-
-        for j in range(len(t_ratios_vec)):
-            vpair = " ".join([t_v1[j], t_v2[j]])
-
-            if inverse_ratios[vpair][0] > 0 and inverse_ratios[vpair][1] > 0:
-                if inverse_ratios[vpair][0] >= inverse_ratios[vpair][1]:
-                    if t_ratios_vec[j] < 1.0:
-                        anchors.append(t_anchors[j])
-                        v1.append(t_v1[j])
-                        v2.append(t_v2[j])
-                        ratios_vec.append(t_ratios_vec[j])
-                else:
-                    if t_ratios_vec[j] > 1.0:
-                        anchors.append(t_anchors[j])
-                        v1.append(t_v1[j])
-                        v2.append(t_v2[j])
-                        ratios_vec.append(t_ratios_vec[j])
-            else:
-                anchors.append(t_anchors[j])
-                v1.append(t_v1[j])
-                v2.append(t_v2[j])
-                ratios_vec.append(t_ratios_vec[j])
+        v1, v2 = [], []
+        ratios, ratios_hi, ratios_lo = [], [], []
+        errors, log_errors = [], []
         
+        for _, val in google_results.items():
+            for j in range(val.shape[1]):
+                for k in range(val.shape[1]):
+                    if j == k:
+                        continue
+                    
+                    if(self._check_ts(val.iloc[:, j]) and self._check_ts(val.iloc[:, k])):
+                        
+                        anchors.append(val.columns[0]) # first element of the group
+                        v1.append(val.columns[j])
+                        v2.append(val.columns[k])
+                        max1 = val.iloc[:, j].max()
+                        max2 = val.iloc[:, k].max()
+                        lo1, hi1, lo2, hi2 = self._compute_hi_and_lo(max1, max2)
+                        ratios.append(max2 / max1)
+                        ratios_hi.append(hi2 / lo1)
+                        ratios_lo.append(lo2 / hi1)
+                        errors.append(hi2 / lo2 * hi1 / lo1)
+                        log_errors.append(np.log(hi2 / lo2 * hi1 / lo1))
+
+        ret = pd.DataFrame(data = {'v1': v1, 'v2': v2, 'anchor': anchors, 'ratio': ratios, 'ratio_hi': ratios_hi, 'ratio_lo': ratios_lo, 'error': errors, 'weight': log_errors})
+
+        # Removing excess edges for MultiGraph -> Graph conversion.
+        ret = ret.sort_values('weight', ascending = True).drop_duplicates(["v1", "v2"]).sort_index()        
+
+        return ret
+
+
+    def _infer_all_ratios(self, ratios):
+
+        def compute_path_attribs( path, G, attribs):
+            ret = {attr: 1.0 for attr in attribs}
+            if len(path) > 1:
+                for i in range(len(path) - 1):
+                    for attr in attribs:
+                        ret[attr] *= G[path[i]][path[i+1]][attr]
+
+            return ret
+                
+
+        G = nx.convert_matrix.from_pandas_edgelist(ratios, 'v1', 'v2', edge_attr = ['weight', "ratio", "ratio_hi", "ratio_lo", 'error'], create_using = nx.DiGraph)
+
+        assert len(G.edges()) % 2 == 0
+
+        # strongly?
+        if not nx.is_strongly_connected(G) or not nx.is_weakly_connected(G) or nx.number_connected_components(nx.Graph(G)) > 1:
+            for comp in nx.connected_components(nx.Graph(G)):
+                self._print_and_log(f"Component with length {len(comp)}: {str(comp)}")
+                self._error_flag = True
+
+            self._print_and_log(f"Num. connected components: {nx.number_strongly_connected_components(nx.Graph(G))}. Directed graph is not strongly connected!")
+            warnings.warn("Directed graph is not connected!")
+
+            # ratios.to_csv("ratios_test.tsv", sep = '\t')
+        
+
+        # log_lens = list(nx.all_pairs_bellman_ford_path_length(G))
+        paths = list(nx.all_pairs_dijkstra_path(G))
+        self.paths = paths
+        node_names = [el[0] for el in paths]
+        W = pd.DataFrame(columns = node_names, index = node_names, dtype = float)
+        W_lo = pd.DataFrame(columns = node_names, index = node_names, dtype = float)
+        W_hi = pd.DataFrame(columns = node_names, index = node_names, dtype = float)
+
+        self._print_and_log("Finding paths...")
+        for p_obj in tqdm(paths):
+            for p in p_obj[1].values():
+                path_attrib_dict = compute_path_attribs(p, G, ['weight', "ratio", "ratio_hi", "ratio_lo", 'error'])
+                v1 = p[0]
+                v2 = p[-1]
+                W.loc[v1][v2] = path_attrib_dict['ratio']
+                W_lo.loc[v1][v2] = path_attrib_dict['ratio_lo']
+                W_hi.loc[v1][v2] = path_attrib_dict['ratio_hi']
+        self._print_and_log("Paths done!")
+
+        return W, W_lo, W_hi        
+        
+    # colSums equivalent is df.sum(axis = 0)
+    def _find_optimal_query_set(self, W0):
+
+        def get_extreme(which):
+            if which not in ['top', 'bottom']:
+                raise ValueError()
+
+            sign = 1 if which == 'top' else -1
+            ext = list(W0.index[(sign * W0 <= sign).apply(all, axis = 1)])
+            if len(ext) > 1 and isinstance(ext, list):
+                ext = [ext[W0[ext].max().argmax()]]
+            return ext[0]
+                
+        top = get_extreme('top')
+        bot = get_extreme('bottom')
+        D = nx.from_pandas_adjacency(np.abs(np.log(W0) + 1), create_using=nx.DiGraph)
+        path = nx.bellman_ford_path(D, source = top, target = bot, weight = 'weight')
+        
+        return path
+
+    def _build_optimal_anchor_bank(self, mids):
+
+        N = len(mids)
+        fpath = os.path.join("data", "google_pairs", f"{self._make_file_suffix()}.pkl") 
+
+        if os.path.exists(fpath):
+            with open(fpath, 'rb') as f_in:
+                pairwise_dict = pickle.load(f_in)
+        else:
+            pairwise_dict = dict()
+            self._print_and_log("Querying pairs...")
+            for i in tqdm(range(0, N-1)):
+                pairwise_dict[i] = self._query_google(keywords = [mids[i], mids[i+1]])
+            with open(fpath, 'wb') as f_out:
+                pickle.dump(pairwise_dict, f_out)
+
+        pairs_max_ratios = [1.0] + [np.max(ts.iloc[:, 1] / 100) for ts in pairwise_dict.values()] 
+        pairs_max_ratios_hi = [1.0] + [np.max((ts.iloc[:, 1] + 0.5) / 100) for ts in pairwise_dict.values()] 
+        pairs_max_ratios_lo = [1.0] + [np.max((ts.iloc[:, 1] - 0.5) / 100) for ts in pairwise_dict.values()] 
+
+        W = pd.DataFrame(0, index = mids, columns = mids)
+        W_hi = pd.DataFrame(0, index = mids, columns = mids)
+        W_lo = pd.DataFrame(0, index = mids, columns = mids)
+        
+        for i in range(0, N):
+            W.iloc[i] = np.cumprod(pairs_max_ratios) / np.prod(pairs_max_ratios[0:(i+1)])
+            W_hi.iloc[i] = np.cumprod(pairs_max_ratios_hi) / np.prod(pairs_max_ratios_hi[0:(i+1)])
+            W_lo.iloc[i] = np.cumprod(pairs_max_ratios_lo) / np.prod(pairs_max_ratios_lo[0:(i+1)])
+
+        W_hi = pd.DataFrame(np.triu(W_hi) + np.tril(1/W_lo.transpose(), k = -1), index = mids, columns = mids)
+        W_lo = pd.DataFrame(np.triu(W_lo) + np.tril(1/W_hi.transpose(), k = -1), index = mids, columns = mids)
             
-        # If ratio > 1, flip positions and change ratio value to 1/ratio.
-        for j in range(len(ratios_vec)):
-            vpair = " ".join([v1[j], v2[j]])
-            if ratios_vec[j] > 1.0: # and not inverse_ratios[vpair][0] or not inverse_ratios[vpair][1]:
-                v1[j], v2[j] = v2[j], v1[j]
-                ratios_vec[j] = 1./ratios_vec[j]
-        
-        # Handle edge-case where ratio == 1
-        pair_names = [" ".join(el) for el in zip(np.array(v1)[np.array(ratios_vec) < 1.0], np.array(v2)[np.array(ratios_vec) < 1.0])]
-        for i in range(len(ratios_vec)):
-            if math.isclose(ratios_vec[i], 1.0):
-                if " ".join([v1[i], v2[i]]) in pair_names:
-                    continue
-                elif " ".join([v2[i], v1[i]]) in pair_names:
-                    v1[i], v2[i] = v2[i], v1[i]
-                else:
-                    tmp = sorted((v1[i], v2[i]))
-                    v1[i] = tmp[0]
-                    v2[i] = tmp[1]
+        return W, W_lo, W_hi
 
-        assert len(ratios_vec) == len(v1) == len(v2) == len(anchors)
-        df_ratios = pd.DataFrame({"anchor": anchors, "v1": v1, "v2": v2, "ratio": ratios_vec})
-        df_ratios_aggr = df_ratios.groupby(['v1', 'v2']).agg({"ratio": ['mean', 'std']})
-        df_ratios_aggr.columns = df_ratios_aggr.columns.droplevel(0)
-        df_ratios_aggr.reset_index(inplace = True)
-        df_ratios_aggr.set_index(df_ratios_aggr.apply(lambda x: " ".join([x[0], x[1]]), axis = 1), inplace=True)
-
-        return df_ratios_aggr
-
-    def _infer_all_ratios(self, ratios_aggr):
-        
-        vcore = list(set().union(ratios_aggr['v1'], ratios_aggr['v2']))
-        vcore.sort()
-        W0 = pd.DataFrame(np.zeros((len(vcore), len(vcore))), index = vcore, columns = vcore, dtype=float)
-        A0 = pd.DataFrame(np.zeros((len(vcore), len(vcore))), index = vcore, columns = vcore, dtype=float)
-        
-        for u in vcore:
-            for v in vcore:
-                ratio = np.nan
-                if u == v:
-                    ratio = 1.0
-                else:
-                    key = " ".join([u, v])
-                    if key in ratios_aggr.index:
-                        ratio = ratios_aggr.loc[key, 'mean']
-                if np.isfinite(ratio):
-                    W0.loc[u, v] = ratio
-                    W0.loc[v, u] = 1./ratio
-                    A0.loc[u, v] = 1
-                    A0.loc[v, u] = 1
-
-        W = copy.deepcopy(W0)
-        A = copy.deepcopy(A0)
-
-        while True:
-            AA = A.dot(A)
-            WW = A * W + (1-A) * ((W.dot(W)) / AA)
-            WW.fillna(0.0, inplace = True)
-            W = copy.deepcopy(WW)
-            A_old = copy.deepcopy(A)
-
-            # object id sanity check
-            assert id(W) != id(WW)
-            assert (W == WW).all().all()
-
-            A = (AA > 0).astype(int)
-
-            if (A == A_old).all().all():
-                break
-
-        return W
-        
     ## --- "EXPOSED" METHODS --- ##
-    def init(self, verbose = False):
+    def init(self, verbose = False, keep_diagnostics = False):
         """
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
-
-        self._log_con = open(os.path.join("log", f"log_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.txt"), 'a')
-        self._log_con.write(f"\n{datetime.datetime.now()}")
-        # self._log_con = open("log.txt", "w")
+        self._error_flag = False
+        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a') # append vs write
+        self._log_con.write(f"\n{datetime.datetime.now()}\n")
+        self._print_and_log("Start AnchorBank init...")
 
         if verbose:
             print(self.GTAB_CONFIG)
             print(self.PTRENDS_CONFIG)
+
         google_results = self._get_google_results() 
-        print(f"Total queries (groups of 5 keywords): {len(google_results)}")
+        if keep_diagnostics:
+            self.google_results = google_results
+
+
+        # # write to file for testing
+        # os.makedirs("test_data", exist_ok=True)
+        # idx = 0
+        # for gres in google_results.values():
+        #     gres.to_csv(f"test_data/{idx}.tsv", sep = '\t')
+        #     idx+=1
+
+
+        self._print_and_log(f"Total queries (groups of 5 keywords): {len(google_results)}")
         time_series = pd.concat(google_results, axis=1)
+        if keep_diagnostics:
+            self.time_series = time_series
+
         ratios = self._compute_max_ratios(google_results)   
-        G = nx.convert_matrix.from_pandas_edgelist(ratios, 'v1', 'v2', create_using = nx.DiGraph)
+        if keep_diagnostics:
+            self.ratios = ratios    
 
-        if not nx.is_directed_acyclic_graph(G):
-            warnings.warn("Directed graph is not acyclic!") 
-            print(f"Cycles are: {list(nx.algorithms.cycles.simple_cycles(G))}")
-            self._log_con.write(f"Cycles are: {list(nx.algorithms.cycles.simple_cycles(G))}\n")
-        if not nx.is_weakly_connected(G):
-            print(f"Num. connected components: {nx.number_connected_components(nx.Graph(G))}")
-            warnings.warn("Directed graph is not connected!")
+        W0, W0_lo, W0_hi = self._infer_all_ratios(ratios)
+        if keep_diagnostics:
+            self.W0, self.W0_lo, self.W0_hi = W0, W0_lo, W0_hi
 
-        W = self._infer_all_ratios(ratios)
-        err = np.nanmax(np.abs(1 - W * W.transpose()))
 
-        # colSums equivalent is df.sum(axis = 0)
-        ref_anchor = W[(W > 1).sum(axis = 0) == 0].index[0]
-        print(f"ref_anchors are {ref_anchor}...")
-        if len(ref_anchor) > 1 and type(ref_anchor) is not str and type(ref_anchor) is not np.str_: 
-            # print(ref_anchor)
-            # print(type(ref_anchor))
-            ref_anchor = (W.loc[:, ref_anchor] > 0).sum(axis = 0).idxmax()[0]
+        # Rounding produces epsilon differences after transposing.
+        err = np.abs(1 - W0 * W0.transpose()).to_numpy().max()
+        self._print_and_log(f"Err: {err}")
+        if err > 1e-12:
+            warnings.warn("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].")    
+            self._log_con.write("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].\n")    
+        if np.isnan(err):
+            warnings.warn("Err is NaN.")    
 
-    
-        self.google_results = google_results
-        self.G = G
-        self.ref_anchor = ref_anchor
+            
+        
+        opt_query_set = self._find_optimal_query_set(W0)
+        if keep_diagnostics:
+            self.opt_query_set = opt_query_set
+
+        W, W_lo, W_hi = self._build_optimal_anchor_bank(opt_query_set)
+        if keep_diagnostics:
+            self.W, self.W_lo, self.W_hi = W, W_lo, W_hi
+        
+        top_anchor = opt_query_set[0]
+        ref_anchor = np.abs(W.loc[top_anchor, :] - np.median(W0.loc[top_anchor, :])).idxmin()
+        anchor_bank = W.loc[ref_anchor, :]
+        anchor_bank_hi = W_hi.loc[ref_anchor, :]
+        anchor_bank_lo = W_lo.loc[ref_anchor, :]
+
         self.err = err
-        self.W = W
-        self.calib_max_vol = W.loc[:, ref_anchor].sort_values()
-        self.ratios = ratios    
-        self.time_series = time_series
+        self.top_anchor = top_anchor
+        self.ref_anchor = ref_anchor
+        self.anchor_bank = anchor_bank
+        self.anchor_bank_hi = anchor_bank_hi
+        self.anchor_bank_lo = anchor_bank_lo
         self._init_done = True
 
-        if self.GTAB_CONFIG["anchor_file"].strip() != "" and self.GTAB_CONFIG["anchor_file"] != None:
-            fname = os.path.join("data", "google_anchorbanks", self.GTAB_CONFIG["anchor_file"] + ".tsv")
-        elif self.PTRENDS_CONFIG['geo'].strip() != "":
-            fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_{self.PTRENDS_CONFIG['geo']}.tsv")    
-        else:
-            fname = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self.GTAB_CONFIG['num_anchor_candidates']}_{self.GTAB_CONFIG['num_anchors']}_t{self.GTAB_CONFIG['thresh_offline']}_global.tsv")
+        fname_base = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}")
 
-        print(f"Saving anchorbank to {fname}...")
-        self.calib_max_vol.to_csv(fname, sep = '\t', header = False)
+        self._print_and_log(f"Saving anchorbanks as '{fname_base}'...")
 
-        
+        self.anchor_bank.to_csv(fname_base + ".tsv", sep = '\t', header = False)
+        self.anchor_bank_hi.to_csv(fname_base + "_hi.tsv", sep = '\t', header = False)
+        self.anchor_bank_lo.to_csv(fname_base + "_lo.tsv", sep = '\t', header = False)
 
-
+        self._print_and_log("AnchorBank init done.")
+        if self._error_flag:
+            self._print_and_log("There was an error. Please check the log file.")
         self._log_con.close()
-        print("Done.")
 
 
-    def new_query(self, keyword):
+    def new_query(self, query, first_comparison = None, thresh = 100 / np.e, verbose = False):
 
         """
         Request a new GTrends query and calibrate it with the GTAB instance.
         Input parameters:
             keyword - string containing a single query.
+            first_comparison - first pivot for the binary search.
+            thresh - threshold for comparison.
         Returns a dictionary containing:
             ratio - the computed ratio.
             ts - the calibrated time series for the keyword.
@@ -462,43 +656,70 @@ class GTAB:
             If not able to calibrate, returns -1.
             
         """
+
         if not self._init_done:
             print("Must use GTAB.init() to initialize first!")
             return None
 
-        anchors = tuple(self.calib_max_vol.index)
+        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a')
+        self._log_con.write(f"\n{datetime.datetime.now()}\n")
+        self._print_and_log(f"New query '{query}'")
+        mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(self.anchor_bank.index).index(first_comparison)
+        anchors = tuple(self.anchor_bank.index)
+
         lo = 0
-        hi = len(self.calib_max_vol)
-        cnt = 0
+        hi = len(self.anchor_bank)
+        n_iter = 0
 
         while hi >= lo:
-            mid = (hi + lo) // 2
+            
             anchor = anchors[mid]
-
+            if verbose:
+                self._print_and_log(f"\tQuery: '{query}'\tAnchor:'{anchor}'")
             try:
-                ts = self._query_google(keywords = [anchor, keyword]).iloc[:, 0:2]
+                ts = self._query_google(keywords = [anchor, query]).iloc[:, 0:2]
             except Exception as e:
-                print(f"Google query failed because: {str(e)}")
+                self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
                 break
 
             max_anchor = ts.loc[:, anchor].max()
-            max_keyword = ts.loc[:, keyword].max()
+            max_query = ts.loc[:, query].max()
 
-            if max_keyword >= self.GTAB_CONFIG['thresh_offline'] and max_anchor >= self.GTAB_CONFIG['thresh_offline']:
-                ratio = self.calib_max_vol[anchor] * (max_keyword / max_anchor)
-                ts_keyword = ts.loc[:, keyword] / max_keyword * ratio
-                return {"ratio": ratio, "ts": ts_keyword, "iter": cnt}
-            elif max_keyword < self.GTAB_CONFIG['thresh_offline']:
-                hi = mid - 1
-            else:
+            if max_query >= thresh and max_anchor >= thresh:
+
+                max_query_lo, max_query_hi, max_anchor_lo, max_anchor_hi = self._compute_hi_and_lo(max_query, max_anchor)
+                ts_query_lo, ts_query_hi = map(list, zip(*[self._compute_hi_and_lo(100, el)[2:] for el in ts.loc[:, query]]))
+
+                if np.sum(ts.loc[:, query] == 100) == 1: 
+                    ts_query_lo[list(ts.loc[:, query]).index(100)] = 100
+                 
+                ratio_anchor = self.anchor_bank[anchor]
+                ratio_anchor_lo = self.anchor_bank_lo[anchor]
+                ratio_anchor_hi = self.anchor_bank_hi[anchor]
+
+                ratio = ratio_anchor * (max_query / max_anchor)
+                ratio_hi = ratio_anchor_hi * (max_query_hi / max_anchor_lo)
+                ratio_lo = ratio_anchor_lo * (max_query_lo / max_anchor_hi)
+
+                ts_query = ts.loc[:, query] / max_query * ratio
+                ts_query_hi = np.array(ts_query_hi) / max_query_lo * ratio_hi
+                ts_query_lo = np.array(ts_query_lo) / max_query_hi * ratio_lo
+
+                self._print_and_log("New query calibrated!")                
+                return {query:{"ratio": ratio, "ratio_hi": ratio_hi, "ratio_lo": ratio_lo, "ts": list(ts_query), "ts_hi": list(ts_query_hi), "ts_lo": list(ts_query_lo), "iter": n_iter}}        
+                
+            elif max_query < thresh:
                 lo = mid + 1 
+            else: 
+                hi = mid - 1
 
-            cnt += 1
+            mid = (hi + lo) // 2
+            n_iter += 1
 
-        print(f"Unable to calibrate keyword {keyword}!")
-        return -1
+        if (hi <= 0):
+            self._print_and_log('Could not calibrate. Time series for query too low everywhere.')
+        else:
+            self._print_and_log('Could not calibrate. Time series for query too high everywhere.')
+        self._log_con.close()
 
-if __name__ == '__main__':
-
-    t = GTAB(use_proxies = False)
-    t.init(verbose = True)
+        return None
