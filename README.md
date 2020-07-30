@@ -12,3 +12,16 @@ In the offline preprocessing phase, an "anchor bank" is constructed, a set of qu
 In the online deployment phase, any given search query is calibrated by performing an efficient binary search in the anchor bank.
 Each search step requires one Google Trends request, but few steps suffice, as we demonstrate in an empirical evaluation.
 
+# Using G-TAB
+
+First you need to setup a Python (written and tested using 3.8.1) virtual environment and installing the packages listed in requirements.txt.
+
+The src/python project structure is as follows:
+- config - contains four necessary config files:
+- data - contains the input data set as well as the outputs of G-TAB.
+- logs - contains logs that are written while constructing new G-TABs.
+
+## Config files 
+Each config file needs to contain a single line that is evaluable in Python (i.e. eval()) and contains some parameters: 
+### blacklist.config:
+Contains a Python set with FreeBase IDs that are disallowed when sampling.
