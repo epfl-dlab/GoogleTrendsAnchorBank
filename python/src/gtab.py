@@ -32,8 +32,8 @@ class GTAB:
 
         files = []
         for d in dirs:
-            files += glob.glob(os.path.join("data", d, "*"))
-            files += glob.glob(os.path.join("logs", "*"))
+            files += glob.glob(os.path.join("..", "data", d, "*"))
+            files += glob.glob(os.path.join("..", "logs", "*"))
         
         print(f"This will delete the following files: {files}")
         c = input("Are you sure? (y/n): ")
@@ -55,30 +55,30 @@ class GTAB:
         """
 
         if ptrends_config == None:
-            with open(os.path.join("config", "ptrends.config"), "r") as f_conf:
+            with open(os.path.join("..", "config", "ptrends.config"), "r") as f_conf:
                 self.PTRENDS_CONFIG = ast.literal_eval(f_conf.readline())
         else: 
             self.PTRENDS_CONFIG = ptrends_config
 
         if gtab_config == None:
-            with open(os.path.join("config", "gtab.config"), "r") as f_conf:
+            with open(os.path.join("..", "config", "gtab.config"), "r") as f_conf:
                 self.GTAB_CONFIG = ast.literal_eval(f_conf.readline())
         else: 
             self.GTAB_CONFIG = gtab_config
 
         if conn_config == None:
-            with open(os.path.join("config", "conn.config"), "r") as f_conf:
+            with open(os.path.join("..", "config", "conn.config"), "r") as f_conf:
                 self.CONN_CONFIG = ast.literal_eval(f_conf.readline())
         else:
             self.CONN_CONFIG = conn_config
             
         if blacklist == None:
-            with open(os.path.join("config", "blacklist.config"), "r") as f_conf:
+            with open(os.path.join("..", "config", "blacklist.config"), "r") as f_conf:
                 self.BLACKLIST = ast.literal_eval(f_conf.readline()) 
         else:
             self.BLACKLIST = blacklist
 
-        with open(os.path.join("data", "anchor_candidates_all.tsv"), 'r', encoding = 'utf-8') as f_anchor_set:
+        with open(os.path.join("..", "data", "freebase_foods_all.tsv"), 'r', encoding = 'utf-8') as f_anchor_set:
             self.ANCHOR_CANDIDATE_SET = pd.read_csv(f_anchor_set, sep = '\t')
 
         self.ANCHOR_CANDIDATE_SET.rename(index = {k: v for k, v in enumerate(list(self.ANCHOR_CANDIDATE_SET['mid']))}, inplace = True)
@@ -103,7 +103,8 @@ class GTAB:
 
 
     def _make_file_suffix(self):
-        return "_".join([f"{k}={v}" for k, v in self.GTAB_CONFIG.items()]) + "_" + "_".join([f"{k}={v}" for k, v in self.PTRENDS_CONFIG.items()])
+        return "_".join([f"{k}={v}" for k, v in self.PTRENDS_CONFIG.items()])
+        # return "_".join([f"{k}={v}" for k, v in self.GTAB_CONFIG.items()]) + "_" + "_".join([f"{k}={v}" for k, v in self.PTRENDS_CONFIG.items()])
 
     def _query_google(self, keywords = ["Keywords"]):
         time.sleep(self.GTAB_CONFIG['sleep'])
@@ -213,8 +214,8 @@ class GTAB:
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        fpath = os.path.join("data", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
-        fpath_keywords = os.path.join("data", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join("..", "data", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_keywords = os.path.join("..", "data", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):   
             self._print_and_log(f"Loading google results from {fpath}...")
@@ -521,7 +522,7 @@ class GTAB:
     def _build_optimal_anchor_bank(self, mids):
 
         N = len(mids)
-        fpath = os.path.join("data", "google_pairs", f"{self._make_file_suffix()}.pkl") 
+        fpath = os.path.join("..", "data", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl") 
 
         if os.path.exists(fpath):
             with open(fpath, 'rb') as f_in:
@@ -558,7 +559,7 @@ class GTAB:
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
         self._error_flag = False
-        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a') # append vs write
+        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a') # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log("Start AnchorBank init...")
 
@@ -617,6 +618,7 @@ class GTAB:
         anchor_bank = W.loc[ref_anchor, :]
         anchor_bank_hi = W_hi.loc[ref_anchor, :]
         anchor_bank_lo = W_lo.loc[ref_anchor, :]
+        anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
 
         self.err = err
         self.top_anchor = top_anchor
@@ -624,15 +626,29 @@ class GTAB:
         self.anchor_bank = anchor_bank
         self.anchor_bank_hi = anchor_bank_hi
         self.anchor_bank_lo = anchor_bank_lo
+        self.anchor_bank_full = anchor_bank_full
         self._init_done = True
 
-        fname_base = os.path.join("data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}")
+        fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}")
 
         self._print_and_log(f"Saving anchorbanks as '{fname_base}'...")
+        if os.path.exists(fname_base + ".tsv"):
 
-        self.anchor_bank.to_csv(fname_base + ".tsv", sep = '\t', header = False)
-        self.anchor_bank_hi.to_csv(fname_base + "_hi.tsv", sep = '\t', header = False)
-        self.anchor_bank_lo.to_csv(fname_base + "_lo.tsv", sep = '\t', header = False)
+            save_counter = 1
+            while True:
+                new_fname = fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
+                if os.path.exists(new_fname + ".tsv"):
+                    save_counter += 1
+                else:
+                    fname_base = new_fname
+                    break
+            self._print_and_log(f"File already exists! Saving as {fname_base}.")
+                
+
+        with open(fname_base + ".tsv", 'a') as f_ab_out:
+            f_ab_out.write(f"#{self.GTAB_CONFIG}\n")
+            f_ab_out.write(f"#{self.PTRENDS_CONFIG}\n")
+            self.anchor_bank_full.to_csv(f_ab_out, sep = '\t', header = True)
 
         self._print_and_log("AnchorBank init done.")
         if self._error_flag:
@@ -661,7 +677,7 @@ class GTAB:
             print("Must use GTAB.init() to initialize first!")
             return None
 
-        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a')
+        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log(f"New query '{query}'")
         mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(self.anchor_bank.index).index(first_comparison)
