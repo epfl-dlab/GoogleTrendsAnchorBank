@@ -1,6 +1,5 @@
-
-~~~
 To initialize the GTAB class, call:
+~~~
     from gtab import GTAB
     t = GTAB()
     t.init()
