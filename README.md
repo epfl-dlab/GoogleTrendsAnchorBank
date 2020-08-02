@@ -51,15 +51,25 @@ For more details see https://pypi.org/project/pytrends/.
 
 ## How to use the GTAB class:
 First input your preferred settings in the config files and then initialize the GTAB class by calling:
-~~~
+~~~python
     from gtab import GTAB
     t = GTAB()
     t.init()
 ~~~
 This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the paper. Once done, to query a new keyword call:
-~~~
+~~~python
     t.new_query(keyword)
 ~~~
 
 Once the initalization is done and the GTAB is constructed, it can be found as a .tsv file in the folder "python/data/google_anchorbanks". If there already exists a GTAB with the same parameters, it loads is from the aforementioned folder instead of constructing a new one. If for some reason the initialization is interrupted, but the data has been collected, and then started again with the same configs, it will load the query data from "data/google_results" and/or "data/google_pairs" instead of re-querying. 
 
+To use proxies, you have to set *use_proxies = True* in the object's constructor, i.e.:
+~~~python
+    t = GTAB(use_proxies = True)
+~~~
+
+To keep all the computed values calculated while initializing the anchorbank you can set *keep_diagnostics = True* the method *init*, i.e.:
+
+~~~python
+    t.init(keep_diagnostics = True)
+~~~
