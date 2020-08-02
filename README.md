@@ -54,7 +54,6 @@ First input your preferred settings in the config files and then initialize the 
     t.init()
 ~~~
 This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the paper. Once done, to query a new keyword call:
-To query a new keyword use:
 ~~~
     t.new_query(keyword)
 ~~~
