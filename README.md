@@ -25,3 +25,37 @@ The src/python project structure is as follows:
 Each config file needs to contain a single line that is evaluable in Python (i.e. eval()) and contains some parameters: 
 ### blacklist.config:
 Contains a Python set with FreeBase IDs that are disallowed when sampling.
+### conn.config
+Contains the following evaluable dictionary:
+- "proxies": a list of proxy addresses
+- "retries": the maximum number of connection retries.
+- "backoff_factor": see https://urllib3.readthedocs.io/en/latest/
+- "timeout": see https://urllib3.readthedocs.io/en/latest/
+### gtab.config
+Contains the following evaluable dictionary:
+- "num_anchors": the number of anchors that are sampled from the anchor candidate data set.
+- "num_anchor_candidates": how many entries in the anchor candidate data set to use.
+- "thresh_offline": threshold below which to discard Google Trends queries (see paper below)
+- "seed": random seed.
+- "sleep": how many secons to wait between PyTrends API queries.
+For more details see https://arxiv.org/pdf/2007.13861.pdf.
+### ptrends.config
+Contains the following evaluable dictionary:
+- "timeframe": in which timeframe to collect data.
+- "geo": which location to query.
+For more details see https://pypi.org/project/pytrends/.
+
+
+## How to use the GTAB class:
+To initialize the GTAB class, call:
+~~~
+    from gtab import GTAB
+    t = GTAB()
+    t.init()
+~~~
+
+To query a new keyword use:
+~~~
+    t.new_query(keyword)
+~~~
+
