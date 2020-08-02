@@ -47,13 +47,13 @@ For more details see https://pypi.org/project/pytrends/.
 
 
 ## How to use the GTAB class:
-To initialize the GTAB class, call:
+First input your preferred settings in the config files and then initialize the GTAB class by calling:
 ~~~
     from gtab import GTAB
     t = GTAB()
     t.init()
 ~~~
-
+This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the paper. Once done, to query a new keyword call:
 To query a new keyword use:
 ~~~
     t.new_query(keyword)
