@@ -14,7 +14,10 @@ Each search step requires one Google Trends request, but few steps suffice, as w
 
 # Using G-TAB
 
-First you need to setup a Python (written and tested using 3.8.1) virtual environment and installing the packages listed in requirements.txt.
+First you need to setup a Python (written and tested using 3.8.1) virtual environment and installing the packages listed in python/requirements.txt. Activate your environment (https://docs.python.org/3/tutorial/venv.html) and then install the packages with your preferred package manager. For pip, run:
+~~~
+pip install -r requirements.txt
+~~~
 
 The src/python project structure is as follows:
 - config - contains four necessary config files:
