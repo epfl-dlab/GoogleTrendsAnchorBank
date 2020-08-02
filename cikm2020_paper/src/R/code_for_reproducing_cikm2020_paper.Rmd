@@ -7,7 +7,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-This is the script to produce all results of the following paper:
+This script produces all results of the following paper:
 
 Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
 
@@ -113,8 +113,8 @@ anchor_bank_init <- sort(ab$W0[ref_anchor,], decreasing=TRUE)
 # Visualize the initial and optimized anchor banks
 
 ```{r}
-if (SAVE_PLOTS) pdf(sprintf('%s/anchor_bank.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/anchor_bank.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
+                          family='Helvetica')
 col_ref <- colorblind_col[4]
 col_opt <- 'black'
 col_init <- 'gray'
@@ -216,8 +216,8 @@ ts_bavaria[,mid_arnstorf] <- result_arnstorf$ts
 iter_bavaria[mid_arnstorf] <- result_arnstorf$iter
 ratio_bavaria[mid_arnstorf] <- result_arnstorf$ratio
 
-if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LINEAR.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/timeseries_bavaria_RAW_LINEAR.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 1.0, 0.2))
 matplot(result_highlights$ts, type='l', lty=1, log='', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
 axis(1); mtext('Week of 2019', side=1, line=2.5)
@@ -226,8 +226,8 @@ idx <- c(1,3,2,4,5)
 legend('topright', names(highlights)[idx], lty=1, col=colorblind_col[idx], lwd=2, bty='n', inset=c(0,0.4))
 if (SAVE_PLOTS) dev.off()
 
-if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_RAW_LOG.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/timeseries_bavaria_RAW_LOG.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 1.0, 0.2))
 matplot(1+result_highlights$ts, type='l', lty=1, log='y', col=colorblind_col, lwd=2, bty='n', xlab='', ylab='', axes=FALSE)
 axis(1); mtext('Week of 2019', side=1, line=2.5)
@@ -235,8 +235,8 @@ axis(2); mtext('Scaled and rounded search interest', side=2, line=2.5)
 if (SAVE_PLOTS) dev.off()
 
 
-if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_bavaria_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/timeseries_bavaria_CALIB.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 1.0, 0.2))
 idx <- order(ratio_bavaria, decreasing=TRUE)
 matplot(ts_bavaria[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.05), lwd=1, bty='n', xlab='', ylab='',
@@ -254,8 +254,8 @@ for (h in highlights) {
 if (SAVE_PLOTS) dev.off()
 
 
-if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_bavaria.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/search_steps_bavaria.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 0.5, 0.8))
 freq <- tapply(iter_bavaria, iter_bavaria, length)
 freq <- rev(freq / sum(freq))
@@ -278,8 +278,8 @@ iter_soccer <- result$iter
 ratio_soccer <- result$ratio
 bs <- apply(ts_soccer, 1, function(x) bootstrap_ci(x,median,1000))
 
-if (SAVE_PLOTS) pdf(sprintf('%s/timeseries_soccer_CALIB.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/timeseries_soccer_CALIB.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 1.0, 0.2))
 idx <- order(ratio_soccer, decreasing=TRUE)
 matplot(ts_soccer[,idx], type='l', lty=1, log='y', col=rgb(0,0,0,0.08), lwd=1, bty='n', xlab='', ylab='',
@@ -294,8 +294,8 @@ legend('bottomleft', legend=c('Median', '95% CI'), lty=1, lwd=c(2,1), bty='n', i
 if (SAVE_PLOTS) dev.off()
 
 
-if (SAVE_PLOTS) pdf(sprintf('%s/search_steps_soccer.pdf', PLOT_DIR), width=1.7, height=2, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/search_steps_soccer.pdf', PLOT_DIR), width=1.7, height=2,
+                          pointsize=6, family='Helvetica')
 par(mar=c(3.5, 3.5, 0.5, 0.8))
 freq <- tapply(iter_soccer, iter_soccer, length)
 for (i in as.character(1:5)) if (!(i %in% names(freq))) freq[i] <- 0
@@ -328,8 +328,8 @@ eta_jagged <- function(c, r) {
 Plot $\eta(c,r^*)$ as a function of $c$, for various choices of $r^*$.
 
 ```{r}
-if (SAVE_PLOTS) pdf(sprintf('%s/eta_as_fct_of_c.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/eta_as_fct_of_c.pdf', PLOT_DIR), width=3.4, height=3.25,
+                          pointsize=6, family='Helvetica')
 c <- seq(0.1, 0.72, 0.01)
 par(mfrow=c(2,3))
 for (r in 0.1^(2:7)) {
@@ -359,8 +359,8 @@ lo0 <- W0_lo[ref_anchor,]
 hi1 <- W_hi[ref_anchor,]
 lo1 <- W_lo[ref_anchor,]
 
-if (SAVE_PLOTS) pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.25, pointsize=6,
-                      family='Helvetica', useDingbats=FALSE)
+if (SAVE_PLOTS) cairo_pdf(sprintf('%s/eta_bar.pdf', PLOT_DIR), width=3.4, height=3.25,
+                          pointsize=6, family='Helvetica')
 par(mfrow=c(1,1))
 par(mar=c(4, 4, 0.2, 0.2))
 r_range <- range(c(lo1, lo0, hi1, hi0))
