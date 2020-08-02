@@ -36,3 +36,34 @@ Err: 4.218847493575595e-15
 Saving anchorbanks as '..\data\google_anchorbanks\google_anchorbank_timeframe=2019-11-28 2020-07-28_geo=US'...
 File already exists! Saving as ..\data\google_anchorbanks\google_anchorbank_timeframe=2019-11-28 2020-07-28_geo=US(2).
 AnchorBank init done.
+
+2020-07-31 15:13:06.825974
+Start AnchorBank init...
+Loading google results from ..\data\google_results\google_results_timeframe=2019-11-28 2020-07-28_geo=US.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Saving anchorbanks as '..\data\google_anchorbanks\google_anchorbank_timeframe=2019-11-28 2020-07-28_geo=US'...
+File already exists! Saving as ..\data\google_anchorbanks\google_anchorbank_timeframe=2019-11-28 2020-07-28_geo=US(1).
+AnchorBank init done.
+
+2020-07-31 15:21:26.668836
+New query 'Potato'
+New query calibrated!
+
+2020-07-31 15:22:05.527399
+New query 'Potato'
+New query calibrated!
+
+2020-08-02 16:01:47.341883
+Start AnchorBank init...
+
+2020-08-02 16:02:10.581112
+Start AnchorBank init...
+AnchorBank init done.
+
+2020-08-02 16:04:09.572199
+Start AnchorBank init...
+Loading pre-existing anchorbank from ..\data\google_anchorbanks\google_anchorbank_timeframe=2019-11-28 2020-07-28_geo=US.tsv.tsv...
+AnchorBank init done.

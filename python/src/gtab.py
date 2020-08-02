@@ -563,93 +563,104 @@ class GTAB:
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log("Start AnchorBank init...")
 
+
         if verbose:
             print(self.GTAB_CONFIG)
             print(self.PTRENDS_CONFIG)
 
-        google_results = self._get_google_results() 
-        if keep_diagnostics:
-            self.google_results = google_results
+        fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}.tsv")
+        if not os.path.exists(fname_base):
+
+            google_results = self._get_google_results() 
+            if keep_diagnostics:
+                self.google_results = google_results
 
 
-        # # write to file for testing
-        # os.makedirs("test_data", exist_ok=True)
-        # idx = 0
-        # for gres in google_results.values():
-        #     gres.to_csv(f"test_data/{idx}.tsv", sep = '\t')
-        #     idx+=1
+            # # write to file for testing
+            # os.makedirs("test_data", exist_ok=True)
+            # idx = 0
+            # for gres in google_results.values():
+            #     gres.to_csv(f"test_data/{idx}.tsv", sep = '\t')
+            #     idx+=1
 
 
-        self._print_and_log(f"Total queries (groups of 5 keywords): {len(google_results)}")
-        time_series = pd.concat(google_results, axis=1)
-        if keep_diagnostics:
-            self.time_series = time_series
+            self._print_and_log(f"Total queries (groups of 5 keywords): {len(google_results)}")
+            time_series = pd.concat(google_results, axis=1)
+            if keep_diagnostics:
+                self.time_series = time_series
 
-        ratios = self._compute_max_ratios(google_results)   
-        if keep_diagnostics:
-            self.ratios = ratios    
+            ratios = self._compute_max_ratios(google_results)   
+            if keep_diagnostics:
+                self.ratios = ratios    
 
-        W0, W0_lo, W0_hi = self._infer_all_ratios(ratios)
-        if keep_diagnostics:
-            self.W0, self.W0_lo, self.W0_hi = W0, W0_lo, W0_hi
+            W0, W0_lo, W0_hi = self._infer_all_ratios(ratios)
+            if keep_diagnostics:
+                self.W0, self.W0_lo, self.W0_hi = W0, W0_lo, W0_hi
 
 
-        # Rounding produces epsilon differences after transposing.
-        err = np.abs(1 - W0 * W0.transpose()).to_numpy().max()
-        self._print_and_log(f"Err: {err}")
-        if err > 1e-12:
-            warnings.warn("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].")    
-            self._log_con.write("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].\n")    
-        if np.isnan(err):
-            warnings.warn("Err is NaN.")    
+            # Rounding produces epsilon differences after transposing.
+            err = np.abs(1 - W0 * W0.transpose()).to_numpy().max()
+            self._print_and_log(f"Err: {err}")
+            if err > 1e-12:
+                warnings.warn("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].")    
+                self._log_con.write("W0 doesn't seem to be multiplicatively symmetric: W0[i,j] != 1/W0[j,i].\n")    
+            if np.isnan(err):
+                warnings.warn("Err is NaN.")    
 
+            opt_query_set = self._find_optimal_query_set(W0)
+            if keep_diagnostics:
+                self.err = err
+                self.opt_query_set = opt_query_set
+
+            W, W_lo, W_hi = self._build_optimal_anchor_bank(opt_query_set)
+            if keep_diagnostics:
+                self.W, self.W_lo, self.W_hi = W, W_lo, W_hi
             
-        
-        opt_query_set = self._find_optimal_query_set(W0)
-        if keep_diagnostics:
-            self.opt_query_set = opt_query_set
+            top_anchor = opt_query_set[0]
+            ref_anchor = np.abs(W.loc[top_anchor, :] - np.median(W0.loc[top_anchor, :])).idxmin()
+            anchor_bank = W.loc[ref_anchor, :]
+            anchor_bank_hi = W_hi.loc[ref_anchor, :]
+            anchor_bank_lo = W_lo.loc[ref_anchor, :]
+            anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
 
-        W, W_lo, W_hi = self._build_optimal_anchor_bank(opt_query_set)
-        if keep_diagnostics:
-            self.W, self.W_lo, self.W_hi = W, W_lo, W_hi
-        
-        top_anchor = opt_query_set[0]
-        ref_anchor = np.abs(W.loc[top_anchor, :] - np.median(W0.loc[top_anchor, :])).idxmin()
-        anchor_bank = W.loc[ref_anchor, :]
-        anchor_bank_hi = W_hi.loc[ref_anchor, :]
-        anchor_bank_lo = W_lo.loc[ref_anchor, :]
-        anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
+            self.top_anchor = top_anchor
+            self.ref_anchor = ref_anchor
+            self.anchor_bank = anchor_bank
+            self.anchor_bank_hi = anchor_bank_hi
+            self.anchor_bank_lo = anchor_bank_lo
+            self.anchor_bank_full = anchor_bank_full
 
-        self.err = err
-        self.top_anchor = top_anchor
-        self.ref_anchor = ref_anchor
-        self.anchor_bank = anchor_bank
-        self.anchor_bank_hi = anchor_bank_hi
-        self.anchor_bank_lo = anchor_bank_lo
-        self.anchor_bank_full = anchor_bank_full
+
+            self._print_and_log(f"Saving anchorbanks as '{fname_base}'...")
+            if os.path.exists(fname_base + ".tsv"):
+
+                save_counter = 1
+                while True:
+                    new_fname = fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
+                    if os.path.exists(new_fname + ".tsv"):
+                        save_counter += 1
+                    else:
+                        fname_base = new_fname
+                        break
+                self._print_and_log(f"File already exists! Saving as {fname_base}.")
+                    
+
+            with open(fname_base + ".tsv", 'a') as f_ab_out:
+                f_ab_out.write(f"#{self.GTAB_CONFIG}\n")
+                f_ab_out.write(f"#{self.PTRENDS_CONFIG}\n")
+                self.anchor_bank_full.to_csv(f_ab_out, sep = '\t', header = True)
+        else:
+            self._print_and_log(f"Loading pre-existing anchorbank from {fname_base}.tsv...")
+            self.anchor_bank_full = pd.read_csv(fname_base, sep = '\t', comment = '#', index_col= 0)
+            self.anchor_bank_lo = self.anchor_bank_full.loc[:, 'lo']
+            self.anchor_bank_hi = self.anchor_bank_full.loc[:, 'hi']
+            self.anchor_bank = self.anchor_bank_full.loc[:, 'base']
+            self.top_anchor = self.anchor_bank_full.index[0]
+            self.top_anchor = self.anchor_bank_full.index[0]
+            self.ref_anchor = self.anchor_bank_full.index[self.anchor_bank_full.loc[:, 'base'] == 1.0][0]
+
+
         self._init_done = True
-
-        fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}")
-
-        self._print_and_log(f"Saving anchorbanks as '{fname_base}'...")
-        if os.path.exists(fname_base + ".tsv"):
-
-            save_counter = 1
-            while True:
-                new_fname = fname_base = os.path.join("..", "data", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
-                if os.path.exists(new_fname + ".tsv"):
-                    save_counter += 1
-                else:
-                    fname_base = new_fname
-                    break
-            self._print_and_log(f"File already exists! Saving as {fname_base}.")
-                
-
-        with open(fname_base + ".tsv", 'a') as f_ab_out:
-            f_ab_out.write(f"#{self.GTAB_CONFIG}\n")
-            f_ab_out.write(f"#{self.PTRENDS_CONFIG}\n")
-            self.anchor_bank_full.to_csv(f_ab_out, sep = '\t', header = True)
-
         self._print_and_log("AnchorBank init done.")
         if self._error_flag:
             self._print_and_log("There was an error. Please check the log file.")
