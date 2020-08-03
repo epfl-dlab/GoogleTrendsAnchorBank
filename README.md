@@ -17,7 +17,7 @@ The method proceeds in two phases:
 of popularity, all calibrated against a common reference query by carefully chaining multiple Google Trends requests.
 
 2. In the *online deployment phase*, any given search query is calibrated through a binary search in the anchor bank.
-Each search step requires a Trends request (done with [pytrends](https://github.com/GeneralMills/pytrends), but few
+Each search step requires a Trends request (done with [pytrends](https://github.com/GeneralMills/pytrends)), but few
  steps suffice, as we demonstrate in an [empirical evaluation](https://arxiv.org/abs/2007.13861).
 
 # Using G-TAB
@@ -67,24 +67,31 @@ For more details see https://pypi.org/project/pytrends/.
 
 ## How to use the GTAB class:
 First input your preferred settings in the config files and then initialize the GTAB class by calling:
+
 ~~~python
 from gtab import GTAB
 t = GTAB()
 t.init()
 ~~~
-This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the paper. Once done, to query a new keyword call:
+
+This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the 
+paper. Once done, to query a new keyword call:
+
 ~~~python
 t.new_query(keyword)
 ~~~
 
-Once the initalization is done and the GTAB is constructed, it can be found as a .tsv file in the folder "python/data/google_anchorbanks". The object holds the same informtaion in the object members:
+Once the initalization is done and the GTAB is constructed, it can be found as a .tsv file in the folder 
+"python/data/google_anchorbanks". The object holds the same informtaion in the object members:
 - *anchor_bank_full*
 - *top_anchor*
 - *ref_anchor*
 
-If there already exists a GTAB with the same parameters, it loads is from the aforementioned folder instead of constructing a new one. If for some reason the initialization is interrupted, but the data has been collected, and then started again with the same configs, it will load the query data from "data/google_results" and/or "data/google_pairs" instead of re-querying. 
+If there already exists a GTAB with the same parameters, it loads is from the aforementioned folder instead of 
+constructing a new one. If for some reason the initialization is interrupted, but the data has been collected, and then started again with the same configs, it will load the query data from "data/google_results" and/or "data/google_pairs" instead of re-querying. 
 
 To use proxies, you have to set *use_proxies = True* in the object's constructor, i.e.:
+
 ~~~python
 t = GTAB(use_proxies = True)
 ~~~

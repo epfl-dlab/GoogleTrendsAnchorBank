@@ -3,3 +3,4 @@ __pycache__
 test.py
 gtab_old.py
 copies/
+.idea/
