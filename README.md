@@ -37,20 +37,20 @@ The src/python project structure is as follows:
 - logs - contains logs that are written while constructing new G-TABs.
 
 ## Config files 
-Each config file needs to contain a single line that is evaluable in Python (i.e. eval()) and contains some parameters: 
+The config file is a single JSON file with four dictionaries:
 
-### blacklist.config:
-Contains a Python set with FreeBase IDs that are disallowed when sampling.
+### BLACKLIST:
+A list with FreeBase IDs that are disallowed when sampling.
 
-### conn.config
-Contains the following evaluable dictionary:
+### CONN
+Contains the following parameters:
 - "proxies": a list of proxy addresses
 - "retries": the maximum number of connection retries.
 - "backoff_factor": see https://urllib3.readthedocs.io/en/latest/
 - "timeout": see https://urllib3.readthedocs.io/en/latest/
 
-### gtab.config
-Contains the following evaluable dictionary:
+### GTAB
+Contains the following parameters:
 - "num_anchors": the number of anchors that are sampled from the anchor candidate data set.
 - "num_anchor_candidates": how many entries in the anchor candidate data set to use.
 - "thresh_offline": threshold below which to discard Google Trends queries (see paper below)
@@ -58,15 +58,15 @@ Contains the following evaluable dictionary:
 - "sleep": how many secons to wait between PyTrends API queries.
 For more details see https://arxiv.org/pdf/2007.13861.pdf.
 
-### ptrends.config
-Contains the following evaluable dictionary:
+### PTRENDS
+Contains the following parameters:
 - "timeframe": in which timeframe to collect data.
 - "geo": which location to query.
 For more details see https://pypi.org/project/pytrends/.
 
 
 ## How to use the GTAB class:
-First input your preferred settings in the config files and then initialize the GTAB class by calling:
+First input your preferred settings in the config files, add your preferred keywords in the anchor_candidate_list.txt (one per line) and then initialize the GTAB class by calling:
 
 ~~~python
 from gtab import GTAB
