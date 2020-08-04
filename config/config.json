@@ -1,0 +1,29 @@
+{
+    "BLACKLIST": [
+        "/m/0bcgdv",
+        "/m/04ppcm",
+        "/m/047p8qy"
+    ],
+    "CONN": {
+        "backoff_factor": 0.1,
+        "proxies": [
+            "https://50.2.15.109:8800"
+        ],
+        "retries": 5,
+        "timeout": [
+            25,
+            25
+        ]
+    },
+    "GTAB": {
+        "num_anchor_candidates": 3500,
+        "num_anchors": 550,
+        "seed": 42,
+        "sleep": 0.5,
+        "thresh_offline": 10
+    },
+    "PTRENDS": {
+        "geo": "US",
+        "timeframe": "2019-11-28 2020-07-28"
+    }
+}

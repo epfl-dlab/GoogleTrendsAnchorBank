@@ -1,12 +1,13 @@
-import os
 import ast
 import copy
+import datetime
 import glob
-import time
+import json
+import os
 import pickle
 import random
+import time
 import warnings
-import datetime
 
 import networkx as nx
 import numpy as np
@@ -20,24 +21,29 @@ class GTAB:
     # Static methods
 
     @staticmethod
-    def __delete_all_files():
+    def __delete_all_internal_files():
 
         """
             Deletes all saved anchorbanks, keywords, results and pairs. Be very careful!
         """
-        dirs = ("google_anchorbanks", "google_keywords", "google_pairs", "google_results")
+        dirs = ("google_keywords", "google_pairs", "google_results")
 
-        files = []
+        files = glob.glob(os.path.join("..", "output", "google_anchorbanks", "*"))
         for d in dirs:
-            files += glob.glob(os.path.join("./data", d, "*"))
-            files += glob.glob(os.path.join("./logs", "*"))
+            files += glob.glob(os.path.join("..", "data", "internal", d, "*"))
+            files += glob.glob(os.path.join("..", "logs", "*"))
 
-        print(f"This will delete the following files: {files}")
+        nl = '\n'
+        tb = '\t'
+        print(f"This will delete the following files:\n\t{(nl+tb).join([os.path.basename(f)for f in files])}")
         c = input("Are you sure? (y/n): ")
         if c[0].lower() == 'y':
             print("Deleting...")
             for f in files:
-                os.remove(f)
+                os.remove(f)    
+            print("Internal files deleted!")
+        else:
+            print("Delete cancelled.")
 
     def __init__(self, ptrends_config=None, gtab_config=None, conn_config=None, blacklist=None, use_proxies=False):
         """
@@ -55,41 +61,15 @@ class GTAB:
             single line with the corresponding config dictionary.
         """
 
-        if ptrends_config is None:
-            with open(os.path.join("./config", "ptrends.config"), "r") as f_conf:
-                self.PTRENDS_CONFIG = ast.literal_eval(f_conf.readline())
-        else:
-            self.PTRENDS_CONFIG = ptrends_config
+        with open(os.path.join("..", "config", "config.json"), 'r') as fp:
+            self.CONFIG = json.load(fp)
+     
+        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join("..", "data", "anchor_candidate_list.txt"))]
 
-        if gtab_config is None:
-            with open(os.path.join("./config", "gtab.config"), "r") as f_conf:
-                self.GTAB_CONFIG = ast.literal_eval(f_conf.readline())
-        else:
-            self.GTAB_CONFIG = gtab_config
+        if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
+            self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
 
-        if conn_config is None:
-            with open(os.path.join("./config", "conn.config"), "r") as f_conf:
-                self.CONN_CONFIG = ast.literal_eval(f_conf.readline())
-        else:
-            self.CONN_CONFIG = conn_config
-
-        if blacklist is None:
-            with open(os.path.join("./config", "blacklist.config"), "r") as f_conf:
-                self.BLACKLIST = ast.literal_eval(f_conf.readline())
-        else:
-            self.BLACKLIST = blacklist
-
-        with open(os.path.join("./data", "freebase_foods_all.tsv"), 'r', encoding='utf-8') as f_anchor_set:
-            self.ANCHOR_CANDIDATE_SET = pd.read_csv(f_anchor_set, sep='\t')
-
-        self.ANCHOR_CANDIDATE_SET.rename(index={k: v for k, v in enumerate(list(self.ANCHOR_CANDIDATE_SET['mid']))},
-                                         inplace=True)
-        mask = (np.array(self.ANCHOR_CANDIDATE_SET['is_dish'] == 1) | np.array(
-            self.ANCHOR_CANDIDATE_SET['is_food'] == 1))
-        self.ANCHOR_CANDIDATE_SET = self.ANCHOR_CANDIDATE_SET[mask]
-        if self.GTAB_CONFIG['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATE_SET):
-            self.GTAB_CONFIG['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATE_SET)
-
+        # TODO: ADD HITRAFFIC FLAG, user might not want hi-traffic keywords added automatically
         self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll',
                           'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_', 'Yahoo!': '/m/019rl6',
                           'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph', 'Reddit': '/m/0b2334',
@@ -97,7 +77,7 @@ class GTAB:
         self._init_done = False
 
         if use_proxies:
-            self.ptrends = TrendReq(hl='en-US', **self.CONN_CONFIG)
+            self.ptrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
         else:
             self.ptrends = TrendReq(hl='en-US', timeout=(20, 20))
 
@@ -108,21 +88,21 @@ class GTAB:
         self._log_con.write(text + '\n')
 
     def _make_file_suffix(self):
-        return "_".join([f"{k}={v}" for k, v in self.PTRENDS_CONFIG.items()])
+        return "_".join([f"{k}={v}" for k, v in self.CONFIG['PTRENDS'].items()])
 
     def _query_google(self, keywords=["Keywords"]):
-        time.sleep(self.GTAB_CONFIG['sleep'])
+        time.sleep(self.CONFIG['GTAB']['sleep'])
         if type(keywords) == str:
             keywords = [keywords]
 
         if len(keywords) > 5:
             raise ValueError("Query keywords must be at most than 5.")
 
-        self.ptrends.build_payload(kw_list=keywords, **self.PTRENDS_CONFIG)
+        self.ptrends.build_payload(kw_list=keywords, **self.CONFIG['PTRENDS'])
         return self.ptrends.interest_over_time()
 
     def _is_blacklisted(self, keyword):
-        return not keyword in self.BLACKLIST
+        return not keyword in self.CONFIG['BLACKLIST']
 
     def _check_keyword(self, keyword):
         try:
@@ -137,7 +117,7 @@ class GTAB:
             return False
 
     def _check_ts(self, ts):
-        return ts.max().max() >= self.GTAB_CONFIG['thresh_offline']
+        return ts.max().max() >= self.CONFIG['GTAB']['thresh_offline']
 
     def _find_nans(self, W0):
         nans = set()
@@ -171,7 +151,7 @@ class GTAB:
 
         ret = []
         for val in gres.values():
-            if sum(val.max() < self.GTAB_CONFIG['thresh_offline']) == 4:  # try with 3 as well, less restrictive
+            if sum(val.max() < self.CONFIG['GTAB']['thresh_offline']) == 4:  # try with 3 as well, less restrictive
                 ret.append(val.max().idxmax())
 
         return ret
@@ -180,7 +160,7 @@ class GTAB:
 
         ret = {k[1]: [k[0], 0] for k in enumerate(keywords)}
         for val in gres.values():
-            bads = list(val.columns[val.max() < self.GTAB_CONFIG['thresh_offline']])
+            bads = list(val.columns[val.max() < self.CONFIG['GTAB']['thresh_offline']])
             for b in bads:
                 ret[b][1] += 1
 
@@ -211,9 +191,8 @@ class GTAB:
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        fpath = os.path.join("./data", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
-        fpath_keywords = os.path.join("./data", "google_keywords",
-                                      f"google_keywords_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join("..", "data", "internal", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_keywords = os.path.join("..", "data", "internal", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             self._print_and_log(f"Loading google results from {fpath}...")
@@ -269,22 +248,22 @@ class GTAB:
 
                 return ret, ret_cnts
 
-            N = self.GTAB_CONFIG['num_anchor_candidates']
-            K = self.GTAB_CONFIG['num_anchors']
+            N = self.CONFIG['GTAB']['num_anchor_candidates']
+            K = self.CONFIG['GTAB']['num_anchors']
 
             # --- Get stratified samples, 1 per stratum. ---
             if not os.path.exists(fpath_keywords):
 
                 self._print_and_log("Sampling keywords...")
-                random.seed(self.GTAB_CONFIG['seed'])
-                np.random.seed(self.GTAB_CONFIG['seed'])
+                random.seed(self.CONFIG['GTAB']['seed'])
+                np.random.seed(self.CONFIG['GTAB']['seed'])
 
                 samples = []
                 for j in range(K):
                     start_idx = (j * N) // K
                     end_idx = (((j + 1) * N) // K) - 1
                     s1 = random.randint(start_idx, end_idx)
-                    samples.append(self.ANCHOR_CANDIDATE_SET.index[s1])
+                    samples.append(self.ANCHOR_CANDIDATES[s1])
 
                 keywords = list(self.HITRAFFIC.values()) + samples
                 keywords = [k for k in tqdm(keywords, total=len(keywords)) if self._check_keyword(k)]
@@ -473,7 +452,7 @@ class GTAB:
                 self._error_flag = True
 
             self._print_and_log(
-                f"Num. connected components: {nx.number_strongly_connected_components(nx.Graph(G))}. "
+                f"Num. connected components: {nx.number_strongly_connected_components(G)}. "
                 f"Directed graph is not strongly connected!")
             warnings.warn("Directed graph is not connected!")
 
@@ -522,7 +501,7 @@ class GTAB:
     def _build_optimal_anchor_bank(self, mids):
 
         N = len(mids)
-        fpath = os.path.join("./data", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join("..", "data", "internal", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             with open(fpath, 'rb') as f_in:
@@ -559,17 +538,15 @@ class GTAB:
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
         self._error_flag = False
-        self._log_con = open(os.path.join("./logs", f"log_{self._make_file_suffix()}.txt"),
-                             'a')  # append vs write
+        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log("Start AnchorBank init...")
 
         if verbose:
-            print(self.GTAB_CONFIG)
-            print(self.PTRENDS_CONFIG)
+            print(self.CONFIG['GTAB'])
+            print(self.CONFIG['PTRENDS'])
 
-        fname_base = os.path.join("./data", "google_anchorbanks",
-                                  f"google_anchorbank_{self._make_file_suffix()}.tsv")
+        fname_base = os.path.join("..", "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}.tsv")
         if not os.path.exists(fname_base):
 
             google_results = self._get_google_results()
@@ -619,8 +596,7 @@ class GTAB:
             anchor_bank = W.loc[ref_anchor, :]
             anchor_bank_hi = W_hi.loc[ref_anchor, :]
             anchor_bank_lo = W_lo.loc[ref_anchor, :]
-            anchor_bank_full = pd.DataFrame(
-                {"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
+            anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
 
             self.top_anchor = top_anchor
             self.ref_anchor = ref_anchor
@@ -634,21 +610,20 @@ class GTAB:
 
                 save_counter = 1
                 while True:
-                    new_fname = fname_base = os.path.join("./data", "google_anchorbanks",
-                                                          f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
+                    new_fname = fname_base = os.path.join("..", "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
                     if os.path.exists(new_fname + ".tsv"):
                         save_counter += 1
                     else:
                         fname_base = new_fname
                         break
-                self._print_and_log(f"File already exists! Saving as {fname_base}.")
+                self._print_and_log(f"File already exists! Saving as {fname_base}.")    
 
             with open(fname_base + ".tsv", 'a') as f_ab_out:
-                f_ab_out.write(f"#{self.GTAB_CONFIG}\n")
-                f_ab_out.write(f"#{self.PTRENDS_CONFIG}\n")
+                f_ab_out.write(f"#{self.CONFIG['GTAB']}\n")
+                f_ab_out.write(f"#{self.CONFIG['PTRENDS']}\n")
                 self.anchor_bank_full.to_csv(f_ab_out, sep='\t', header=True)
         else:
-            self._print_and_log(f"Loading pre-existing anchorbank from {fname_base}.tsv...")
+            self._print_and_log(f"Loading pre-existing anchorbank from {fname_base}...")
             self.anchor_bank_full = pd.read_csv(fname_base, sep='\t', comment='#', index_col=0)
             self.anchor_bank_lo = self.anchor_bank_full.loc[:, 'lo']
             self.anchor_bank_hi = self.anchor_bank_full.loc[:, 'hi']
@@ -684,7 +659,7 @@ class GTAB:
             print("Must use GTAB.init() to initialize first!")
             return None
 
-        self._log_con = open(os.path.join("./logs", f"log_{self._make_file_suffix()}.txt"), 'a')
+        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log(f"New query '{query}'")
         mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(
