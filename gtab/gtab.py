@@ -109,7 +109,7 @@ class GTAB:
             self._query_google(keywords=keyword)
             return self._is_blacklisted(keyword)
         except Exception as e:
-            self._print_and_log(f"Bad keyword '{keyword}', because {str(e)}")
+            self._print_and_log(f"\nBad keyword '{keyword}', because {str(e)}")
             if "response" in dir(e):
                 if e.response.status_code == 429:
                     raise ConnectionError("Code 429: Query limit reached on this IP!")
@@ -308,7 +308,10 @@ class GTAB:
 
                 # no bads? done.
                 if not bad_idxs:
-                    ret = copy.deepcopy(t_ret)
+                    ret = dict()
+                    for copy_idx in range(0, len(t_ret) - 4):
+                        ret[copy_idx] = copy.deepcopy(t_ret[copy_idx])
+                    # ret = copy.deepcopy(t_ret[:, len(t_ret) - 4])
                     break
                 no_passes += 1
 
@@ -357,6 +360,7 @@ class GTAB:
                 self._diagnose_keywords(ret)
                 t_ret = copy.deepcopy(ret)
 
+            
             self._print_and_log("Diagnostics done!")
 
             # log how many keywords are removed
@@ -540,7 +544,7 @@ class GTAB:
         self._error_flag = False
         self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
-        self._print_and_log("Start AnchorBank init...")
+        self._print_and_log(f"Start AnchorBank init for region {self.CONFIG['PTRENDS']['geo']} in timeframe {self.CONFIG['PTRENDS']['timeframe']}...")
 
         if verbose:
             print(self.CONFIG['GTAB'])
@@ -605,8 +609,8 @@ class GTAB:
             self.anchor_bank_lo = anchor_bank_lo
             self.anchor_bank_full = anchor_bank_full
 
-            self._print_and_log(f"Saving anchorbanks as '{fname_base}'...")
-            if os.path.exists(fname_base + ".tsv"):
+            self._print_and_log(f"Saving anchorbank as '{fname_base}'...")
+            if os.path.exists(fname_base):
 
                 save_counter = 1
                 while True:

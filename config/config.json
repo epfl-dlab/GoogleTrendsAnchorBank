@@ -23,7 +23,7 @@
         "thresh_offline": 10
     },
     "PTRENDS": {
-        "geo": "US",
+        "geo": "IT",
         "timeframe": "2019-11-28 2020-07-28"
     }
 }
