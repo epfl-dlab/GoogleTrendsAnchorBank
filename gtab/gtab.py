@@ -16,8 +16,16 @@ from pytrends.request import TrendReq
 from tqdm import tqdm
 
 
+print(os.path.dirname(os.path.abspath(__file__)))
+
 class GTAB:
 
+    # TODO: 
+    # - list-anchor-banks
+    # - config path
+    # - set default anchor-bank
+    # - delete a specific anchor-bank
+    # - add absolute paths
     # Static methods
 
     @staticmethod
@@ -28,10 +36,10 @@ class GTAB:
         """
         dirs = ("google_keywords", "google_pairs", "google_results")
 
-        files = glob.glob(os.path.join("..", "output", "google_anchorbanks", "*"))
+        files = glob.glob(os.path.join("output", "google_anchorbanks", "*"))
         for d in dirs:
-            files += glob.glob(os.path.join("..", "data", "internal", d, "*"))
-            files += glob.glob(os.path.join("..", "logs", "*"))
+            files += glob.glob(os.path.join("data", "internal", d, "*"))
+            files += glob.glob(os.path.join("logs", "*"))
 
         nl = '\n'
         tb = '\t'
@@ -45,29 +53,62 @@ class GTAB:
         else:
             print("Delete cancelled.")
 
-    def __init__(self, ptrends_config=None, gtab_config=None, conn_config=None, blacklist=None, use_proxies=False):
+    def __init__(self, config_path = None, ptrends_config=None, gtab_config=None, conn_config=None, use_proxies=False):
         """
             Initializes the GTAB instance.
 
             Input parameters:
-                ptrends_config - a dictionary containing the configuration parameters for the pytrends library when 
-                building the payload (i.e. timeframe and geo).
-                gtab_config - a dictionary containing the configuration parameters for the GTAB methodology when making
-                 the connection.
-                conn_config - a dictionary containing the configuration parameters for the connection (e.g. proxies, 
-                timeout, retries...).
+                ptrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
+                building the payload. It consists of two parameters:
+                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US";
+                    - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
 
-            If any parameter is None, the corresponding file in the directory "./config/" is taken. It should contain a 
-            single line with the corresponding config dictionary.
+                gtab_config - a dictionary containing values to overrwite some of the configuration parameters for the GTAB methodology. It contains the following parameters:
+                    - num_anchor_candidates (int) - how many candidates to consider from the anchor candidate list;
+                    - num_anchors (int) - how many to sample;
+                    - seed (int) - the random seed;
+                    - sleep (float) - sleep  e.g. 0.5,
+                    - thresh_offline - the threshold below which the Google Trends query is discarded in the offline phase, e.g. 10.
+
+                conn_config - a dictionary containing values to overrwite some of the configuration parameters for the connection. It contains:
+                    - backoff_factor (float) - e.g. 0.1;
+                    - proxies (list of strings) - which proxies to use, e.g. ["https://50.2.15.109:8800", "https://50.2.15.1:8800"];
+                    - retries (int) - how many times to retry connection;
+                    - timeout (list of two values) - e.g. [25, 25]
         """
 
-        with open(os.path.join("..", "config", "config.json"), 'r') as fp:
+        with open(os.path.join("config", "config.json"), 'r') as fp:
             self.CONFIG = json.load(fp)
-     
-        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join("..", "data", "anchor_candidate_list.txt"))]
+
+        if ptrends_config != None:
+            if type(ptrends_config) != dict:
+                raise TypeError("The ptrends_config argument must be a dictionary with valid parameters!")
+            for k in ptrends_config:
+                if k not in self.CONFIG['PTRENDS']:
+                    raise ValueError(f"Invalid parameter: {k}")
+                self.CONFIG["PTRENDS"][k] = ptrends_config[k]
+
+        if gtab_config != None:
+            if type(gtab_config) != dict:
+                raise TypeError("The gtab_config argument must be a dictionary with valid parameters!")
+            for k in gtab_config:
+                if k not in self.CONFIG['GTAB']:
+                    raise ValueError(f"Invalid parameter: {k}")
+                self.CONFIG["GTAB"][k] = gtab_config[k]
+
+        if conn_config != None:
+            if type(conn_config) != dict:
+                raise TypeError("The conn_config argument must be a dictionary with valid parameters!")
+            for k in conn_config:
+                if k not in self.CONFIG['CONN']:
+                    raise ValueError(f"Invalid parameter: {k}")
+                self.CONFIG["CONN"][k] = conn_config[k]
+        
+
+        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join("data", self.CONFIG['GTAB']['anchor_candidates_file']))]
 
         if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
-            self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
+            self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES) 
 
         # TODO: ADD HITRAFFIC FLAG, user might not want hi-traffic keywords added automatically
         self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll',
@@ -87,6 +128,7 @@ class GTAB:
         print(text)
         self._log_con.write(text + '\n')
 
+    # TODO: add default anchorbank choice
     def _make_file_suffix(self):
         return "_".join([f"{k}={v}" for k, v in self.CONFIG['PTRENDS'].items()])
 
@@ -125,7 +167,6 @@ class GTAB:
         for row in range(W0.shape[0]):
             for col in range(W0.shape[1]):
                 if np.isnan(W0.iloc[row, col]):
-                    # print(W0.index[row], W0.index[col])
                     nans.add(W0.index[row])
                     idxs.add(row)
 
@@ -191,8 +232,8 @@ class GTAB:
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        fpath = os.path.join("..", "data", "internal", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
-        fpath_keywords = os.path.join("..", "data", "internal", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join("data", "internal", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_keywords = os.path.join("data", "internal", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             self._print_and_log(f"Loading google results from {fpath}...")
@@ -505,7 +546,7 @@ class GTAB:
     def _build_optimal_anchor_bank(self, mids):
 
         N = len(mids)
-        fpath = os.path.join("..", "data", "internal", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join("data", "internal", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             with open(fpath, 'rb') as f_in:
@@ -542,7 +583,7 @@ class GTAB:
         Initializes the GTAB instance according to the config files found in the directory "./config/".
         """
         self._error_flag = False
-        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
+        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log(f"Start AnchorBank init for region {self.CONFIG['PTRENDS']['geo']} in timeframe {self.CONFIG['PTRENDS']['timeframe']}...")
 
@@ -550,7 +591,7 @@ class GTAB:
             print(self.CONFIG['GTAB'])
             print(self.CONFIG['PTRENDS'])
 
-        fname_base = os.path.join("..", "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}.tsv")
+        fname_base = os.path.join("output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}.tsv")
         if not os.path.exists(fname_base):
 
             google_results = self._get_google_results()
@@ -614,7 +655,7 @@ class GTAB:
 
                 save_counter = 1
                 while True:
-                    new_fname = fname_base = os.path.join("..", "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
+                    new_fname = fname_base = os.path.join("output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
                     if os.path.exists(new_fname + ".tsv"):
                         save_counter += 1
                     else:
@@ -663,7 +704,7 @@ class GTAB:
             print("Must use GTAB.init() to initialize first!")
             return None
 
-        self._log_con = open(os.path.join("..", "logs", f"log_{self._make_file_suffix()}.txt"), 'a')
+        self._log_con = open(os.path.join("logs", f"log_{self._make_file_suffix()}.txt"), 'a')
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log(f"New query '{query}'")
         mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(
