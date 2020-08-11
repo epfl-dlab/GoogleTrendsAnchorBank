@@ -50,3 +50,115 @@ AnchorBank init done.
 Start AnchorBank init for region IT in timeframe 2019-11-28 2020-07-28...
 Loading pre-existing anchorbank from output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv...
 AnchorBank init done.
+
+2020-08-11 16:16:56.248189
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:17:08.597658
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:17:14.974395
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:18:13.889348
+New query 'asdqwer'
+
+2020-08-11 16:18:41.971994
+New query 'asdqwer'
+
+2020-08-11 16:19:08.527354
+New query 'asdqwer'
+
+2020-08-11 16:20:21.977921
+New query 'asdqwer'
+
+2020-08-11 16:20:34.330225
+New query 'asdqwer'
+
+2020-08-11 16:20:45.136924
+New query 'asdqwer'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-11 16:21:17.239119
+New query 'asdqwer'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-11 16:21:29.736994
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:21:34.096407
+New query 'asdqwer'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-11 16:22:02.257208
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:22:06.122032
+New query 'asdqwer'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-11 16:22:21.585493
+New query 'Potato'
+New query calibrated!
+
+2020-08-11 16:22:25.290114
+New query 'asdqwer'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-11 16:23:30.343388
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-11 16:23:43.190684
+New query 'Dark Chocolate'
+New query calibrated!
+
+2020-08-11 16:23:52.252883
+New query 'Lebanon'
+New query calibrated!
+
+2020-08-11 16:24:02.803826
+New query 'Macedonia'
+New query calibrated!
+
+2020-08-11 16:24:12.271108
+New query 'Macedonia'
+New query calibrated!
+
+2020-08-11 16:25:04.773876
+New query 'Mongolia'
+New query calibrated!
+
+2020-08-11 16:25:12.825320
+New query 'Kosovo'
+New query calibrated!
+
+2020-08-11 16:25:36.476475
+New query 'Kosovo'
+New query calibrated!
+
+2020-08-11 16:25:52.982062
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-11 16:26:00.070277
+New query 'Macedonia'
+New query calibrated!
+
+2020-08-11 16:26:10.136889
+New query 'Mouse'
+New query calibrated!
+
+2020-08-11 16:26:19.618840
+New query 'Pavement'
+New query calibrated!
+
+2020-08-11 16:30:53.175964
+Start AnchorBank init for region IT in timeframe 2019-11-28 2020-07-28...
+Full option parameters are: {'BLACKLIST': ['/m/0bcgdv', '/m/04ppcm', '/m/047p8qy'], 'CONN': {'backoff_factor': 0.1, 'proxies': ['https://50.2.15.109:8800'], 'retries': 5, 'timeout': [25, 25]}, 'GTAB': {'anchor_candidates_file': 'anchor_candidate_list.txt', 'num_anchor_candidates': 3500, 'num_anchors': 550, 'seed': 42, 'sleep': 0.5, 'thresh_offline': 10}, 'PTRENDS': {'geo': 'IT', 'timeframe': '2019-11-28 2020-07-28'}}
+AnchorBank init done.

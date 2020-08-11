@@ -16,12 +16,12 @@
         ]
     },
     "GTAB": {
+        "anchor_candidates_file": "anchor_candidate_list.txt",
         "num_anchor_candidates": 3500,
         "num_anchors": 550,
         "seed": 42,
         "sleep": 0.5,
-        "thresh_offline": 10,
-        "anchor_candidates_file": "anchor_candidate_list.txt"
+        "thresh_offline": 10
     },
     "PTRENDS": {
         "geo": "IT",
