@@ -65,39 +65,85 @@ Contains the following parameters:
 For more details see https://pypi.org/project/pytrends/.
 
 
-## How to use the GTAB class:
-First input your preferred settings in the config files, add your preferred keywords in the anchor_candidate_list.txt (one per line) and then initialize the GTAB class by calling:
+## Example usage:
 
+### Example with a pre-existing Google Trends AnchorBank
+After installing it with pip, first import the module in your script:
 ~~~python
-from gtab import GTAB
-t = GTAB()
-t.init()
+import gtab
 ~~~
 
-This will first start querying Google Trends and then constructing the GoogleTrends Anchor Bank as described in the 
-paper. Once done, to query a new keyword call:
-
+Then, create a GTAB object with the desired path:
 ~~~python
-t.new_query(keyword)
+t = gtab.GTAB(my_path)
+~~~
+This will create and initialize the directory structure of *my_path*.
+
+To list the available G-TABs call:
+~~~python
+t.list_gtabs()
+~~~
+This will produce a list of the selectable anchorbanks. There are three included defaults, and the output should look like:
+~~~
+Existing GTABs:
+        google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
+        google_anchorbank_geo=SE_timeframe=2019-11-28 2020-07-28.tsv
+        google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+Active anchorbank: None selected.
 ~~~
 
-Once the initalization is done and the GTAB is constructed, it can be found as a .tsv file in the folder 
-"python/data/google_anchorbanks". The object holds the same informtaion in the object members:
-- *anchor_bank_full*
-- *top_anchor*
-- *ref_anchor*
-
-If there already exists a GTAB with the same parameters, it loads is from the aforementioned folder instead of 
-constructing a new one. If for some reason the initialization is interrupted, but the data has been collected, and then started again with the same configs, it will load the query data from "data/google_results" and/or "data/google_pairs" instead of re-querying. 
-
-To use proxies, you have to set *use_proxies = True* in the object's constructor, i.e.:
-
+To select which G-TAB to use, call:
 ~~~python
-t = GTAB(use_proxies = True)
+t.set_active_gtab("google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv")
+~~~
+This will confirm:
+~~~
+Active anchorbank changed to: google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
 ~~~
 
-To keep all the computed values calculated while initializing the anchorbank you can set *keep_diagnostics = True* the method *init*, i.e.:
+Next we need ensure we have the correct corresponding config options (for new queries only the *ptrends_config* is relevant). To set them, we call:
+~~~python
+t.set_options(ptrends_config = {"geo": "IT", "timeframe": "2019-11-28 2020-07-28" })
+~~~
+This can also be done by manually editing the config file found at: *my_path/config/config.json*
+
+Now we can request calibrated data for a new query:
+~~~python
+nq_res= t.new_query("Sweet potato")
+~~~
+
+
+### Example creation of an anchorbank:
+As in the previous example, the module is imported and then the object is created with the desired pat.
+~~~python
+import gtab
+t = gtab.GTAB(my_path)
+~~~
+
+The desired config options can be set through the object method *set_options*. For example, if we want to construct a G-TAB with data from Germany between March 5th 2020 and May 5th 2020, we use:
 
 ~~~python
-t.init(keep_diagnostics = True)
+t.set_options(ptrends_config = {"geo": "DE", "timeframe": "2020-03-05 2020-05-05"})
 ~~~
+
+We also need to specify which file to use for sampling the keywords:
+
+~~~python
+t.set_options(gtab_config = {"anchor_candidates_file": "my_data_file.txt"})
+~~~
+This file needs to be located at *my_path/data/my_data_file.txt* and contains one keyword per line.
+
+We then need to set *N* and *K*, as described in the paper. For example, if we want to set *N=3000* and *K=500*, we call:
+~~~python
+t.set_options(gtab_config = {"num_anchor_candidates": 3000, "num_anchors": 500})
+~~~
+
+All of the config options can be directly edited in the config file found at *my_path/config/config.json*,
+
+Finally, we construct the G-TAB:
+~~~python
+# t.create_anchorbank()
+~~~
+This will start querying Google Trends and calibrate the data and will take some time, depending on *K*. After it is constructed it can be listed and selected as described in the previous example.  
+
+
