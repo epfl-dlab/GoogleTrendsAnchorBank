@@ -64,9 +64,11 @@ class GTAB:
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_keywords"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_pairs"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_results"))
-                os.makedirs(os.path.join(self.dir_path, "data", "output", "google_anchorbanks"))
+                os.makedirs(os.path.join(self.dir_path, "output", "google_anchorbanks"))
                 shutil.copyfile(os.path.join(default_path, "data", "anchor_candidate_list.txt"), os.path.join(self.dir_path, "data", "anchor_candidate_list.txt"))
                 shutil.copyfile(os.path.join(default_path, "config", "config.json"), os.path.join(self.dir_path, "config", "config.json"))
+                for f in glob.glob(os.path.join(default_path, "output", "google_anchorbanks", "*.tsv")):
+                    shutil.copyfile(f, os.path.join(self.dir_path, "output", "google_anchorbanks", os.path.basename(f)))
             else:
                 print("Directory already exists, loading data from it.")
 
