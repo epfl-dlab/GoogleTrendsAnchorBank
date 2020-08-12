@@ -142,7 +142,7 @@ All of the config options can be directly edited in the config file found at *my
 
 Finally, we construct the G-TAB:
 ~~~python
-# t.create_anchorbank()
+t.create_anchorbank()
 ~~~
 This will start querying Google Trends and calibrate the data and will take some time, depending on *K*. After it is constructed it can be listed and selected as described in the previous example.  
 
