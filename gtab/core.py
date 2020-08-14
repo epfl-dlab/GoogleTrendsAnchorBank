@@ -652,7 +652,7 @@ class GTAB:
         keywords = [str(kw) for kw in keywords]
         self.CONFIG["BLACKLIST"] = keywords
 
-        if overwite_file:
+        if overwrite_file:
             config_path = os.path.join(self.dir_path, "config", "config.json")
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:

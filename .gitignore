@@ -4,3 +4,5 @@ test.py
 gtab_old.py
 copies/
 .idea/
+build/
+gtab.egg-info/
