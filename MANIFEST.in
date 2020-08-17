@@ -1,5 +1,5 @@
 include README.md
-include gtab/data/*
 include gtab/logs/*
-include gtab/output/*
 include gtab/config/*
+recursive-include gtab/output *
+recursive-include gtab/data *

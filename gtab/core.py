@@ -44,37 +44,46 @@ class GTAB:
         else:
             print("Delete cancelled.")
 
-    def __init__(self, dir_path = None, use_proxies: bool = False):
+    def __init__(self, dir_path = None, use_proxies: bool = False, from_cli = False):
         """
             Initializes a GTAB instance with the desired directory.
 
             Input parameters:
                 dir_path - path where to create a directory. If left to None, uses default package directory;
-                use_proxies - whether to use the proxies given in 'config.json'.
+                use_proxies - whether to use the proxies given in 'config_py.json'.
         """
-
+        self.from_cli =  from_cli
         if dir_path == None:
             self.dir_path = os.path.dirname(os.path.abspath(__file__))
         else:
             self.dir_path = dir_path
             if not os.path.exists(dir_path):
                 default_path = os.path.dirname(os.path.abspath(__file__))
+
+                # creating directory structure
                 os.makedirs(os.path.join(self.dir_path, "logs"))
                 os.makedirs(os.path.join(self.dir_path, "config"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_keywords"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_pairs"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_results"))
                 os.makedirs(os.path.join(self.dir_path, "output", "google_anchorbanks"))
+                
+                # copying defaults
                 shutil.copyfile(os.path.join(default_path, "data", "anchor_candidate_list.txt"), os.path.join(self.dir_path, "data", "anchor_candidate_list.txt"))
-                shutil.copyfile(os.path.join(default_path, "config", "config.json"), os.path.join(self.dir_path, "config", "config.json"))
+                shutil.copyfile(os.path.join(default_path, "config", "config_py.json"), os.path.join(self.dir_path, "config", "config_py.json"))
+                shutil.copyfile(os.path.join(default_path, "config", "config_cl.json"), os.path.join(self.dir_path, "config", "config_cl.json"))
                 for f in glob.glob(os.path.join(default_path, "output", "google_anchorbanks", "*.tsv")):
                     shutil.copyfile(f, os.path.join(self.dir_path, "output", "google_anchorbanks", os.path.basename(f)))
             else:
                 print("Directory already exists, loading data from it.")
 
         print(f"Using directory {self.dir_path}")
-        with open(os.path.join(self.dir_path, self.dir_path, "config", "config.json"), 'r') as fp:
-            self.CONFIG = json.load(fp)
+        if from_cli:
+            with open(os.path.join(self.dir_path, "config", "config_cl.json"), 'r') as fp:
+                self.CONFIG = json.load(fp)
+        else:
+            with open(os.path.join(self.dir_path, "config", "config_py.json"), 'r') as fp:
+                self.CONFIG = json.load(fp)
 
 
         self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join(self.dir_path, self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
@@ -94,7 +103,7 @@ class GTAB:
         else:
             self.ptrends = TrendReq(hl='en-US', timeout=(20, 20))
 
-    # UTILITY METHODS
+    # --- UTILITY METHODS --- 
 
     def _print_and_log(self, text):
         print(text)
@@ -580,12 +589,15 @@ class GTAB:
         """
             Prints the current config options in the active directory.
         """
-        print(f"Config file: {os.path.join(self.dir_path, 'config', 'config.json')}")
+        if self.from_cli:
+            print(f"Config file: {os.path.join(self.dir_path, 'config', 'config_cl.json')}")
+        else:
+            print(f"Config file: {os.path.join(self.dir_path, 'config', 'config_py.json')}")
         print(self.CONFIG)
 
     def set_options(self, ptrends_config = None, gtab_config = None, conn_config = None, overwite_file: bool = False):
         """
-            Overwrites specified options. This can also be done manually by editing 'config.json' in the active directory.
+            Overwrites specified options. This can also be done manually by editing 'config_py.json' in the active directory.
 
                 ptrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
                 building the payload. It consists of two parameters:
@@ -605,7 +617,7 @@ class GTAB:
                     - retries (int) - how many times to retry connection;
                     - timeout (list of two values) - e.g. [25, 25]
 
-                overwrite_file - whether to overwrite the config.json file in the active directory.
+                overwrite_file - whether to overwrite the config_py.json file in the active directory.
             """
 
         if ptrends_config != None:
@@ -633,18 +645,21 @@ class GTAB:
                 self.CONFIG["CONN"][k] = conn_config[k]
 
         if overwite_file:
-            config_path = os.path.join(self.dir_path, "config", "config.json")
+            if self.from_cli:
+                config_path = os.path.join(self.dir_path, "config", "config_cl.json")
+            else:
+                config_path = os.path.join(self.dir_path, "config", "config_py.json")
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:
                 json.dump(self.CONFIG, fp, indent = 4, sort_keys=True)
 
     def set_blacklist(self, keywords, overwrite_file: bool = False):
         """
-            Sets a new blacklist. This can also be done manually by editing 'config.json' in the active directory.
+            Sets a new blacklist. This can also be done manually by editing 'config_py.json' in the active directory.
 
             Input parameters:
                 keywords - list of str keywords;
-                overwrite_file - whether to overwrite the config.json file in the active directory.
+                overwrite_file - whether to overwrite the config_py.json file in the active directory.
 
         """
         if type(keywords) != list:
@@ -653,7 +668,10 @@ class GTAB:
         self.CONFIG["BLACKLIST"] = keywords
 
         if overwrite_file:
-            config_path = os.path.join(self.dir_path, "config", "config.json")
+            if self.from_cli:
+                config_path = os.path.join(self.dir_path, "config", "config_cl.json")
+            else:
+                config_path = os.path.join(self.dir_path, "config", "config_py.json")
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:
                 json.dump(self.CONFIG, fp, indent = 4, sort_keys=True)
@@ -791,9 +809,9 @@ class GTAB:
 
             top_anchor = opt_query_set[0]
             ref_anchor = np.abs(W.loc[top_anchor, :] - np.median(W0.loc[top_anchor, :])).idxmin()
-            anchor_bank = W.loc[ref_anchor, :]
-            anchor_bank_hi = W_hi.loc[ref_anchor, :]
-            anchor_bank_lo = W_lo.loc[ref_anchor, :]
+            # anchor_bank = W.loc[ref_anchor, :]
+            # anchor_bank_hi = W_hi.loc[ref_anchor, :]
+            # anchor_bank_lo = W_lo.loc[ref_anchor, :]
             anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
 
             # self.top_anchor = top_anchor
@@ -833,7 +851,7 @@ class GTAB:
     def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False):
 
         """
-        Request a new Google Trends query and calibrate it with the active gtab. The 'PTRENDS' key in config.json is used. Make sure to set it according to your chosen anchorbank.
+        Request a new Google Trends query and calibrate it with the active gtab. The 'PTRENDS' key in config_py.json is used. Make sure to set it according to your chosen anchorbank.
 
         Input parameters:
             keyword - string containing a single query.
@@ -850,9 +868,9 @@ class GTAB:
 
         if self.active_gtab == None:
             raise ValueError("Must use 'set_active_gtab()' to select anchorbank before querying!")
-
         self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"), 'a')
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
+        self._print_and_log(f"Using {self.active_gtab}")
         self._print_and_log(f"New query '{query}'")
         mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(
             self.anchor_bank.index).index(first_comparison)
