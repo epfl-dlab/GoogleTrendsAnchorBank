@@ -4,5 +4,6 @@ test.py
 gtab_old.py
 copies/
 .idea/
+.ipynb_checkpoints/
 build/
 gtab.egg-info/

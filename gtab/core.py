@@ -77,7 +77,7 @@ class GTAB:
             else:
                 print("Directory already exists, loading data from it.")
 
-        print(f"Using directory {self.dir_path}")
+        print(f"Using directory '{self.dir_path}'")
         if from_cli:
             with open(os.path.join(self.dir_path, "config", "config_cl.json"), 'r') as fp:
                 self.CONFIG = json.load(fp)
@@ -86,7 +86,7 @@ class GTAB:
                 self.CONFIG = json.load(fp)
 
 
-        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join(self.dir_path, self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
+        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
 
         if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
             self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES) 
