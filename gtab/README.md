@@ -11,7 +11,7 @@ The config files are in JSON format and are structured as described below.
 Instead of editing the config files, parameter values may also be set programmatically by calling `set_options()` on your GTAB object in Python,
 or by calling `gtab-set-options` via the command line interface.
 
-- `BLACKLIST`: A list of Freebase IDs that are disallowed as anchor queries (because they were found to cause trouble).
+- `BLACKLIST`: A list of Freebase IDs that are disallowed as anchor queries (because they were found to cause trouble)
 
 - `CONN`
     - `backoff_factor`: see https://urllib3.readthedocs.io/en/latest/
