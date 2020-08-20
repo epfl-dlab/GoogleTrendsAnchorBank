@@ -1,24 +1,29 @@
 # Google Trends Anchor Bank (G-TAB)
 
-Google Trends is a tool that allows users to analyze the popularity of Google search queries across time and space.
-In a single request, users can obtain time series for up to 5 queries on a common scale, normalized to the range from 0 
+[Google Trends](https://trends.google.com/) is a tool that allows users to analyze the popularity of Google search queries across time and space.
+In a single request, users can obtain time series for up to 5 Google queries on a common scale, normalized to the range from 0 
 to 100 and rounded to integer precision.
 Despite the overall value of Google Trends, rounding causes major problems, to the extent that entirely uninformative, 
-all-zero time series may be returned for unpopular queries when requested together with more popular queries.
-We address this issue by proposing
-*Google Trends Anchor Bank (G-TAB),*
-an efficient solution for the calibration of Google Trends data.
+all-zero time series may be returned for unpopular Google queries when requested together with more popular queries.
+**Google Trends Anchor Bank (G-TAB)**
+addresses this issue by offering an efficient solution for the calibration of Google Trends data.
 
-Our method expresses the popularity of an arbitrary number of queries on a common scale without being affected by 
+G-TAB expresses the popularity of an arbitrary number of Google queries on a common scale without being compromised by 
 rounding errors.
 The method proceeds in two phases:
 
-1.  In the *offline pre-processing phase*, an "anchor bank" is constructed, a set of queries spanning the full spectrum 
+1.  In the *offline pre-processing phase*, an "anchor bank" is constructed, a set of Google queries spanning the full spectrum 
 of popularity, all calibrated against a common reference query by carefully chaining multiple Google Trends requests.
 
-2. In the *online deployment phase*, any given search query is calibrated through a binary search in the anchor bank.
-Each search step requires a Trends request (done with [pytrends](https://github.com/GeneralMills/pytrends)), but few
- steps suffice, as we demonstrate in an [empirical evaluation](https://arxiv.org/abs/2007.13861).
+2. In the *online deployment phase*, any given search query is calibrated by performing an efficient binary search in the anchor bank.
+Each search step requires one Google Trends request (via [pytrends](https://github.com/GeneralMills/pytrends)), but few
+ steps suffice (see [empirical evaluation](https://arxiv.org/abs/2007.13861)).
+
+A full description of the G-TAB method is available in the following paper:
+
+> Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020. [**[PDF](https://arxiv.org/abs/2007.13861)**]
+
+Code and data for reproducing the results of the paper are available in the directory [`_cikm2020_paper`](tree/master/_cikm2020_paper).
 
 # Using G-TAB
 
