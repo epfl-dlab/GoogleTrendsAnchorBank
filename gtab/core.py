@@ -601,7 +601,7 @@ class GTAB:
 
                 pytrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
                 building the payload. It consists of two parameters:
-                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US", or "GLOBAL" for global;
+                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US", or "" empty string for global;
                     - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
 
                 gtab_config - a dictionary containing values to overrwite some of the configuration parameters for the GTAB methodology. It contains the following parameters:
