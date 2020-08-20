@@ -91,17 +91,18 @@ After installing G-TAB with pip, first import the module in your script:
 import gtab
 ~~~
 
-Then, create a GTAB object with the desired path:
+Then, create a `GTAB` object with a working path specified by you:
 ~~~python
 t = gtab.GTAB(my_path)
 ~~~
-This will create and initialize the directory structure of `my_path`.
+If the directory `my_path` already exists, it will be used as is.
+Otherwise, it will be created and initialized with the subdirectories contained in [`gtab`](gtab).
 
 In order to list the available anchor banks, call:
 ~~~python
 t.list_gtabs()
 ~~~
-This will produce a list of already-existing anchor banks from which you can select. There are three defaults included, and the output should look like this:
+This will produce a list of already-existing anchor banks from which you can select. Three defaults are included in this repository, and the output should look like this:
 ~~~
 Existing GTABs:
         google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
