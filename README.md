@@ -30,7 +30,10 @@ Code and data for reproducing the results of the paper are available in the dire
 
 # Repository structure
 
-The repository contains two folders, `gtab` and `example`, each described in the `README.md` of the respective folder.
+The repository contains two folders:
+
+- `gtab` contains the Python code and some required data
+- `example` contains a Jupyter notebook with an easy-to-follow example
 
 
 # Installation
