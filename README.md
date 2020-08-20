@@ -30,28 +30,25 @@ Code and data for reproducing the results of the paper are available in the dire
 
 # Repository structure
 
+The repository contains two folders, _gtab_ and _example_:
+
 **!!! THIS IS OUTDATED AND NEEDS TO BE BROUGHT UP TO DATE AND MADE COMPLETE !!!**
+## GTAB
 
-The src/python project structure is as follows:
-- config - contains four necessary config files:
-- data - contains the input data set as well as the outputs of G-TAB.
-- logs - contains logs that are written while constructing new G-TABs.
+### config
+The 'config' folder contains two config files (one for the python interface: ['config_py.json'](gtab/config/config_py.json) and one for the command line interface: ['config_cl.json'](gtab/config/config_cl.json), each one containing:
 
-
-## Config files 
-The config file is a single JSON file with four dictionaries:
-
-### BLACKLIST:
+#### BLACKLIST:
 A list with FreeBase IDs that are disallowed when sampling.
 
-### CONN
+#### CONN
 Contains the following parameters:
 - "proxies": a list of proxy addresses
 - "retries": the maximum number of connection retries.
 - "backoff_factor": see https://urllib3.readthedocs.io/en/latest/
 - "timeout": see https://urllib3.readthedocs.io/en/latest/
 
-### GTAB
+#### GTAB
 Contains the following parameters:
 - "num_anchors": the number of anchors that are sampled from the anchor candidate data set.
 - "num_anchor_candidates": how many entries in the anchor candidate data set to use.
@@ -60,25 +57,32 @@ Contains the following parameters:
 - "sleep": how many secons to wait between PyTrends API queries.
 For more details see https://arxiv.org/pdf/2007.13861.pdf.
 
-### PTRENDS
+#### PYTRENDS
 Contains the following parameters:
 - "timeframe": in which timeframe to collect data.
 - "geo": which location to query.
 For more details see https://pypi.org/project/pytrends/.
+
+All of these parameters can be set through both interfaces, i.e. for python call the method `set_options()` with your GTAB object or for the command line interface call `gtab-set-options` in terminal.
+
+### Example
+
+The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in example.ipynb to understand how to use it.
 
 
 
 
 # Installation
 
-First you need to set up a Python virtual environment and install the required packages:
+### The package is available on pip, so you just need to call"
 
-1. Activate your virtual environment ([instructions](https://docs.python.org/3/tutorial/venv.html)). (Note that G-TAB was written and tested using Python 3.8.1.)
+~~~python
+python -m pip install gtab
+~~~
+The explicit list of requirements can be found in the [`requirements.txt`](requirements.txt).
 
-2. Install the packages listed in [`requirements.txt`](requirements.txt) using your preferred package manager. For instance, if you use pip, simply run this command:
-~~~
-pip install -r requirements.txt
-~~~
+
+N.B. G-TAB was developed and tested in Python 3.8.1.
 
 
 # Example usage
