@@ -10,7 +10,7 @@ The `config` folder contains two config files, one for the Python interface, and
 The config files are in JSON format and are structured as described below.
 
 Note that you should not touch the config files in this folder.
-Rather, when creating a `GTAB` object with `gtab.GTAB(my_path)`, the config files will be copied to `my_path`, and you may then edit the copies in `my_path`.
+Rather, when creating a `GTAB` object with `gtab.GTAB(my_path)`, the config files will be automatically copied to `my_path`, and you may then edit the copies in `my_path`.
 Instead of editing the (copied) config files directly, you may also set the config options programmatically by calling `set_options()` on your `GTAB` object in Python,
 or by calling `gtab-set-options` via the command line interface.
 
