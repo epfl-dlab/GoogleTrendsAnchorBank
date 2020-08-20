@@ -9,7 +9,7 @@ editor_options:
 
 This script produces all results of the following paper:
 
-Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
+Robert West. **Calibration of Google Trends Time Series.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020. [[PDF](https://arxiv.org/abs/2007.13861)]
 
 Note that, whereas the results in the paper were produced with an R implementation, we have since switched over to Python.
 The R implementation used in this script is not updated anymore.
