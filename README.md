@@ -30,54 +30,7 @@ Code and data for reproducing the results of the paper are available in the dire
 
 # Repository structure
 
-The repository contains two folders, `gtab` and `example`.
-We describe each of them below.
-
-## GTAB
-
-### config
-The [`config`](gtab/config) folder contains two config files (one for the python interface: [`config_py.json`](gtab/config/config_py.json) and one for the command line interface: [`config_cl.json`](gtab/config/config_cl.json), each one containing:
-
-#### BLACKLIST:
-A list with FreeBase IDs that are disallowed when sampling.
-
-#### CONN
-Contains the following parameters:
-- "proxies": a list of proxy addresses
-- "retries": the maximum number of connection retries.
-- "backoff_factor": see https://urllib3.readthedocs.io/en/latest/
-- "timeout": see https://urllib3.readthedocs.io/en/latest/
-
-#### GTAB
-Contains the following parameters:
-- "num_anchors": the number of anchors that are sampled from the anchor candidate data set.
-- "num_anchor_candidates": how many entries in the anchor candidate data set to use.
-- "thresh_offline": threshold below which to discard Google Trends queries (see paper below)
-- "seed": random seed.
-- "sleep": how many secons to wait between PyTrends API queries.
-For more details see https://arxiv.org/pdf/2007.13861.pdf.
-
-#### PYTRENDS
-Contains the following parameters:
-- "timeframe": in which timeframe to collect data.
-- "geo": which location to query.
-For more details see https://pypi.org/project/pytrends/.
-
-All of these parameters can be set through both interfaces, i.e. for python call the method `set_options()` with your GTAB object or for the command line interface call `gtab-set-options` in terminal.
-
-### data
-The [`data`](gtab/data) folder is where the anchor candidate data set needs to be located (see the included file as an example: [`anchor_candidate_list.txt`](gtab/data/anchor_candidate_list.txt)). It additionally contains a sub-folder where internal states are kept while creating each G-TAB.
-
-### logs
-The [`logs`](gtab/logs) folder is where the log files for each G-TAB are kept as they are constructed and used.
-
-### output
-The [`output`](gtab/output) folder contains a single folder [`google_anchorbanks`](gtab/output/google_anchorbanks) where the constructed G-TABs are kept. Each file contains a header of two comment lines, where the correspodning *pytrends* and *gtab* config options are specified. The actual G-TAB follows after these two comment lines.
-
-
-### Example
-
-The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchor bank. Just follow the instructions and explanations in [`example.ipynb`](example/example.ipynb) to understand how to use it.
+The repository contains two folders, `gtab` and `example`, each described in the `README.md` of the respective folder.
 
 
 # Installation
