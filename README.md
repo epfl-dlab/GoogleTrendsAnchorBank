@@ -30,9 +30,9 @@ Code and data for reproducing the results of the paper are available in the dire
 
 # Repository structure
 
-The repository contains two folders, _gtab_ and _example_:
+The repository contains two folders, `gtab` and `example`.
+We describe each of them below.
 
-**!!! THIS IS OUTDATED AND NEEDS TO BE BROUGHT UP TO DATE AND MADE COMPLETE !!!**
 ## GTAB
 
 ### config
@@ -77,23 +77,24 @@ The [`output`](gtab/output) folder contains a single folder [`google_anchorbanks
 
 ### Example
 
-The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in [`example.ipynb`](example/example.ipynb) to understand how to use it.
+The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchor bank. Just follow the instructions and explanations in [`example.ipynb`](example/example.ipynb) to understand how to use it.
 
 
 # Installation
 
-### The package is available on pip, so you just need to call"
-
+The package is available on pip, so you just need to call
 ~~~python
 python -m pip install gtab
 ~~~
-The explicit list of requirements can be found in the [`requirements.txt`](requirements.txt).
+
+The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
+
+Note: G-TAB was developed and tested in Python 3.8.1.
 
 
-N.B. G-TAB was developed and tested in Python 3.8.1.
+# Example usage
 
-
-# Example usage (see example.ipynb for interactive version)
+(See `[example/example.ipynb]` for an interactive example.)
 
 Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
 every anchor bank is specific to a time period and location.
