@@ -99,7 +99,7 @@ After installing G-TAB with pip, first import the module in your script:
 import gtab
 ~~~
 
-Then, create a `GTAB` object with a working path specified by you:
+Then, create a `GTAB` object with the path to a working directory specified by you:
 ~~~python
 t = gtab.GTAB(my_path)
 ~~~
@@ -142,7 +142,7 @@ nq_res= t.new_query("Sweet potato")
 
 ## Example with a newly created anchor bank
 
-As in the previous example, the module is imported and then the object is created with the desired path:
+As in the previous example, the module is imported and then the object is created with the path to a working directory:
 ~~~python
 import gtab
 t = gtab.GTAB(my_path)
