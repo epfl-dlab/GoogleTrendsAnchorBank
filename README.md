@@ -76,13 +76,21 @@ First you need to set up a Python virtual environment and install the required p
 1. Activate your virtual environment ([instructions](https://docs.python.org/3/tutorial/venv.html)). (Note that G-TAB was written and tested using Python 3.8.1.)
 
 2. Install the packages listed in [`requirements.txt`](requirements.txt) using your preferred package manager. For instance, if you use pip, simply run this command:
-
 ~~~
 pip install -r requirements.txt
 ~~~
 
 
 # Example usage
+
+Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
+every anchor bank is specific to a time period and location.
+
+To get you started quickly, this repo comes with 3 example anchor banks, all for the 8-month time period from 2019-11-28 to 2020-07-28, but for 3 different locations (countries): United States, Italy, Sweden.
+The first example below shows you how to use the 3 pre-existing anchor banks in order to calibrate any Google query.
+
+The 3 included anchor banks are great for getting to know G-TAB and starting to play around, but if you have more specific needs, you might need to construct a new anchor bank for your specific time period and location. But don't worry, it's easy!
+The second example walks you through the process of constructing your own anchor bank.
 
 ## Example with a pre-existing anchor bank
 
@@ -98,7 +106,7 @@ t = gtab.GTAB(my_path)
 If the directory `my_path` already exists, it will be used as is.
 Otherwise, it will be created and initialized with the subdirectories contained in [`gtab`](gtab).
 
-In order to list the available anchor banks, call:
+In order to list the available anchor banks, call
 ~~~python
 t.list_gtabs()
 ~~~
@@ -111,16 +119,16 @@ Existing GTABs:
 Active anchorbank: None selected.
 ~~~
 
-To select which anchor bank to use, we call
+To select which anchor bank to use, call
 ~~~python
 t.set_active_gtab("google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv")
 ~~~
-obtaining the following confirmation:
+You should obtain the following confirmation:
 ~~~
 Active anchorbank changed to: google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
 ~~~
 
-Next we need ensure we have the correct corresponding config options (for new queries only the *ptrends_config* is relevant). To set them, we call
+Next we need ensure we have the correct corresponding config options (for new queries only the *ptrends_config* is relevant). To set them, call
 ~~~python
 t.set_options(ptrends_config = {"geo": "IT", "timeframe": "2019-11-28 2020-07-28" })
 ~~~
@@ -140,7 +148,7 @@ import gtab
 t = gtab.GTAB(my_path)
 ~~~
 
-The desired config options can be set through the object method *set_options*. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, we use
+The desired config options can be set through the object method *set_options*. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, use
 ~~~python
 t.set_options(ptrends_config = {"geo": "FR", "timeframe": "2020-03-05 2020-05-05"})
 ~~~
@@ -156,7 +164,7 @@ A good [list of candidate queries](gtab/data/anchor_candidate_list.txt) is shipp
 We then need to set the size of the anchor bank to be constructed,
 as well as the number of candidate queries to be used in constructing the anchor bank
 (these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861)).
-For example, if we want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, we call
+For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call
 ~~~python
 t.set_options(gtab_config = {"num_anchors": 100, "num_anchor_candidates": 3000})
 ~~~
