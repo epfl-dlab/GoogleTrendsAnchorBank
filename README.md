@@ -102,8 +102,9 @@ If you want to use the command line interface you can use the command `gtab-set-
 
 Now we can request a calibrated time series for a new query:
 ~~~python
-mid = "/m/0jg7r" # freebase code for EPFl
+mid = "/m/0jg7r" # freebase code for EPFL
 nq_res= t.new_query(mid) 
+
 print(f'Ratio: {nq_res[mid]["ratio"]}')
 print(f'Ratio low: {nq_res[mid]["ratio_lo"]}')
 print(f'Ratio high: {nq_res[mid]["ratio_hi"]}')
