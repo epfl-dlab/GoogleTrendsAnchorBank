@@ -36,7 +36,7 @@ The repository contains two folders, _gtab_ and _example_:
 ## GTAB
 
 ### config
-The ['config'](gtab/config) folder contains two config files (one for the python interface: ['config_py.json'](gtab/config/config_py.json) and one for the command line interface: ['config_cl.json'](gtab/config/config_cl.json), each one containing:
+The [`config`](gtab/config) folder contains two config files (one for the python interface: [`config_py.json`](gtab/config/config_py.json) and one for the command line interface: [`config_cl.json`](gtab/config/config_cl.json), each one containing:
 
 #### BLACKLIST:
 A list with FreeBase IDs that are disallowed when sampling.
@@ -66,18 +66,18 @@ For more details see https://pypi.org/project/pytrends/.
 All of these parameters can be set through both interfaces, i.e. for python call the method `set_options()` with your GTAB object or for the command line interface call `gtab-set-options` in terminal.
 
 ### data
-The ['data'](gtab/data) folder is where the anchor candidate data set needs to be located (see the included file as an example: ['anchor_candidate_list.txt'](gtab/data/anchor_candidate_list.txt)). It additionally contains a sub-folder where internal states are kept while creating each G-TAB.
+The [`data`](gtab/data) folder is where the anchor candidate data set needs to be located (see the included file as an example: [`anchor_candidate_list.txt`](gtab/data/anchor_candidate_list.txt)). It additionally contains a sub-folder where internal states are kept while creating each G-TAB.
 
 ### logs
-The ['logs'](gtab/logs) folder is where the log files for each G-TAB are kept as they are constructed and used.
+The [`logs`](gtab/logs) folder is where the log files for each G-TAB are kept as they are constructed and used.
 
 ### output
-The ['output'](gtab/output) folder contains a single folder ['google_anchorbanks'](gtab/output/google_anchorbanks) where the constructed G-TABs are kept. Each file contains a header of two comment lines, where the correspodning *pytrends* and *gtab* config options are specified. The actual G-TAB follows after these two comment lines.
+The [`output`](gtab/output) folder contains a single folder [`google_anchorbanks`](gtab/output/google_anchorbanks) where the constructed G-TABs are kept. Each file contains a header of two comment lines, where the correspodning *pytrends* and *gtab* config options are specified. The actual G-TAB follows after these two comment lines.
 
 
 ### Example
 
-The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in ['example.ipynb'](example/example.ipynb) to understand how to use it.
+The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in [`example.ipynb`](example/example.ipynb) to understand how to use it.
 
 
 # Installation
