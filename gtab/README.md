@@ -38,11 +38,11 @@ or by calling `gtab-set-options` via the command line interface.
 The `data` folder contains the list of anchor candidates in the file `anchor_candidate_list.txt`.
 It additionally contains a subfolder `internal` that is used internally during anchor bank construction. You shouldn't need to tinker with the `internal` folder.
 
-### `logs`
+## `logs`
 
 Log files produced by G-TAB.
 
-### `output`
+## `output`
 
 The `output` folder contains a single subfolder `google_anchorbanks`.
 This is where the anchor banks are placed once they've been constructed (one file per anchor bank).
