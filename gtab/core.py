@@ -601,7 +601,7 @@ class GTAB:
 
                 pytrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
                 building the payload. It consists of two parameters:
-                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US";
+                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US", or "GLOBAL" for global;
                     - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
 
                 gtab_config - a dictionary containing values to overrwite some of the configuration parameters for the GTAB methodology. It contains the following parameters:
@@ -684,7 +684,7 @@ class GTAB:
         for f in glob.glob(os.path.join(self.dir_path, "output", 'google_anchorbanks', '*')):
             print(f"\t{os.path.basename(f)}")
     
-        print(f"Active anchorbank: {'None selected.' if self.active_gtab == None else os.path.basename(self.active_gtab)}\n")
+        print(f"Active anchorbank: {'None selected.' if self.active_gtab == None else os.path.basename(self.active_gtab)}")
 
     def rename_gtab(self, src, dst):
         """
@@ -740,18 +740,18 @@ class GTAB:
             raise FileNotFoundError(def_gtab_fpath)
         
         self.active_gtab = def_gtab_fpath
-        self.anchor_bank_full = pd.read_csv(self.active_gtab, sep='\t', comment='#', index_col=0)
-        self.anchor_bank_lo = self.anchor_bank_full.loc[:, 'lo']
-        self.anchor_bank_hi = self.anchor_bank_full.loc[:, 'hi']
-        self.anchor_bank = self.anchor_bank_full.loc[:, 'base']
+        self.anchor_bank_full = pd.read_csv(self.active_gtab, sep='\t', comment='#', index_col=1).drop('Unnamed: 0', axis = 1)
+        self.anchor_bank_lo = self.anchor_bank_full.loc[:, 'max_ratio_lo']
+        self.anchor_bank_hi = self.anchor_bank_full.loc[:, 'max_ratio_hi']
+        self.anchor_bank = self.anchor_bank_full.loc[:, 'max_ratio']
         self.top_anchor = self.anchor_bank_full.index[0]
         self.top_anchor = self.anchor_bank_full.index[0]
-        self.ref_anchor = self.anchor_bank_full.index[self.anchor_bank_full.loc[:, 'base'] == 1.0][0]
+        self.ref_anchor = self.anchor_bank_full.index[self.anchor_bank_full.loc[:, 'max_ratio'] == 1.0][0]
 
         # Set the options that are in a commented header in the GTAB file
         with open(self.active_gtab, "r") as f_in:
-            t_gtab_config = ast.literal_eval(f_in.readline()[1:].strip())
-            t_pytrends_config = ast.literal_eval(f_in.readline()[1:].strip())
+            t_gtab_config = ast.literal_eval(f_in.readline()[1:].strip())['GTAB']
+            t_pytrends_config = ast.literal_eval(f_in.readline()[1:].strip())['PYTRENDS']
             self.set_options(pytrends_config = t_pytrends_config, gtab_config = t_gtab_config)
 
         print(f"Active anchorbank changed to: {os.path.basename(self.active_gtab)}\n")
@@ -818,7 +818,8 @@ class GTAB:
             # anchor_bank = W.loc[ref_anchor, :]
             # anchor_bank_hi = W_hi.loc[ref_anchor, :]
             # anchor_bank_lo = W_lo.loc[ref_anchor, :]
-            anchor_bank_full = pd.DataFrame({"base": W.loc[ref_anchor, :], "lo": W_lo.loc[ref_anchor, :], "hi": W_hi.loc[ref_anchor, :]})
+            anchor_bank_full = pd.DataFrame({"max_ratio": W.loc[ref_anchor, :], "max_ratio_lo": W_lo.loc[ref_anchor, :], "max_ratio_hi": W_hi.loc[ref_anchor, :]}).reset_index().rename({"index": "google_query"}, axis = 1)
+            self._print_and_log(f"Total range: {anchor_bank_full.iloc[-1, 1] / anchor_bank_full.iloc[0, 1]}")
 
             # self.top_anchor = top_anchor
             # self.ref_anchor = ref_anchor
@@ -840,16 +841,18 @@ class GTAB:
             #             break
             #     self._print_and_log(f"File already exists! Saving as {fname_base}.")    
 
-            with open(fname_base, 'a') as f_ab_out:
-                f_ab_out.write(f"#{self.CONFIG['GTAB']}\n")
-                f_ab_out.write(f"#{self.CONFIG['PYTRENDS']}\n")
+            with open(fname_base, 'w', newline = '') as f_ab_out: # 'w' vs 'a'?!
+                t_gtab_config = {"GTAB": self.CONFIG['GTAB']}
+                t_pytrends_config = {"PYTRENDS": self.CONFIG['PYTRENDS']}
+                f_ab_out.write(f"# {t_gtab_config}\n")
+                f_ab_out.write(f"# {t_pytrends_config}\n")
                 anchor_bank_full.to_csv(f_ab_out, sep='\t', header=True)
 
             self._print_and_log("AnchorBank init done.")
             if self._error_flag:
                 self._print_and_log("There was an error. Please check the log file.")
         else:
-            print("GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)'.")
+            print("GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)' or rename/delete it to create another one with this name.")
 
         
         self._log_con.close()
@@ -898,7 +901,8 @@ class GTAB:
             except Exception as e:
                 self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
                 break
-
+                
+            timestamps = ts.index
             max_anchor = ts.loc[:, anchor].max()
             max_query = ts.loc[:, query].max()
 
@@ -925,8 +929,8 @@ class GTAB:
                 ts_query_lo = np.array(ts_query_lo) / max_query_hi * ratio_lo
 
                 self._print_and_log("New query calibrated!")
-                return {query: {"ratio": ratio, "ratio_hi": ratio_hi, "ratio_lo": ratio_lo, "ts": list(ts_query),
-                                "ts_hi": list(ts_query_hi), "ts_lo": list(ts_query_lo), "iter": n_iter}}
+                return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo, "ts_timestamp": [str(tstamp.date()) for tstamp in timestamps] ,"ts_max_ratio":  list(ts_query),
+                                "ts_max_ratio_hi": list(ts_query_hi), "ts_max_ratio_lo": list(ts_query_lo), "no_iters": n_iter}}
 
             elif max_query < thresh:
                 lo = mid + 1

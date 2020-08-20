@@ -111,3 +111,154 @@ AnchorBank init done.
 Start AnchorBank init...
 Loading pre-existing anchorbank from ..\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv...
 AnchorBank init done.
+
+2020-08-20 16:55:30.171998
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+
+2020-08-20 17:03:16.193815
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv'...
+AnchorBank init done.
+
+2020-08-20 17:14:19.950879
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Total range: 7.371909718992002e-05
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv'...
+
+2020-08-20 17:16:37.450781
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+
+2020-08-20 17:16:49.827007
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Total range: 7.371909718992002e-05
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv'...
+AnchorBank init done.
+
+2020-08-20 17:19:22.386813
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+
+2020-08-20 17:31:57.813599
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Pavement'
+Google query 'Pavement' failed because: The request failed: Google returned a response with code 400.
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-20 17:32:15.647674
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+Google query 'Sweet potato' failed because: The request failed: Google returned a response with code 400.
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-20 17:32:46.814353
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+Google query 'Sweet potato' failed because: The request failed: Google returned a response with code 400.
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-20 17:32:54.853742
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:34:35.492617
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:35:03.325843
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:35:58.509157
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+
+2020-08-20 17:37:12.179411
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:37:22.092942
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:37:34.155580
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:41:23.613426
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:41:53.795130
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:42:07.692985
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:42:28.635381
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:43:01.922094
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:43:43.807979
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:44:04.299221
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:44:45.745235
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+
+2020-08-20 17:45:05.229237
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:45:15.377060
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-20 17:45:29.725217
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
