@@ -5,11 +5,12 @@ In a single request, users can obtain time series for up to 5 Google queries on 
 to 100 and rounded to integer precision.
 Despite the overall value of Google Trends, rounding causes major problems, to the extent that entirely uninformative, 
 all-zero time series may be returned for unpopular Google queries when requested together with more popular queries.
+
 **Google Trends Anchor Bank (G-TAB)**
 addresses this issue by offering an efficient solution for the calibration of Google Trends data.
-
 G-TAB expresses the popularity of an arbitrary number of Google queries on a common scale without being compromised by 
 rounding errors.
+
 The method proceeds in two phases:
 
 1.  In the *offline pre-processing phase*, an "anchor bank" is constructed, a set of Google queries spanning the full spectrum 
@@ -23,7 +24,7 @@ A full description of the G-TAB method is available in the following paper:
 
 > Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020. [**[PDF](https://arxiv.org/abs/2007.13861)**]
 
-Code and data for reproducing the results of the paper are available in the directory [`_cikm2020_paper`](tree/master/_cikm2020_paper).
+Code and data for reproducing the results of the paper are available in the directory [`_cikm2020_paper`](_cikm2020_paper).
 
 # Using G-TAB
 
