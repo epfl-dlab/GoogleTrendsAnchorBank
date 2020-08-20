@@ -71,11 +71,11 @@ For more details see https://pypi.org/project/pytrends/.
 
 # Installation
 
-First you need to set up a Python virtual environment and install the packages listed in `requirements.txt`:
+First you need to set up a Python virtual environment and install the required packages:
 
 1. Activate your virtual environment ([instructions](https://docs.python.org/3/tutorial/venv.html)). (Note that G-TAB was written and tested using Python 3.8.1.)
 
-2. Install the packages listed in `requirements.txt` using your preferred package manager. For instance, if you use pip, simply run this command:
+2. Install the packages listed in [`requirements.txt`](requirements.txt) using your preferred package manager. For instance, if you use pip, simply run this command:
 
 ~~~
 pip install -r requirements.txt
