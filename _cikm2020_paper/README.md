@@ -2,7 +2,7 @@
 
 This directory contains all code and data to reproduce the results published in this paper:
 
-> Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020.
+> Robert West. **Evaluation of Google Trends Anchor Bank.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020. [**[PDF](https://arxiv.org/abs/2007.13861)**]
 
 Note that, whereas the results in the paper were produced with an R implementation, we have since switched over to Python.
 The R implementation that was used for the paper and that is contained in this directory is not updated anymore.
