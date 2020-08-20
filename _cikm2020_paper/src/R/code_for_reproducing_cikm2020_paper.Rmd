@@ -25,12 +25,12 @@ library(plotrix)
 BASE_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank', Sys.getenv('HOME'))
 
 # Load the functions for constructing the anchor bank.
-source(sprintf('%s/cikm2020_paper/src/R/g-tab.R', BASE_DIR))
+source(sprintf('%s/_cikm2020_paper/src/R/g-tab.R', BASE_DIR))
 
 # Set this to FALSE if you don't want to save plots to PDFs.
 SAVE_PLOTS <- FALSE
 
-PLOT_DIR <- sprintf('%s/cikm2020_paper/plots', BASE_DIR)
+PLOT_DIR <- sprintf('%s/_cikm2020_paper/plots', BASE_DIR)
 
 colorblind_col <- c("#000000", "#E69F00", "#56B4E9", "#D55E00", "#009E73", "#0072B2", "#CC79A7", "#F0E442")
 

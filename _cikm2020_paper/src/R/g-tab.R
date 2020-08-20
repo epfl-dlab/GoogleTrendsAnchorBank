@@ -11,7 +11,7 @@ options(stringsAsFactors=FALSE)
 # Root directory of the GitHub repo.
 BASE_DIR <- sprintf('%s/github/GoogleTrendsAnchorBank', Sys.getenv('HOME'))
 
-DATA_DIR <- sprintf('%s/cikm2020_paper/data', BASE_DIR)
+DATA_DIR <- sprintf('%s/_cikm2020_paper/data', BASE_DIR)
 
 # num_anchors should be even; num_anchor_candidates should be a multiple of num_anchors/2.
 DEFAULT_CONFIG <- list(num_anchors=100,
