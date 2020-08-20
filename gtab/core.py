@@ -99,9 +99,9 @@ class GTAB:
         self.active_gtab = None
 
         if use_proxies:
-            self.ptrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
+            self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
         else:
-            self.ptrends = TrendReq(hl='en-US', timeout=(20, 20))
+            self.pytrends = TrendReq(hl='en-US', timeout=(20, 20))
 
     # --- UTILITY METHODS --- 
 
@@ -111,7 +111,7 @@ class GTAB:
 
     # TODO: add default anchorbank choice
     def _make_file_suffix(self):
-        return "_".join([f"{k}={v}" for k, v in self.CONFIG['PTRENDS'].items()])
+        return "_".join([f"{k}={v}" for k, v in self.CONFIG['PYTRENDS'].items()])
 
     def _query_google(self, keywords=["Keywords"], retries = 5):
         time.sleep(self.CONFIG['GTAB']['sleep'])
@@ -121,13 +121,13 @@ class GTAB:
         if len(keywords) > 5:
             raise ValueError("Number of keywords must be at most than 5.")
 
-        self.ptrends.build_payload(kw_list=keywords, **self.CONFIG['PTRENDS'])
-        ret = self.ptrends.interest_over_time() 
+        self.pytrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
+        ret = self.pytrends.interest_over_time() 
         return ret
 
         # cnt = 0
         # while cnt < 5:
-        #     self.ptrends.build_payload(kw_list=keywords, **self.CONFIG['PTRENDS'])
+        #     self.ptrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
         #     ret = self.ptrends.interest_over_time() 
         #     if not ret.empty:
         #         return ret
@@ -595,11 +595,11 @@ class GTAB:
             print(f"Config file: {os.path.join(self.dir_path, 'config', 'config_py.json')}")
         print(self.CONFIG)
 
-    def set_options(self, ptrends_config = None, gtab_config = None, conn_config = None, overwite_file: bool = False):
+    def set_options(self, pytrends_config = None, gtab_config = None, conn_config = None, overwite_file: bool = False):
         """
             Overwrites specified options. This can also be done manually by editing 'config_py.json' in the active directory.
 
-                ptrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
+                pytrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
                 building the payload. It consists of two parameters:
                     - geo (str) - containing the two-letter ISO code of the country, e.g. "US";
                     - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
@@ -620,13 +620,13 @@ class GTAB:
                 overwrite_file - whether to overwrite the config_py.json file in the active directory.
             """
 
-        if ptrends_config != None:
-            if type(ptrends_config) != dict:
-                raise TypeError("The ptrends_config argument must be a dictionary with valid parameters!")
-            for k in ptrends_config:
-                if k not in self.CONFIG['PTRENDS']:
+        if pytrends_config != None:
+            if type(pytrends_config) != dict:
+                raise TypeError("The pytrends_config argument must be a dictionary with valid parameters!")
+            for k in pytrends_config:
+                if k not in self.CONFIG['PYTRENDS']:
                     raise ValueError(f"Invalid parameter: {k}")
-                self.CONFIG["PTRENDS"][k] = ptrends_config[k]
+                self.CONFIG["PYTRENDS"][k] = pytrends_config[k]
 
         if gtab_config != None:
             if type(gtab_config) != dict:
@@ -748,6 +748,12 @@ class GTAB:
         self.top_anchor = self.anchor_bank_full.index[0]
         self.ref_anchor = self.anchor_bank_full.index[self.anchor_bank_full.loc[:, 'base'] == 1.0][0]
 
+        # Set the options that are in a commented header in the GTAB file
+        with open(self.active_gtab, "r") as f_in:
+            t_gtab_config = ast.literal_eval(f_in.readline()[1:].strip())
+            t_pytrends_config = ast.literal_eval(f_in.readline()[1:].strip())
+            self.set_options(pytrends_config = t_pytrends_config, gtab_config = t_gtab_config)
+
         print(f"Active anchorbank changed to: {os.path.basename(self.active_gtab)}\n")
 
     def create_anchorbank(self, verbose = False, keep_diagnostics = False):
@@ -758,7 +764,7 @@ class GTAB:
         self._error_flag = False
         self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
-        self._print_and_log(f"Start AnchorBank init for region {self.CONFIG['PTRENDS']['geo']} in timeframe {self.CONFIG['PTRENDS']['timeframe']}...")
+        self._print_and_log(f"Start AnchorBank init for region {self.CONFIG['PYTRENDS']['geo']} in timeframe {self.CONFIG['PYTRENDS']['timeframe']}...")
 
         if verbose:
             self._print_and_log(f"Full option parameters are: {self.CONFIG}")
@@ -836,7 +842,7 @@ class GTAB:
 
             with open(fname_base, 'a') as f_ab_out:
                 f_ab_out.write(f"#{self.CONFIG['GTAB']}\n")
-                f_ab_out.write(f"#{self.CONFIG['PTRENDS']}\n")
+                f_ab_out.write(f"#{self.CONFIG['PYTRENDS']}\n")
                 anchor_bank_full.to_csv(f_ab_out, sep='\t', header=True)
 
             self._print_and_log("AnchorBank init done.")
@@ -851,7 +857,7 @@ class GTAB:
     def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False):
 
         """
-        Request a new Google Trends query and calibrate it with the active gtab. The 'PTRENDS' key in config_py.json is used. Make sure to set it according to your chosen anchorbank.
+        Request a new Google Trends query and calibrate it with the active gtab. The 'PYTRENDS' key in config_py.json is used. Make sure to set it according to your chosen anchorbank.
 
         Input parameters:
             keyword - string containing a single query.

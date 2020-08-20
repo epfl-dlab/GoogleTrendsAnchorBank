@@ -23,7 +23,7 @@
         "sleep": 0.5,
         "thresh_offline": 10
     },
-    "PTRENDS": {
+    "PYTRENDS": {
         "geo": "IT",
         "timeframe": "2019-11-28 2020-07-28"
     }

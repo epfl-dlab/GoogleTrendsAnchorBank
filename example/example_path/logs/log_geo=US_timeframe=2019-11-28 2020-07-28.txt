@@ -1,39 +1,5 @@
 
-2020-08-19 13:28:32.207093
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0289n8t'
-New query calibrated!
-
-2020-08-19 13:30:14.415631
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0289n8t'
-New query calibrated!
-
-2020-08-19 13:41:22.591665
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0z90c'
-New query calibrated!
-
-2020-08-19 13:45:48.271618
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0z90c'
-New query calibrated!
-
-2020-08-19 13:46:30.274173
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0glpjll'
-
-2020-08-19 13:46:43.567374
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0glpjll'
-
-2020-08-19 13:47:23.999526
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0glpjl'
-Google query '/m/0glpjl' failed because: The request failed: Google returned a response with code 400.
-Could not calibrate. Time series for query too low everywhere.
-
-2020-08-19 13:47:28.558021
-Using example_path\output\google_anchorbanks\google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-New query '/m/0z90c'
+2020-08-20 12:25:34.932129
+Using example_path\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0jg7r'
 New query calibrated!
