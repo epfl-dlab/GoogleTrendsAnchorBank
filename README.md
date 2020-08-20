@@ -50,7 +50,7 @@ Note: G-TAB was developed and tested in Python 3.8.1.
 
 # Example usage
 
-(See `[example/example.ipynb]` for an interactive example.)
+(See `[example/example.ipynb](example/example.ipynb)` for an interactive example in a Jupyter notebook.)
 
 Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
 every anchor bank is specific to a time period and location.
@@ -73,7 +73,7 @@ Then, create a `GTAB` object with the path to a working directory specified by y
 t = gtab.GTAB(dir_path = my_path)
 ~~~
 If the directory `my_path` already exists, it will be used as is.
-Otherwise, it will be created and initialized with the subdirectories contained in [`gtab`](gtab).
+Otherwise, it will be created and initialized with the subdirectories of the [`gtab`](gtab) directory.
 
 In order to list the available anchor banks, call
 ~~~python
@@ -97,7 +97,8 @@ You should obtain the following confirmation:
 Active anchorbank changed to: google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
 ~~~
 
-This will automatically set the corresponding config options. If you want to change them explicitly with the python interface you can do so by calling `set_options()` or manually editing your config file at *my_path/config/config_py.json*. If you want to use the command line interface, the command is `gtab-set-options`, or edit the corresponding config file at *my_path/config/config_cl.json*.
+This will automatically set the corresponding config options. If you want to change them explicitly for the Python interface you can do so by calling `set_options()` or manually editing your config file at `my_path/config/config_py.json`.
+If you want to use the command line interface you can use the command `gtab-set-options`, or manually edit the corresponding config file at `my_path/config/config_cl.json`.
 
 Now we can request a calibrated time series for a new query:
 ~~~python
@@ -126,19 +127,20 @@ We also need to specify the file that contains a list of candidate queries from 
 ~~~python
 t.set_options(gtab_config = {"anchor_candidates_file": "anchor_candidate_list.txt"})
 ~~~
-This file must be located at *my_path/data/anchor_candidate_list.txt* and contain one query per line.
+This file must be located at `my_path/data/anchor_candidate_list.txt` and contain one query per line.
 Note that, as described in the [paper](https://arxiv.org/abs/2007.13861), we recommend using language-agnostic Freebase IDs (e.g., /m/0dm32) as queries, rather than language-specific plain-text queries (e.g., "sweet potato").
 A good [list of candidate queries](gtab/data/anchor_candidate_list.txt) is shipped with G-TAB by default, so only advanced users should need to tinker with the list.
 
 We then need to set the size of the anchor bank to be constructed,
 as well as the number of candidate queries to be used in constructing the anchor bank
-(these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861)). N specifies how deep to go in the data set, i.e. take the first N keywords from the file for sampling. K specifies how many stratified samples we want to get. N has to be smaller than the total number of keywords in the anchor candidate data set, while it is good practice to set K to be in the range 0.1N, 0.2N. For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call:
+(these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861); see the description in Sec. 2.1 of the paper for details).
+For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call:
 ~~~python
 t.set_options(gtab_config = {"num_anchors": 100, "num_anchor_candidates": 3000})
 ~~~
 (Note that the specified `num_anchors` is used only to construct an initial anchor bank, which is then automatically optimized in order to produce the smaller, more precise final anchor bank, typically containing no more than 20 anchor queries. See Appendix B of the [paper](https://arxiv.org/abs/2007.13861).)
 
-Note that all config options can be directly edited in the config file found at *my_path/config/config.json*.
+Note that all config options can be directly edited in the config file found at `my_path/config/config.json`.
 
 Finally, we construct the anchor bank by calling
 ~~~python
