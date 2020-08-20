@@ -31,7 +31,7 @@ or by calling `gtab-set-options` via the command line interface.
 
 - `PYTRENDS` (for more details, see [pytrends documentation](https://github.com/GeneralMills/pytrends))
     - `timeframe`: time period to use for Google Trends requests
-    - `geo`: location to use for Google Trends requests
+    - `geo`: location to use for Google Trends requests - uses ISO two-letter country format, or 'GLOBAL' for global
 
 ## `data`
 
