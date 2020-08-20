@@ -36,7 +36,7 @@ The repository contains two folders, _gtab_ and _example_:
 ## GTAB
 
 ### config
-The 'config' folder contains two config files (one for the python interface: ['config_py.json'](gtab/config/config_py.json) and one for the command line interface: ['config_cl.json'](gtab/config/config_cl.json), each one containing:
+The ['config'](gtab/config) folder contains two config files (one for the python interface: ['config_py.json'](gtab/config/config_py.json) and one for the command line interface: ['config_cl.json'](gtab/config/config_cl.json), each one containing:
 
 #### BLACKLIST:
 A list with FreeBase IDs that are disallowed when sampling.
@@ -65,11 +65,19 @@ For more details see https://pypi.org/project/pytrends/.
 
 All of these parameters can be set through both interfaces, i.e. for python call the method `set_options()` with your GTAB object or for the command line interface call `gtab-set-options` in terminal.
 
+### data
+The ['data'](gtab/data) folder is where the anchor candidate data set needs to be located (see the included file as an example: ['anchor_candidate_list.txt'](gtab/data/anchor_candidate_list.txt)). It additionally contains a sub-folder where internal states are kept while creating each G-TAB.
+
+### logs
+The ['logs'](gtab/logs) folder is where the log files for each G-TAB are kept as they are constructed and used.
+
+### output
+The ['output'](gtab/output) folder contains a single folder ['google_anchorbanks'](gtab/output/google_anchorbanks) where the constructed G-TABs are kept. Each file contains a header of two comment lines, where the correspodning *pytrends* and *gtab* config options are specified. The actual G-TAB follows after these two comment lines.
+
+
 ### Example
 
-The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in example.ipynb to understand how to use it.
-
-
+The 'example' folder contains a Jupyter (ipynb) notebook that has a short tutorial on how to request new queries with an existing anchorbank as well as creating your own anchorbank. Just follow the instructions and explanations in ['example.ipynb'](example/example.ipynb) to understand how to use it.
 
 
 # Installation
@@ -85,7 +93,7 @@ The explicit list of requirements can be found in the [`requirements.txt`](requi
 N.B. G-TAB was developed and tested in Python 3.8.1.
 
 
-# Example usage
+# Example usage (see example.ipynb for interactive version)
 
 Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
 every anchor bank is specific to a time period and location.
@@ -105,7 +113,7 @@ import gtab
 
 Then, create a `GTAB` object with the path to a working directory specified by you:
 ~~~python
-t = gtab.GTAB(my_path)
+t = gtab.GTAB(dir_path = my_path)
 ~~~
 If the directory `my_path` already exists, it will be used as is.
 Otherwise, it will be created and initialized with the subdirectories contained in [`gtab`](gtab).
@@ -132,17 +140,17 @@ You should obtain the following confirmation:
 Active anchorbank changed to: google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
 ~~~
 
-Next we need ensure we have the correct corresponding config options (for new queries only the *ptrends_config* is relevant). To set them, call
-~~~python
-t.set_options(ptrends_config = {"geo": "IT", "timeframe": "2019-11-28 2020-07-28" })
-~~~
-This can also be done by manually editing the config file found at: *my_path/config/config.json*
+This will automatically set the corresponding config options. If you want to change them explicitly with the python interface you can do so by calling `set_options()` or manually editing your config file at *my_path/config/config_py.json*. If you want to use the command line interface, the command is `gtab-set-options`, or edit the corresponding config file at *my_path/config/config_cl.json*.
 
 Now we can request a calibrated time series for a new query:
 ~~~python
-nq_res= t.new_query("Sweet potato")
+mid = "/m/0jg7r" # freebase code for EPFl
+nq_res= t.new_query(mid) 
+print(f'Ratio: {nq_res[mid]["ratio"]}')
+print(f'Ratio low: {nq_res[mid]["ratio_lo"]}')
+print(f'Ratio high: {nq_res[mid]["ratio_hi"]}')
+print(f'Ratio high: {nq_res[mid]["ts"]}')
 ~~~
-
 
 ## Example with a newly created anchor bank
 
@@ -152,23 +160,22 @@ import gtab
 t = gtab.GTAB(my_path)
 ~~~
 
-The desired config options can be set through the object method *set_options*. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, use
+The desired config options can be set through the object method `set_options()`. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, use
 ~~~python
 t.set_options(ptrends_config = {"geo": "FR", "timeframe": "2020-03-05 2020-05-05"})
 ~~~
 
 We also need to specify the file that contains a list of candidate queries from which anchor queries will be selected when constructing the anchor bank:
 ~~~python
-t.set_options(gtab_config = {"anchor_candidates_file": "my_data_file.txt"})
+t.set_options(gtab_config = {"anchor_candidates_file": "anchor_candidate_list.txt"})
 ~~~
-This file must be located at *my_path/data/my_data_file.txt* and contain one query per line.
+This file must be located at *my_path/data/anchor_candidate_list.txt* and contain one query per line.
 Note that, as described in the [paper](https://arxiv.org/abs/2007.13861), we recommend using language-agnostic Freebase IDs (e.g., /m/0dm32) as queries, rather than language-specific plain-text queries (e.g., "sweet potato").
 A good [list of candidate queries](gtab/data/anchor_candidate_list.txt) is shipped with G-TAB by default, so only advanced users should need to tinker with the list.
 
 We then need to set the size of the anchor bank to be constructed,
 as well as the number of candidate queries to be used in constructing the anchor bank
-(these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861)).
-For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call
+(these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861)). N specifies how deep to go in the data set, i.e. take the first N keywords from the file for sampling. K specifies how many stratified samples we want to get. N has to be smaller than the total number of keywords in the anchor candidate data set, while it is good practice to set K to be in the range 0.1N, 0.2N. For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call:
 ~~~python
 t.set_options(gtab_config = {"num_anchors": 100, "num_anchor_candidates": 3000})
 ~~~
