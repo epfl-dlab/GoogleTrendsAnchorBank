@@ -168,7 +168,7 @@ For example, if you want to construct an anchor bank consisting of *n*=100 queri
 ~~~python
 t.set_options(gtab_config = {"num_anchors": 100, "num_anchor_candidates": 3000})
 ~~~
-(Note that the specified `num_anchors` is used only to construct an initial, intermediate anchor bank, which is then automatically optimized in order to produce a smaller, more precise anchor bank, typically containing no more than 20 anchor queries. See Appendix B of the [paper](https://arxiv.org/abs/2007.13861).)
+(Note that the specified `num_anchors` is used only to construct an initial anchor bank, which is then automatically optimized in order to produce the smaller, more precise final anchor bank, typically containing no more than 20 anchor queries. See Appendix B of the [paper](https://arxiv.org/abs/2007.13861).)
 
 Note that all config options can be directly edited in the config file found at *my_path/config/config.json*.
 
