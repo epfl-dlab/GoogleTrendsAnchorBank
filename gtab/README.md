@@ -8,7 +8,10 @@ In addition to the code, there are 4 subfolders:
 
 The `config` folder contains two config files, one for the Python interface, and one for the command line interface.
 The config files are in JSON format and are structured as described below.
-Instead of editing the config files, parameter values may also be set programmatically by calling `set_options()` on your GTAB object in Python,
+
+Note that you should not touch the config files in this folder.
+Rather, when creating a `GTAB` object with `gtab.GTAB(my_path)`, the config files will be copied to `my_path`, and you may then edit the copies in `my_path`.
+Instead of editing the (copied) config files directly, you may also set the config options programmatically by calling `set_options()` on your `GTAB` object in Python,
 or by calling `gtab-set-options` via the command line interface.
 
 - `BLACKLIST`: A list of Freebase IDs that are disallowed as anchor queries (because they were found to cause trouble)
@@ -46,7 +49,7 @@ This is where the anchor banks are placed once they've been constructed (one fil
 Each file contains two header lines (starting with `#`) that specify the `PYTRENDS` and `GTAB` config options (see above) that were used when constructing the anchor bank.
 The remaining lines specify the anchor bank:
 
-- `freebase_id`: the anchor query, specified via a language-agnostic Freebase ID (e.g., /m/0dm32 corresponds to the topic "sweet potato")
+- `google_query`: the anchor query, specified via a language-agnostic Freebase ID (e.g., /m/0dm32) or via a language-specific plain-text query string (e.g., "sweet potato")
 - `max_ratio`: the max ratio of this query and the reference query (the reference query is the query with max ratio 1.0)
 - `max_ratio_hi`: the highest possible true max ratio (of which `max_ratio` is an estimate, due to Google Trend's rounding, see [paper](https://arxiv.org/abs/2007.13861))
 - `max_ratio_lo`: analogously, the lowest possible true max ratio
