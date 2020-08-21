@@ -262,3 +262,91 @@ New query calibrated!
 Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
 New query 'Sweet potato'
 New query calibrated!
+
+2020-08-21 14:14:32.484392
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet potato'
+New query calibrated!
+
+2020-08-21 14:15:07.306420
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/02y1vz'
+New query calibrated!
+
+2020-08-21 14:15:29.945378
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/02y1vz'
+New query calibrated!
+
+2020-08-21 14:17:31.049766
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Total range: 7.371909718992002e-05
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv'...
+AnchorBank init done.
+
+2020-08-21 14:23:08.973963
+Start AnchorBank init for region US in timeframe 2019-11-28 2020-07-28...
+Loading google results from D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=US_timeframe=2019-11-28 2020-07-28.pkl...
+Total queries (groups of 5 keywords): 462
+Finding paths...
+Paths done!
+Err: 4.218847493575595e-15
+Total range: 7.371909718992002e-05
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv'...
+AnchorBank init done.
+
+2020-08-21 14:53:42.020286
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0mgkg'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-21 14:54:32.869362
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0mgkg'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-21 14:54:37.158647
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0mgkg'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-21 15:04:45.218476
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0mgkg'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-21 15:05:09.137178
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/04y_mn'
+
+2020-08-21 15:06:28.896485
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+
+2020-08-21 16:37:58.122125
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+
+2020-08-21 16:38:05.370258
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+
+2020-08-21 16:49:24.840803
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+Query: /m/0289n8t is already present in the active gtab!
+
+2020-08-21 16:49:38.878179
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+The is already present in the active gtab!
+
+2020-08-21 16:49:57.579724
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+The is already present in the active gtab!

@@ -885,6 +885,12 @@ class GTAB:
             self.anchor_bank.index).index(first_comparison)
         anchors = tuple(self.anchor_bank.index)
 
+        if query in anchors:
+            self._print_and_log(f"The is already present in the active gtab!")
+            self._log_con.close()
+            return None
+            
+
         lo = 0
         hi = len(self.anchor_bank)
         n_iter = 0
@@ -929,6 +935,7 @@ class GTAB:
                 ts_query_lo = np.array(ts_query_lo) / max_query_hi * ratio_lo
 
                 self._print_and_log("New query calibrated!")
+                self._log_con.close()
                 return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo, "ts_timestamp": [str(tstamp.date()) for tstamp in timestamps] ,"ts_max_ratio":  list(ts_query),
                                 "ts_max_ratio_hi": list(ts_query_hi), "ts_max_ratio_lo": list(ts_query_lo), "no_iters": n_iter}}
 
