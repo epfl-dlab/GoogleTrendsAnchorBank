@@ -375,3 +375,58 @@ New query calibrated!
 Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
 New query 'Sweet Potato'
 New query calibrated!
+
+2020-08-24 20:39:02.334411
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:39:38.771199
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:40:13.845977
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:40:33.248465
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:41:02.515665
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:41:12.643086
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:41:34.882645
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:41:47.610626
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:42:41.750218
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:43:28.806142
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:43:40.699980
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
