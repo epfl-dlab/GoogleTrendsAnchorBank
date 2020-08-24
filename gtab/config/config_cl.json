@@ -7,7 +7,7 @@
     "CONN": {
         "backoff_factor": 0.1,
         "proxies": [
-            "https://50.2.15.109:8800"
+            
         ],
         "retries": 5,
         "timeout": [

@@ -18,7 +18,6 @@ from tqdm import tqdm
 
 
 class GTAB:
-    # Static methods
 
     def __delete_all_internal_files(self):
         """  Deletes all saved caches (keywords, results and pairs). Be careful! """
@@ -41,12 +40,11 @@ class GTAB:
         else:
             print("Delete cancelled.")
 
-    def __init__(self, dir_path=None, use_proxies: bool = False, from_cli=False, high_traffic: bool = True):
+    def __init__(self, dir_path=None, high_traffic: bool = True, from_cli=False):
         """
         Initializes a GTAB instance with the desired directory.
 
         :param dir_path:  path where to create a directory. If left to None, uses default package directory;
-        :param use_proxies: whether to use the proxies given in 'config_py.json'.
         :param from_cli: Is from command line interface?
         :param high_traffic: If true, adds high traffic keywords.
         """
@@ -87,6 +85,7 @@ class GTAB:
             with open(os.path.join(self.dir_path, "config", "config_py.json"), 'r') as fp:
                 self.CONFIG = json.load(fp)
 
+        self.CONFIG['CONN']['timeout'] = tuple(self.CONFIG['CONN']['timeout'])
         self.ANCHOR_CANDIDATES = [el.strip() for el in open(
             os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
 
@@ -102,11 +101,7 @@ class GTAB:
             self.HITRAFFIC = dict()
 
         self.active_gtab = None
-
-        if use_proxies:
-            self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
-        else:
-            self.pytrends = TrendReq(hl='en-US', timeout=(20, 20))
+        self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
 
         # sets default anchorbank
         default_anchorbank = "google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv"
@@ -119,7 +114,6 @@ class GTAB:
             print(text)
         self._log_con.write(text + '\n')
 
-    # TODO: add default anchorbank choice
     def _make_file_suffix(self):
         return "_".join([f"{k}={v}" for k, v in self.CONFIG['PYTRENDS'].items()])
 
@@ -327,7 +321,7 @@ class GTAB:
                 except Exception as e:
                     if "response" in dir(e):
                         if e.response.status_code == 429:
-                            c = input("Quota reached! Please change IP and press any key to continue.")
+                            input("Quota reached! Please change IP and press any key to continue.")
                             df_query = self._query_google(keywords=keywords[i:i + 5]).iloc[:, 0:5]
                         else:
                             self._print_and_log(str(e))
@@ -364,7 +358,7 @@ class GTAB:
 
                 idx_new = 0
                 start_copy = 0
-                for req_rng, req_cnt in zip(requery_ranges, requery_counts):
+                for req_rng, _ in zip(requery_ranges, requery_counts):
 
                     # copy the query groups that don't change... assuming the first 5 don't break
                     for j in range(start_copy, req_rng[0]):
@@ -383,7 +377,7 @@ class GTAB:
                         except Exception as e:
                             if "response" in dir(e):
                                 if e.response.status_code == 429:
-                                    c = input("Quota reached! Please change IP and press any key to continue.")
+                                    input("Quota reached! Please change IP and press any key to continue.")
                                     df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
                                 else:
                                     self._print_and_log(str(e))
@@ -636,6 +630,11 @@ class GTAB:
                 if k not in self.CONFIG['CONN']:
                     raise ValueError(f"Invalid parameter: {k}")
                 self.CONFIG["CONN"][k] = conn_config[k]
+
+        # update objects whose state depends on config jsons
+        self.CONFIG['CONN']['timeout'] = tuple(self.CONFIG['CONN']['timeout'])
+        self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
+        
 
         if overwite_file:
             if self.from_cli:

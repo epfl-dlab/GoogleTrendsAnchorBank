@@ -42,7 +42,7 @@ def init_dir():
     t = GTAB(path, from_cli=True)
 
     with open(os.path.join(dir_path, "config", "dir_cl.json"), 'w') as fp:
-        json.dump({"dir_cl": path, "active_gtab": ""}, fp, indent = 4, sort_keys = True)
+        json.dump({"dir_cl": path, "active_gtab": "google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv"}, fp, indent = 4, sort_keys = True)
 
     print("Directory initialized!")
 
@@ -55,8 +55,8 @@ def print_options():
 
 def set_options():
     parser = argparse.ArgumentParser(prog = "set_options")
-    parser.add_argument("--geo", type = str, dest = "ptrends.geo", action = GroupedAction, default = argparse.SUPPRESS)
-    parser.add_argument("--timeframe", type = str, dest = 'ptrends.timeframe', action = GroupedAction, default = argparse.SUPPRESS)
+    parser.add_argument("--geo", type = str, dest = "pytrends.geo", action = GroupedAction, default = argparse.SUPPRESS)
+    parser.add_argument("--timeframe", type = str, dest = 'pytrends.timeframe', action = GroupedAction, default = argparse.SUPPRESS)
 
     parser.add_argument("--num_anchor_candidates", type = int, dest = 'gtab.num_anchor_candidates', action = GroupedAction, default = argparse.SUPPRESS)
     parser.add_argument("--num_anchors", type = int, dest  = 'gtab.num_anchors', action = GroupedAction, default = argparse.SUPPRESS)
@@ -73,7 +73,7 @@ def set_options():
     
     dir_cl, _ = _load_dir_cl()
     t = GTAB(dir_cl, from_cli=True)
-    t.set_options(ptrends_config = vars(args.get('ptrends')) if args.get('ptrends') != None else None, 
+    t.set_options(pytrends_config = vars(args.get('pytrends')) if args.get('pytrends') != None else None, 
                   gtab_config = vars(args.get('gtab')) if args.get('gtab') != None else None, 
                   conn_config = vars(args.get('conn')) if args.get('conn') != None else None, 
                   overwite_file = True)
