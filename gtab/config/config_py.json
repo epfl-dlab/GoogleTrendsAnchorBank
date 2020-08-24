@@ -22,22 +22,23 @@
     "sleep": 0.5,
     "thresh_offline": 10
   },
+  "HITRAFFIC": [
+     "/m/045c7b",
+     "/m/02y1vz",
+     "/m/09jcvs",
+     "/m/0glpjll",
+     "/m/0mgkg",
+     "/m/017rf_",
+     "/m/019rl6",
+     "/m/0289n8t",
+     "/m/0d07ph",
+     "/m/0b2334",
+     "/m/03vgrr",
+     "/m/010qmszp"
+  ],
   "PYTRENDS": {
     "geo": "IT",
     "timeframe": "2019-11-28 2020-07-28"
-  },
-  "HIGHTRAFFIC": {
-    "Google": "/m/045c7b",
-    "Facebook": "/m/02y1vz",
-    "YouTube": "/m/09jcvs",
-    "Instagram": "/m/0glpjll",
-    "Amazon.com": "/m/0mgkg",
-    "Netflix": "/m/017rf_",
-    "Yahoo!": "/m/019rl6",
-    "Twitter": "/m/0289n8t",
-    "Wikipedia": "/m/0d07ph",
-    "Reddit": "/m/0b2334",
-    "LinkedIn": "/m/03vgrr",
-    "Airbnb": "/m/010qmszp"
   }
+  
 }

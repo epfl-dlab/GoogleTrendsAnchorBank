@@ -40,7 +40,7 @@ class GTAB:
         else:
             print("Delete cancelled.")
 
-    def __init__(self, dir_path=None, high_traffic: bool = True, from_cli=False):
+    def __init__(self, dir_path=None, from_cli=False):
         """
         Initializes a GTAB instance with the desired directory.
 
@@ -92,10 +92,7 @@ class GTAB:
         if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
             self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
 
-        if high_traffic:
-            self.HITRAFFIC = self.CONFIG["hitraffic"]
-        else:
-            self.HITRAFFIC = dict()
+        self.HITRAFFIC = self.CONFIG["HITRAFFIC"]
 
         self.active_gtab = None
         self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
@@ -291,7 +288,7 @@ class GTAB:
                     s1 = random.randint(start_idx, end_idx)
                     samples.append(self.ANCHOR_CANDIDATES[s1])
 
-                keywords = list(self.HITRAFFIC.values()) + samples
+                keywords = self.HITRAFFIC + samples
                 keywords = [k for k in tqdm(keywords, total=len(keywords)) if self._check_keyword(k)]
 
             else:
@@ -664,6 +661,30 @@ class GTAB:
             with open(config_path, 'w') as fp:
                 json.dump(self.CONFIG, fp, indent=4, sort_keys=True)
 
+    def set_hitraffic(self, keywords, overwrite_file: bool = False):
+        """
+            Sets a new hitraffic list. This can also be done manually by editing 'config_py.json' in the active directory.
+
+            Input parameters:
+                keywords - list of str keywords;
+                overwrite_file - whether to overwrite the config_py.json file in the active directory.
+
+        """
+        if type(keywords) != list:
+            raise TypeError("Keywords paremeter must be a list with elements of type str.")
+        keywords = [str(kw) for kw in keywords]
+        self.CONFIG["HITRAFFIC"] = keywords
+
+        if overwrite_file:
+            if self.from_cli:
+                config_path = os.path.join(self.dir_path, "config", "config_cl.json")
+            else:
+                config_path = os.path.join(self.dir_path, "config", "config_py.json")
+            print(f"Overwriting config at: {config_path}\n")
+            with open(config_path, 'w') as fp:
+                json.dump(self.CONFIG, fp, indent=4, sort_keys=True)
+
+
     def list_gtabs(self):
         """
             Lists filenames of constructed gtabs.
@@ -914,8 +935,8 @@ class GTAB:
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
                 return {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo,
-                        "ts_timestamp": timestamps,
-                        "ts_max_ratio": ts_query,
+                        "ts_timestamp": [str(el) for el in timestamps],
+                        "ts_max_ratio": list(ts_query),
                         "ts_max_ratio_hi": ts_query_hi,
                         "ts_max_ratio_lo": ts_query_lo,
                         "no_iters": n_iter,

@@ -39,10 +39,10 @@ def init_dir():
     parser.add_argument("path", help = "Path of the desired directory to be initialized/used.", type = str)
     args = parser.parse_args()
     path = os.path.abspath(args.path)
-    t = GTAB(path, from_cli=True)
 
+    t = GTAB(path, from_cli=True)
     with open(os.path.join(dir_path, "config", "dir_cl.json"), 'w') as fp:
-        json.dump({"dir_cl": path, "active_gtab": "google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv"}, fp, indent = 4, sort_keys = True)
+        json.dump({"dir_cl": path, "active_gtab": "google_anchorbank_geo=_timeframe=2019-11-28 2020-07-28.tsv"}, fp, indent = 4, sort_keys = True)
 
     print("Directory initialized!")
 
@@ -87,6 +87,16 @@ def set_blacklist():
     dir_cl, _ = _load_dir_cl()
     t = GTAB(dir_cl, from_cli=True)
     t.set_blacklist(args.blacklist, overwrite_file = True)
+
+def set_hitraffic():
+
+    parser = argparse.ArgumentParser(prog = "set_hitraffic")
+    parser.add_argument("hitraffic", type = str, nargs = '+')
+    args = parser.parse_args()
+
+    dir_cl, _ = _load_dir_cl()
+    t = GTAB(dir_cl, from_cli=True)
+    t.set_hitraffic(args.hitraffic, overwrite_file = True)
     
 def list_gtabs():
 
@@ -159,31 +169,3 @@ def new_query():
 
     with open(args.results_file, 'w') as fp:
         json.dump(rez, fp, indent = 4)
-
-
-        
-        
-
-    
-
-
-
-
-
-
-    
-
-
-    
-
-
-
-
-
-
-
-# def print_options()
-
-
-
-# _load_configs()

@@ -350,3 +350,28 @@ The is already present in the active gtab!
 Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
 New query '/m/0289n8t'
 The is already present in the active gtab!
+
+2020-08-24 20:23:27.115922
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0289n8t'
+The is already present in the active gtab!
+
+2020-08-24 20:23:41.520212
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:24:36.734352
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:25:23.183678
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
+
+2020-08-24 20:26:36.482435
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query 'Sweet Potato'
+New query calibrated!
