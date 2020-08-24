@@ -16,17 +16,14 @@ import pandas as pd
 from pytrends.request import TrendReq
 from tqdm import tqdm
 
+
 class GTAB:
     # Static methods
 
     def __delete_all_internal_files(self):
-
-        """
-            Deletes all saved caches (keywords, results and pairs). Be careful!
-        """
+        """  Deletes all saved caches (keywords, results and pairs). Be careful! """
         dirs = ("google_keywords", "google_pairs", "google_results")
 
-        # files = glob.glob(os.path.join(self.dir_path, "output", "google_anchorbanks", "*"))
         files = list()
         for d in dirs:
             files += glob.glob(os.path.join(self.dir_path, "data", "internal", d, "*"))
@@ -34,25 +31,26 @@ class GTAB:
 
         nl = '\n'
         tb = '\t'
-        print(f"This will delete the following files:\n\t{(nl+tb).join([os.path.basename(f)for f in files])}")
+        print(f"This will delete the following files:\n\t{(nl + tb).join([os.path.basename(f) for f in files])}")
         c = input("Are you sure? (y/n): ")
         if c[0].lower() == 'y':
             print("Deleting...")
             for f in files:
-                os.remove(f)    
+                os.remove(f)
             print("Internal files deleted!")
         else:
             print("Delete cancelled.")
 
-    def __init__(self, dir_path = None, use_proxies: bool = False, from_cli = False):
-        """
-            Initializes a GTAB instance with the desired directory.
+    def __init__(self, dir_path=None, use_proxies: bool = False, from_cli=False, high_traffic: bool = True):
+        """ Initializes a GTAB instance with the desired directory.
 
             Input parameters:
                 dir_path - path where to create a directory. If left to None, uses default package directory;
                 use_proxies - whether to use the proxies given in 'config_py.json'.
+                from_cli - Is from command line interface?
+                high_traffic - If true, adds high traffic keywords.
         """
-        self.from_cli =  from_cli
+        self.from_cli = from_cli
         if dir_path == None:
             self.dir_path = os.path.dirname(os.path.abspath(__file__))
         else:
@@ -67,11 +65,14 @@ class GTAB:
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_pairs"))
                 os.makedirs(os.path.join(self.dir_path, "data", "internal", "google_results"))
                 os.makedirs(os.path.join(self.dir_path, "output", "google_anchorbanks"))
-                
+
                 # copying defaults
-                shutil.copyfile(os.path.join(default_path, "data", "anchor_candidate_list.txt"), os.path.join(self.dir_path, "data", "anchor_candidate_list.txt"))
-                shutil.copyfile(os.path.join(default_path, "config", "config_py.json"), os.path.join(self.dir_path, "config", "config_py.json"))
-                shutil.copyfile(os.path.join(default_path, "config", "config_cl.json"), os.path.join(self.dir_path, "config", "config_cl.json"))
+                shutil.copyfile(os.path.join(default_path, "data", "anchor_candidate_list.txt"),
+                                os.path.join(self.dir_path, "data", "anchor_candidate_list.txt"))
+                shutil.copyfile(os.path.join(default_path, "config", "config_py.json"),
+                                os.path.join(self.dir_path, "config", "config_py.json"))
+                shutil.copyfile(os.path.join(default_path, "config", "config_cl.json"),
+                                os.path.join(self.dir_path, "config", "config_cl.json"))
                 for f in glob.glob(os.path.join(default_path, "output", "google_anchorbanks", "*.tsv")):
                     shutil.copyfile(f, os.path.join(self.dir_path, "output", "google_anchorbanks", os.path.basename(f)))
             else:
@@ -85,17 +86,20 @@ class GTAB:
             with open(os.path.join(self.dir_path, "config", "config_py.json"), 'r') as fp:
                 self.CONFIG = json.load(fp)
 
-
-        self.ANCHOR_CANDIDATES = [el.strip() for el in open(os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
+        self.ANCHOR_CANDIDATES = [el.strip() for el in open(
+            os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
 
         if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
-            self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES) 
+            self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
 
-        # TODO: ADD HITRAFFIC FLAG, user might not want hi-traffic keywords added automatically
-        self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll',
-                          'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_', 'Yahoo!': '/m/019rl6',
-                          'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph', 'Reddit': '/m/0b2334',
-                          'LinkedIn': '/m/03vgrr', 'Airbnb': '/m/010qmszp'}
+        if high_traffic:
+            self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll',
+                              'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_', 'Yahoo!': '/m/019rl6',
+                              'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph', 'Reddit': '/m/0b2334',
+                              'LinkedIn': '/m/03vgrr', 'Airbnb': '/m/010qmszp'}
+        else:
+            self.HITRAFFIC = dict()
+
         self.active_gtab = None
 
         if use_proxies:
@@ -105,15 +109,16 @@ class GTAB:
 
     # --- UTILITY METHODS --- 
 
-    def _print_and_log(self, text):
-        print(text)
+    def _print_and_log(self, text, verbose=True):
+        if verbose:
+            print(text)
         self._log_con.write(text + '\n')
 
     # TODO: add default anchorbank choice
     def _make_file_suffix(self):
         return "_".join([f"{k}={v}" for k, v in self.CONFIG['PYTRENDS'].items()])
 
-    def _query_google(self, keywords=["Keywords"], retries = 5):
+    def _query_google(self, keywords=["Keywords"]):
         time.sleep(self.CONFIG['GTAB']['sleep'])
         if type(keywords) == str:
             keywords = [keywords]
@@ -122,32 +127,18 @@ class GTAB:
             raise ValueError("Number of keywords must be at most than 5.")
 
         self.pytrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
-        ret = self.pytrends.interest_over_time() 
+        ret = self.pytrends.interest_over_time()
         return ret
 
-        # cnt = 0
-        # while cnt < 5:
-        #     self.ptrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
-        #     ret = self.ptrends.interest_over_time() 
-        #     if not ret.empty:
-        #         return ret
-        #     else:
-        #         print(f"\nEMPTY AT: {keywords}")
-        #         print(cnt)
-        #     cnt += 1
-
-        # raise ValueError("Payload is empty!")
-
-
     def _is_not_blacklisted(self, keyword):
-        return not keyword in self.CONFIG['BLACKLIST']
+        return keyword not in self.CONFIG['BLACKLIST']
 
     def _check_keyword(self, keyword):
         try:
             rez = self._query_google(keywords=keyword)
             return self._is_not_blacklisted(keyword) and not rez.empty
         except ValueError as e:
-                raise e
+            raise e
         except Exception as e:
             self._print_and_log(f"\nBad keyword '{keyword}', because {str(e)}")
             if "response" in dir(e):
@@ -172,7 +163,6 @@ class GTAB:
         return sorted(ret, key=lambda x: x[1])
 
     def _diagnose_keywords(self, rez_dict):
-
         ret_keys = []
         for gres in rez_dict.values():
             ret_keys.append(list(gres.columns))
@@ -183,7 +173,6 @@ class GTAB:
                     self._print_and_log(f"{str(ret_keys[i])}")
                     self._print_and_log(f"{str(ret_keys[i + 1])}")
                     self._error_flag = True
-
         return True
 
     def _check_groups(self, gres):
@@ -230,8 +219,10 @@ class GTAB:
     ## --- ANCHOR BANK METHODS --- ##
     def _get_google_results(self):
 
-        fpath = os.path.join(self.dir_path, "data", "internal", "google_results", f"google_results_{self._make_file_suffix()}.pkl")
-        fpath_keywords = os.path.join(self.dir_path, "data", "internal", "google_keywords", f"google_keywords_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join(self.dir_path, "data", "internal", "google_results",
+                             f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_keywords = os.path.join(self.dir_path, "data", "internal", "google_keywords",
+                                      f"google_keywords_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             self._print_and_log(f"Loading google results from {fpath}...")
@@ -403,7 +394,6 @@ class GTAB:
                 self._diagnose_keywords(ret)
                 t_ret = copy.deepcopy(ret)
 
-            
             self._print_and_log("Diagnostics done!")
 
             # log how many keywords are removed
@@ -452,7 +442,7 @@ class GTAB:
                     if j == k:
                         continue
 
-                    if (self._check_ts(val.iloc[:, j]) and self._check_ts(val.iloc[:, k])):
+                    if self._check_ts(val.iloc[:, j] and self._check_ts(val.iloc[:, k])):
                         anchors.append(val.columns[0])  # first element of the group
                         v1.append(val.columns[j])
                         v2.append(val.columns[k])
@@ -505,7 +495,6 @@ class GTAB:
 
             # ratios.to_csv("ratios_test.tsv", sep = '\t')
 
-        # log_lens = list(nx.all_pairs_bellman_ford_path_length(G))
         paths = list(nx.all_pairs_dijkstra_path(G))
         self.paths = paths
         node_names = [el[0] for el in paths]
@@ -533,14 +522,12 @@ class GTAB:
                 raise ValueError()
 
             sign = 1 if which == 'top' else -1
-            t_W0 = (sign * W0 <= sign).sum(axis = 1)
+            t_W0 = (sign * W0 <= sign).sum(axis=1)
             t_max = t_W0.max()
 
             ext = t_W0.index[t_W0 == t_max]
-            # ext = list(W0.index[(sign * W0 <= sign).apply(all, axis=1)])
-            if len(ext) > 1: # and isinstance(ext, list):
+            if len(ext) > 1:
                 ext = [W0[ext].max(axis=0).idxmax()]
-                # ext = [ext[W0[ext].max(axis=0).argmax()]]
             return ext[0]
 
         top = get_extreme('top')
@@ -553,7 +540,8 @@ class GTAB:
     def _build_optimal_anchor_bank(self, mids):
 
         N = len(mids)
-        fpath = os.path.join(self.dir_path, "data", "internal", "google_pairs", f"google_pairs_{self._make_file_suffix()}.pkl")
+        fpath = os.path.join(self.dir_path, "data", "internal", "google_pairs",
+                             f"google_pairs_{self._make_file_suffix()}.pkl")
 
         if os.path.exists(fpath):
             with open(fpath, 'rb') as f_in:
@@ -595,7 +583,7 @@ class GTAB:
             print(f"Config file: {os.path.join(self.dir_path, 'config', 'config_py.json')}")
         print(self.CONFIG)
 
-    def set_options(self, pytrends_config = None, gtab_config = None, conn_config = None, overwite_file: bool = False):
+    def set_options(self, pytrends_config=None, gtab_config=None, conn_config=None, overwite_file: bool = False):
         """
             Overwrites specified options. This can also be done manually by editing 'config_py.json' in the active directory.
 
@@ -620,7 +608,7 @@ class GTAB:
                 overwrite_file - whether to overwrite the config_py.json file in the active directory.
             """
 
-        if pytrends_config != None:
+        if pytrends_config is not None:
             if type(pytrends_config) != dict:
                 raise TypeError("The pytrends_config argument must be a dictionary with valid parameters!")
             for k in pytrends_config:
@@ -628,7 +616,7 @@ class GTAB:
                     raise ValueError(f"Invalid parameter: {k}")
                 self.CONFIG["PYTRENDS"][k] = pytrends_config[k]
 
-        if gtab_config != None:
+        if gtab_config is not None:
             if type(gtab_config) != dict:
                 raise TypeError("The gtab_config argument must be a dictionary with valid parameters!")
             for k in gtab_config:
@@ -636,7 +624,7 @@ class GTAB:
                     raise ValueError(f"Invalid parameter: {k}")
                 self.CONFIG["GTAB"][k] = gtab_config[k]
 
-        if conn_config != None:
+        if conn_config is not None:
             if type(conn_config) != dict:
                 raise TypeError("The conn_config argument must be a dictionary with valid parameters!")
             for k in conn_config:
@@ -651,7 +639,7 @@ class GTAB:
                 config_path = os.path.join(self.dir_path, "config", "config_py.json")
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:
-                json.dump(self.CONFIG, fp, indent = 4, sort_keys=True)
+                json.dump(self.CONFIG, fp, indent=4, sort_keys=True)
 
     def set_blacklist(self, keywords, overwrite_file: bool = False):
         """
@@ -674,7 +662,7 @@ class GTAB:
                 config_path = os.path.join(self.dir_path, "config", "config_py.json")
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:
-                json.dump(self.CONFIG, fp, indent = 4, sort_keys=True)
+                json.dump(self.CONFIG, fp, indent=4, sort_keys=True)
 
     def list_gtabs(self):
         """
@@ -683,8 +671,9 @@ class GTAB:
         print("Existing GTABs:")
         for f in glob.glob(os.path.join(self.dir_path, "output", 'google_anchorbanks', '*')):
             print(f"\t{os.path.basename(f)}")
-    
-        print(f"Active anchorbank: {'None selected.' if self.active_gtab == None else os.path.basename(self.active_gtab)}")
+
+        print(
+            f"Active anchorbank: {'None selected.' if self.active_gtab == None else os.path.basename(self.active_gtab)}")
 
     def rename_gtab(self, src, dst):
         """
@@ -700,11 +689,11 @@ class GTAB:
             raise FileNotFoundError(src_path)
         os.rename(src_path, os.path.join(self.dir_path, "output", "google_anchorbanks", dst))
         print(f"Renamed '{src}' -> '{dst}'\n")
-        if self.active_gtab != None:
+        if self.active_gtab is not None:
             if src.strip() == os.path.basename(self.active_gtab).strip():
                 self.set_active_gtab(dst)
 
-    def delete_gtab(self, src, require_confirmation = True):
+    def delete_gtab(self, src, require_confirmation=True):
         """
             Deletes a gtab.
 
@@ -721,7 +710,7 @@ class GTAB:
             c = input(f"Are you sure you want to delete {src}? (y/n) ")
             if c[0].lower() == 'y':
                 os.remove(src_path)
-        else:   
+        else:
             os.remove(src_path)
 
         if src.strip() == os.path.basename(self.active_gtab).strip():
@@ -738,9 +727,10 @@ class GTAB:
         def_gtab_fpath = os.path.join(self.dir_path, "output", 'google_anchorbanks', def_gtab)
         if not os.path.exists(def_gtab_fpath):
             raise FileNotFoundError(def_gtab_fpath)
-        
+
         self.active_gtab = def_gtab_fpath
-        self.anchor_bank_full = pd.read_csv(self.active_gtab, sep='\t', comment='#', index_col=1).drop('Unnamed: 0', axis = 1)
+        self.anchor_bank_full = pd.read_csv(self.active_gtab, sep='\t', comment='#', index_col=1).drop('Unnamed: 0',
+                                                                                                       axis=1)
         self.anchor_bank_lo = self.anchor_bank_full.loc[:, 'max_ratio_lo']
         self.anchor_bank_hi = self.anchor_bank_full.loc[:, 'max_ratio_hi']
         self.anchor_bank = self.anchor_bank_full.loc[:, 'max_ratio']
@@ -752,24 +742,27 @@ class GTAB:
         with open(self.active_gtab, "r") as f_in:
             t_gtab_config = ast.literal_eval(f_in.readline()[1:].strip())['GTAB']
             t_pytrends_config = ast.literal_eval(f_in.readline()[1:].strip())['PYTRENDS']
-            self.set_options(pytrends_config = t_pytrends_config, gtab_config = t_gtab_config)
+            self.set_options(pytrends_config=t_pytrends_config, gtab_config=t_gtab_config)
 
         print(f"Active anchorbank changed to: {os.path.basename(self.active_gtab)}\n")
 
-    def create_anchorbank(self, verbose = False, keep_diagnostics = False):
+    def create_anchorbank(self, verbose=False, keep_diagnostics=False):
 
         """
         Creates a gtab according to the config files found in the directory "./config/" and saves it.
         """
         self._error_flag = False
-        self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"), 'a')  # append vs write
+        self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"),
+                             'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
-        self._print_and_log(f"Start AnchorBank init for region {self.CONFIG['PYTRENDS']['geo']} in timeframe {self.CONFIG['PYTRENDS']['timeframe']}...")
+        self._print_and_log(
+            f"Start AnchorBank init for region {self.CONFIG['PYTRENDS']['geo']} in timeframe {self.CONFIG['PYTRENDS']['timeframe']}...")
 
         if verbose:
             self._print_and_log(f"Full option parameters are: {self.CONFIG}")
 
-        fname_base = os.path.join(self.dir_path, "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}.tsv")
+        fname_base = os.path.join(self.dir_path, "output", "google_anchorbanks",
+                                  f"google_anchorbank_{self._make_file_suffix()}.tsv")
         if not os.path.exists(fname_base):
             google_results = self._get_google_results()
             if keep_diagnostics:
@@ -818,30 +811,14 @@ class GTAB:
             # anchor_bank = W.loc[ref_anchor, :]
             # anchor_bank_hi = W_hi.loc[ref_anchor, :]
             # anchor_bank_lo = W_lo.loc[ref_anchor, :]
-            anchor_bank_full = pd.DataFrame({"max_ratio": W.loc[ref_anchor, :], "max_ratio_lo": W_lo.loc[ref_anchor, :], "max_ratio_hi": W_hi.loc[ref_anchor, :]}).reset_index().rename({"index": "google_query"}, axis = 1)
+            anchor_bank_full = pd.DataFrame({"max_ratio": W.loc[ref_anchor, :], "max_ratio_lo": W_lo.loc[ref_anchor, :],
+                                             "max_ratio_hi": W_hi.loc[ref_anchor, :]}).reset_index().rename(
+                {"index": "google_query"}, axis=1)
             self._print_and_log(f"Total range: {anchor_bank_full.iloc[-1, 1] / anchor_bank_full.iloc[0, 1]}")
 
-            # self.top_anchor = top_anchor
-            # self.ref_anchor = ref_anchor
-            # self.anchor_bank = anchor_bank
-            # self.anchor_bank_hi = anchor_bank_hi
-            # self.anchor_bank_lo = anchor_bank_lo
-            # self.anchor_bank_full = anchor_bank_full
-
             self._print_and_log(f"Saving anchorbank as '{fname_base}'...")
-            # if os.path.exists(fname_base):
 
-            #     save_counter = 1
-            #     while True:
-            #         new_fname = fname_base = os.path.join(self.dir_path, "output", "google_anchorbanks", f"google_anchorbank_{self._make_file_suffix()}({save_counter})")
-            #         if os.path.exists(new_fname + ".tsv"):
-            #             save_counter += 1
-            #         else:
-            #             fname_base = new_fname
-            #             break
-            #     self._print_and_log(f"File already exists! Saving as {fname_base}.")    
-
-            with open(fname_base, 'w', newline = '') as f_ab_out: # 'w' vs 'a'?!
+            with open(fname_base, 'w', newline='') as f_ab_out:  # 'w' vs 'a'?!
                 t_gtab_config = {"GTAB": self.CONFIG['GTAB']}
                 t_pytrends_config = {"PYTRENDS": self.CONFIG['PYTRENDS']}
                 f_ab_out.write(f"# {t_gtab_config}\n")
@@ -852,15 +829,16 @@ class GTAB:
             if self._error_flag:
                 self._print_and_log("There was an error. Please check the log file.")
         else:
-            print("GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)' or rename/delete it to create another one with this name.")
+            print(
+                "GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)' or rename/delete it to create another one with this name.")
 
-        
         self._log_con.close()
 
     def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False):
 
         """
-        Request a new Google Trends query and calibrate it with the active gtab. The 'PYTRENDS' key in config_py.json is used. Make sure to set it according to your chosen anchorbank.
+        Request a new Google Trends query and calibrate it with the active gtab. The 'PYTRENDS' key in config_py.json is
+         used. Make sure to set it according to your chosen anchorbank.
 
         Input parameters:
             keyword - string containing a single query.
@@ -889,14 +867,13 @@ class GTAB:
             self._print_and_log(f"The is already present in the active gtab!")
             self._log_con.close()
             return None
-            
 
         lo = 0
         hi = len(self.anchor_bank)
         n_iter = 0
 
         while hi > lo:
-        
+
             anchor = anchors[mid]
             if verbose:
                 self._print_and_log(f"\tQuery: '{query}'\tAnchor:'{anchor}'")
@@ -907,7 +884,7 @@ class GTAB:
             except Exception as e:
                 self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
                 break
-                
+
             timestamps = ts.index
             max_anchor = ts.loc[:, anchor].max()
             max_query = ts.loc[:, query].max()
@@ -936,8 +913,11 @@ class GTAB:
 
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
-                return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo, "ts_timestamp": [str(tstamp.date()) for tstamp in timestamps] ,"ts_max_ratio":  list(ts_query),
-                                "ts_max_ratio_hi": list(ts_query_hi), "ts_max_ratio_lo": list(ts_query_lo), "no_iters": n_iter}}
+                return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo,
+                                "ts_timestamp": [str(tstamp.date()) for tstamp in timestamps],
+                                "ts_max_ratio": list(ts_query),
+                                "ts_max_ratio_hi": list(ts_query_hi), "ts_max_ratio_lo": list(ts_query_lo),
+                                "no_iters": n_iter}}
 
             elif max_query < thresh:
                 lo = mid + 1
