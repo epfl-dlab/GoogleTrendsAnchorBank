@@ -24,6 +24,8 @@ A full description of the G-TAB method is available in the following paper:
 
 > Robert West. **Calibration of Google Trends Time Series.** In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM)*. 2020. [**[PDF](https://arxiv.org/abs/2007.13861)**]
 
+Please cite this paper when using G-TAB in your own work.
+
 Code and data for reproducing the results of the paper are available in the directory [`_cikm2020_paper`](_cikm2020_paper).
 
 
