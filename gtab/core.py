@@ -93,10 +93,7 @@ class GTAB:
             self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
 
         if high_traffic:
-            self.HITRAFFIC = {'Google': '/m/045c7b', 'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs',
-                              'Instagram': '/m/0glpjll', 'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_',
-                              'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph',
-                              'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr', 'Airbnb': '/m/010qmszp'}
+            self.HITRAFFIC = self.CONFIG["hitraffic"]
         else:
             self.HITRAFFIC = dict()
 
