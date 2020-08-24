@@ -18,7 +18,7 @@ or by calling `gtab-set-options` via the command line interface.
 
 - `CONN`
     - `backoff_factor`: see https://urllib3.readthedocs.io/en/latest/
-    - `proxies`: a list of proxy addresses
+    - `proxies`: a list of proxy addresses (no proxies are used if the list is left empty)
     - `retries`: the maximum number of connection retries
     - `timeout`: see https://urllib3.readthedocs.io/en/latest/
 
