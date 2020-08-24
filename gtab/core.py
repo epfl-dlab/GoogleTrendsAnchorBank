@@ -631,7 +631,6 @@ class GTAB:
         # update objects whose state depends on config jsons
         self.CONFIG['CONN']['timeout'] = tuple(self.CONFIG['CONN']['timeout'])
         self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
-        
 
         if overwite_file:
             if self.from_cli:
@@ -914,12 +913,13 @@ class GTAB:
 
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
-                return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo,
-                                "ts_timestamp": timestamps,
-                                "ts_max_ratio": ts_query,
-                                "ts_max_ratio_hi": ts_query_hi,
-                                "ts_max_ratio_lo": ts_query_lo,
-                                "no_iters": n_iter}}
+                return {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo,
+                        "ts_timestamp": timestamps,
+                        "ts_max_ratio": ts_query,
+                        "ts_max_ratio_hi": ts_query_hi,
+                        "ts_max_ratio_lo": ts_query_lo,
+                        "no_iters": n_iter,
+                        "query": "query"}
 
             elif max_query < thresh:
                 lo = mid + 1
