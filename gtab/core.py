@@ -101,7 +101,7 @@ class GTAB:
         self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
 
         # sets default anchorbank
-        default_anchorbank = "google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv"
+        default_anchorbank = "google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv"
         self.set_active_gtab(default_anchorbank)
 
     # --- UTILITY METHODS --- 
