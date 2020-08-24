@@ -52,7 +52,7 @@ Note: G-TAB was developed and tested in Python 3.8.1.
 
 # Example usage
 
-(See `[example/example.ipynb](example/example.ipynb)` for an interactive example in a Jupyter notebook.)
+(See [`example/example.ipynb`](example/example.ipynb) for an interactive example in a Jupyter notebook.)
 
 Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
 every anchor bank is specific to a time period and location.
