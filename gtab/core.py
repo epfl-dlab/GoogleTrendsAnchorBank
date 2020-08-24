@@ -42,16 +42,17 @@ class GTAB:
             print("Delete cancelled.")
 
     def __init__(self, dir_path=None, use_proxies: bool = False, from_cli=False, high_traffic: bool = True):
-        """ Initializes a GTAB instance with the desired directory.
-
-            Input parameters:
-                dir_path - path where to create a directory. If left to None, uses default package directory;
-                use_proxies - whether to use the proxies given in 'config_py.json'.
-                from_cli - Is from command line interface?
-                high_traffic - If true, adds high traffic keywords.
         """
+        Initializes a GTAB instance with the desired directory.
+
+        :param dir_path:  path where to create a directory. If left to None, uses default package directory;
+        :param use_proxies: whether to use the proxies given in 'config_py.json'.
+        :param from_cli: Is from command line interface?
+        :param high_traffic: If true, adds high traffic keywords.
+        """
+
         self.from_cli = from_cli
-        if dir_path == None:
+        if dir_path is None:
             self.dir_path = os.path.dirname(os.path.abspath(__file__))
         else:
             self.dir_path = dir_path
@@ -93,10 +94,10 @@ class GTAB:
             self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
 
         if high_traffic:
-            self.HITRAFFIC = {'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs', 'Instagram': '/m/0glpjll',
-                              'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_', 'Yahoo!': '/m/019rl6',
-                              'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph', 'Reddit': '/m/0b2334',
-                              'LinkedIn': '/m/03vgrr', 'Airbnb': '/m/010qmszp'}
+            self.HITRAFFIC = {'Google': '/m/045c7b', 'Facebook': '/m/02y1vz', 'YouTube': '/m/09jcvs',
+                              'Instagram': '/m/0glpjll', 'Amazon.com': '/m/0mgkg', 'Netflix': '/m/017rf_',
+                              'Yahoo!': '/m/019rl6', 'Twitter': '/m/0289n8t', 'Wikipedia': '/m/0d07ph',
+                              'Reddit': '/m/0b2334', 'LinkedIn': '/m/03vgrr', 'Airbnb': '/m/010qmszp'}
         else:
             self.HITRAFFIC = dict()
 
@@ -106,6 +107,10 @@ class GTAB:
             self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
         else:
             self.pytrends = TrendReq(hl='en-US', timeout=(20, 20))
+
+        # sets default anchorbank
+        default_anchorbank = "google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv"
+        self.set_active_gtab(default_anchorbank)
 
     # --- UTILITY METHODS --- 
 
@@ -442,7 +447,7 @@ class GTAB:
                     if j == k:
                         continue
 
-                    if self._check_ts(val.iloc[:, j] and self._check_ts(val.iloc[:, k])):
+                    if self._check_ts(val.iloc[:, j]) and self._check_ts(val.iloc[:, k]):
                         anchors.append(val.columns[0])  # first element of the group
                         v1.append(val.columns[j])
                         v2.append(val.columns[k])
@@ -853,7 +858,7 @@ class GTAB:
             
         """
 
-        if self.active_gtab == None:
+        if self.active_gtab is None:
             raise ValueError("Must use 'set_active_gtab()' to select anchorbank before querying!")
         self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"), 'a')
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
@@ -914,9 +919,10 @@ class GTAB:
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
                 return {query: {"max_ratio": ratio, "max_ratio_hi": ratio_hi, "max_ratio_lo": ratio_lo,
-                                "ts_timestamp": [str(tstamp.date()) for tstamp in timestamps],
-                                "ts_max_ratio": list(ts_query),
-                                "ts_max_ratio_hi": list(ts_query_hi), "ts_max_ratio_lo": list(ts_query_lo),
+                                "ts_timestamp": timestamps,
+                                "ts_max_ratio": ts_query,
+                                "ts_max_ratio_hi": ts_query_hi,
+                                "ts_max_ratio_lo": ts_query_lo,
                                 "no_iters": n_iter}}
 
             elif max_query < thresh:

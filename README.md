@@ -121,7 +121,7 @@ t = gtab.GTAB(my_path)
 
 The desired config options can be set through the object method `set_options()`. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, use
 ~~~python
-t.set_options(ptrends_config = {"geo": "FR", "timeframe": "2020-03-05 2020-05-05"})
+t.set_options(pytrends_config = {"geo": "FR", "timeframe": "2019-01-01 2020-07-05"})
 ~~~
 
 We also need to specify the file that contains a list of candidate queries from which anchor queries will be selected when constructing the anchor bank:
