@@ -894,7 +894,10 @@ class GTAB:
         hi = len(self.anchor_bank)
         n_iter = 0
 
-        while hi > lo:
+        while hi >= lo:
+
+            if mid >= len(self.anchor_bank):
+                break
 
             anchor = anchors[mid]
             if verbose:
