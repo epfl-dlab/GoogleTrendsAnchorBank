@@ -42,12 +42,13 @@ def init_dir():
 
     t = GTAB(path, from_cli=True)
     with open(os.path.join(dir_path, "config", "dir_cl.json"), 'w') as fp:
-        json.dump({"dir_cl": path, "active_gtab": "google_anchorbank_geo=_timeframe=2019-11-28 2020-07-28.tsv"}, fp, indent = 4, sort_keys = True)
+        json.dump({"dir_cl": path, "active_gtab": "google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv"}, fp, indent = 4, sort_keys = True)
 
     print("Directory initialized!")
 
 def print_options():
     dir_cl, _ = _load_dir_cl()
+    print(f"Active directory is: {dir_cl}")
     t = GTAB(dir_cl, from_cli=True)
     t.print_options()
 
@@ -104,7 +105,7 @@ def list_gtabs():
     t = GTAB(dir_cl, from_cli=True)
     if active_gtab.strip() != "":
         t.set_active_gtab(active_gtab)
-    print(active_gtab)
+    # print(active_gtab)
     t.list_gtabs()
 
 def rename_gtab():
@@ -149,12 +150,13 @@ def create_gtab():
     t.create_anchorbank(verbose = True)
 
 def new_query():
+    dir_cl, active_gtab = _load_dir_cl()
+    
     parser = argparse.ArgumentParser(prog = "new_query")
     parser.add_argument("kws", type = str, nargs = "+")
-    parser.add_argument("--results_file", type = str, default = "query_results.txt")
+    parser.add_argument("--results_file", type = str, default = os.path.join(dir_cl, "query_results", "query_results.json"))
     args = parser.parse_args()
 
-    dir_cl, active_gtab = _load_dir_cl()
     t = GTAB(dir_cl, from_cli=True)
     if active_gtab.strip() == "":
         raise Exception("Must use 'gtab-set-active' first to select the active gtab!")
@@ -163,9 +165,12 @@ def new_query():
     rez = {}
     for kw in args.kws:
         t_rez = t.new_query(kw)
-        rez[kw] = copy.deepcopy(t_rez[kw])
+        rez[kw] = copy.deepcopy(t_rez)
 
     rez = json.loads(json.dumps(rez))
 
+    print(args.results_file)
+
+    os.makedirs(os.path.dirname(args.results_file), exist_ok = True)
     with open(args.results_file, 'w') as fp:
         json.dump(rez, fp, indent = 4)

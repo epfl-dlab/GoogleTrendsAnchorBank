@@ -1,6 +1,7 @@
 .vscode/
 __pycache__
 test.py
+test/
 gtab_old.py
 copies/
 .idea/

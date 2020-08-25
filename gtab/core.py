@@ -98,8 +98,9 @@ class GTAB:
         self.pytrends = TrendReq(hl='en-US', **self.CONFIG['CONN'])
 
         # sets default anchorbank
-        default_anchorbank = "google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv"
-        self.set_active_gtab(default_anchorbank)
+        if not self.from_cli:
+            default_anchorbank = "google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv"
+            self.set_active_gtab(default_anchorbank)
 
     # --- UTILITY METHODS --- 
 
@@ -934,13 +935,20 @@ class GTAB:
 
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
-                return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
-                        "ts_timestamp": [str(el) for el in timestamps],
-                        "ts_max_ratio": list(ts_query),
-                        "ts_max_ratio_hi": list(ts_query_hi),
-                        "ts_max_ratio_lo": list(ts_query_lo),
-                        "no_iters": n_iter,
-                        "query": "query"}
+                if self.from_cli:
+                    return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
+                            "ts_timestamp": [str(el) for el in timestamps],
+                            "ts_max_ratio": list(ts_query),
+                            "ts_max_ratio_hi": list(ts_query_hi),
+                            "ts_max_ratio_lo": list(ts_query_lo),
+                            "no_iters": n_iter,
+                            "query": "query"}
+                else:
+                    ts_df = pd.DataFrame({"max_ratio": list(ts_query), "max_ratio_hi": ts_query_hi, "max_ratio_lo": ts_query_lo}, index = timestamps)
+                    return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
+                            "ts": ts_df,
+                            "no_iters": n_iter,
+                            "query": "query"}
 
             elif max_query < thresh:
                 lo = mid + 1

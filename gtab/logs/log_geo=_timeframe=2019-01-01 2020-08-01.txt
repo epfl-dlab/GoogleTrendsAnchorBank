@@ -85,3 +85,103 @@ AnchorBank init done.
 
 2020-08-24 20:13:14.101562
 Start AnchorBank init for region  in timeframe 2019-01-01 2020-08-01...
+
+2020-08-25 11:14:48.668776
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:15:00.176819
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'USA'
+New query calibrated!
+
+2020-08-25 11:15:08.839926
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Switzerland'
+New query calibrated!
+
+2020-08-25 11:20:30.730698
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:33.554112
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:36.253403
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:38.936884
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:41.569132
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:44.179273
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:46.781446
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:49.223036
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:51.934280
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:20:54.565958
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 11:21:05.844566
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Facebook'
+New query calibrated!
+
+2020-08-25 11:23:30.703489
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 12:01:24.943076
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 12:01:39.809261
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 12:01:53.504534
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 12:02:27.739085
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 12:28:11.042327
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
