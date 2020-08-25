@@ -23,12 +23,18 @@
     "thresh_offline": 10
   },
   "HITRAFFIC": [
-     "/m/045c7b",
-     "/m/02y1vz",
-     "/m/09jcvs",
+    "/m/045c7b",
+    "Google",
+    "/m/02y1vz",
+    "Facebook",
+    "/m/09jcvs",
+     "Youtube",
      "/m/0glpjll",
+     "Instagram",
      "/m/0mgkg",
+     "Amazon",
      "/m/017rf_",
+     "Netflix",
      "/m/019rl6",
      "/m/0289n8t",
      "/m/0d07ph",
@@ -37,7 +43,7 @@
      "/m/010qmszp"
   ],
   "PYTRENDS": {
-    "geo": "IT",
+    "geo": "",
     "timeframe": "2019-11-28 2020-07-28"
   }
   
