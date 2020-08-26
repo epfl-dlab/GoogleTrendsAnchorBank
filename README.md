@@ -6,7 +6,7 @@ queries across time and space.
 Despite the overall value of Google Trends, results are rounded to integer-level precision
 which may causes major problems.
 
-For example, lets say you want to compare the popularity of searches of the term "Switzerland",
+For example, lets say you want to compare the popularity of searches of the term "Switzerland,"
  to searches of the term "Facebook"!
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
@@ -31,8 +31,8 @@ You could then plot those (for example in log-scale to make things simpler and g
 
 ~~~python
 import matplotlib.pyplot as plt 
-plt.plot(query_switzerland["ts"].max_ratio )
-plt.plot(query_facebook["ts"].max_ratio)
+plt.plot(query_switzerland.max_ratio )
+plt.plot(query_facebook.max_ratio)
 plt.show()
 ~~~
 
@@ -73,105 +73,41 @@ We developed and tested it in Python 3.8.1.
 
 # Example usage
 
-(See [`example/example.ipynb`](example/example.ipynb) for an interactive example in a Jupyter notebook.)
+Want to use python? See [`example/example.ipynb`](example/example.ipynb).
 
-Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
-every anchor bank is specific to a time period and location.
+Want to use command line? See TODO;
 
-To get you started quickly, this repo comes with 2 example anchor banks, 
-for 20-month time period from 2019-01-01 to 2020-08-01, 
-but for 2 different locations (countries): Italy and Global (which is equivalent to Google Trends "worldwide" option).
-The first example below shows you how to use the pre-existing anchor banks in order to calibrate any Google query.
+## F.A.Q.
 
-Th included anchor banks are great for getting to know G-TAB and starting to play around.
-But don't worry! Building an anchorbank is a piece of cake!
+**Q: Where can I understand more on the maths behind G-TAB?**
 
+R: Your best bet is to read the CIKM paper, pointers to that can be found [here](cikm2020_paper/README.md).
+Additionally, [this](cikm2020_paper/README.md) appendix explains how to calculate the error margins for the method
 
-## Example with a pre-existing anchor bank
+**Q: Do I need a new anchorbank for each different location and time I wanna query google trends with?**
 
-After installing G-TAB with pip, first import the module in your script:
+R: Yes! But building those is easy! Be sure to check our examples, we teach how to do this [there](example/example.ipynb).
+
+**Q: Okay, so you always build the anchorbanks with the same candidates (those in `/gtab/data/anchor_candidate_list.txt`), can I change that?**
+
+R: Yes, you can! You can provide your own candidate list (a file with one word per line). 
+Place it over the `./data` folder for whatever path you created and enforce its usage with:
+
 ~~~python
 import gtab
+t = gtab.GTAB()
+t.set_options(gtab_config = {"anchor_candidates_file": "your_file_name_here.txt"})
 ~~~
 
-Then, create a `GTAB` object with the path to a working directory specified by you:
+We then need to set N and K, as described in the paper. 
+Choosing N and K depends on the anchor candidate data set we are using.
+ N specifies how deep to go in the data set, i.e. take the first N keywords from the file for sampling. 
+ K specifies how many stratified samples we want to get. N has to be smaller than the total number of keywords in the
+  anchor candidate data set, while it is good practice to set K to be in the range [0.1N, 0.2N]. 
+  For example, if we want to set N=3000 and K=500, we call:
+  
 ~~~python
-t = gtab.GTAB(dir_path=my_path)
-~~~
-If the directory `my_path` already exists, it will be used as is.
-Otherwise, it will be created and initialized with the subdirectories of the [`gtab`](gtab) directory.
-
-In order to list the available anchor banks, call
-~~~python
-t.list_gtabs()
-~~~
-This will produce a list of already-existing anchor banks from which you can select. Three defaults are included in this repository, and the output should look like this:
-~~~
-Existing GTABs:
-	google_anchorbank_geo=IT_timeframe=2019-01-01 2020-08-01.tsv
-	google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
-Active anchorbank: google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+t.set_options(gtab_config = {"num_anchor_candidates": 3000, "num_anchors": 500})
 ~~~
 
-To select which anchor bank to use, call
-~~~python
-t.set_active_gtab("google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv")
-~~~
-You should obtain the following confirmation:
-~~~
-Active anchorbank changed to: google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-~~~
-
-This will automatically set the corresponding config options. If you want to change them explicitly for the Python interface you can do so by calling `set_options()` or manually editing your config file at `my_path/config/config_py.json`.
-If you want to use the command line interface you can use the command `gtab-set-options`, or manually edit the corresponding config file at `my_path/config/config_cl.json`.
-
-Now we can request a calibrated time series for a new query:
-~~~python
-mid = "/m/0jg7r"    # Freebase ID for EPFL
-nq_res= t.new_query(mid) 
-
-print(f'Ratio: {nq_res[mid]["ratio"]}')
-print(f'Ratio low: {nq_res[mid]["ratio_lo"]}')
-print(f'Ratio high: {nq_res[mid]["ratio_hi"]}')
-print(f'Ratio high: {nq_res[mid]["ts"]}')
-~~~
-
-## Example with a newly created anchor bank
-
-As in the previous example, the module is imported and then the object is created with the path to a working directory:
-~~~python
-import gtab
-t = gtab.GTAB(my_path)
-~~~
-
-The desired config options can be set through the object method `set_options()`. For example, if we want to construct an anchor bank with data from France between 5 March 2020 and 5 May 2020, use
-~~~python
-t.set_options(pytrends_config = {"geo": "FR", "timeframe": "2019-01-01 2020-07-05"})
-~~~
-
-We also need to specify the file that contains a list of candidate queries from which anchor queries will be selected when constructing the anchor bank:
-~~~python
-t.set_options(gtab_config = {"anchor_candidates_file": "anchor_candidate_list.txt"})
-~~~
-This file must be located at `my_path/data/anchor_candidate_list.txt` and contain one query per line.
-Note that, as described in the [paper](https://arxiv.org/abs/2007.13861), we recommend using language-agnostic Freebase IDs (e.g., /m/0dm32) as queries, rather than language-specific plain-text queries (e.g., "sweet potato").
-A good [list of candidate queries](gtab/data/anchor_candidate_list.txt) is shipped with G-TAB by default, so only advanced users should need to tinker with the list.
-
-We then need to set the size of the anchor bank to be constructed,
-as well as the number of candidate queries to be used in constructing the anchor bank
-(these are called *n* and *N*, respectively, in the [paper](https://arxiv.org/abs/2007.13861); see the description in Sec. 2.1 of the paper for details).
-For example, if you want to construct an anchor bank consisting of *n*=100 queries selected from *N*=3000 candidates, call:
-~~~python
-t.set_options(gtab_config = {"num_anchors": 100, "num_anchor_candidates": 3000})
-~~~
-(Note that the specified `num_anchors` is used only to construct an initial anchor bank, which is then automatically optimized in order to produce the smaller, more precise final anchor bank, typically containing no more than 20 anchor queries. See Appendix B of the [paper](https://arxiv.org/abs/2007.13861).)
-
-Note that all config options can be directly edited in the config file found at `my_path/config/config.json`.
-
-Finally, we construct the anchor bank by calling
-~~~python
-t.create_anchorbank()
-~~~
-This will start sending requests to Google Trends and calibrate the data.
-It may take some time, depending on the specified size `num_anchors` of the anchor bank and the sleep interval between two Google Trends requests.
-Once the anchor bank has been constructed, it can be listed and selected as described in the previous example.  
+Confused? Don't worry! The default candidate works pretty well!
