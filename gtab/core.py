@@ -128,6 +128,7 @@ class GTAB:
         return keyword not in self.CONFIG['BLACKLIST']
 
     def _check_keyword(self, keyword):
+        time.sleep(self.CONFIG['GTAB']['sleep'])
         try:
             rez = self._query_google(keywords=keyword)
             return self._is_not_blacklisted(keyword) and not rez.empty
