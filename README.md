@@ -1,4 +1,5 @@
-# Google Trends Anchor Bank (G-TAB)
+![Repository logo](./logo.png)
+
 
 [Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
 queries across time and space.
@@ -6,7 +7,7 @@ Despite the overall value of Google Trends, results are rounded to integer-level
 which may causes major problems.
 
 For example, lets say you want to compare the popularity of searches of the term "Switzerland",
- to searches of the term "Google"!
+ to searches of the term "Facebook"!
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
 
@@ -39,9 +40,9 @@ plt.show()
 
 ## How does it work?
 
-**TL;DR:** 
+**TL;DR:
 G-TABS constructs a series of pre-computed queries,
-and is able to calibrate any query by cleverly inspecting those.
+and is able to calibrate any query by cleverly inspecting those.**
 
 More formally, the method proceeds in two phases:
 
@@ -60,14 +61,6 @@ Please cite this paper when using G-TAB in your own work.
 
 Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](_cikm2020_paper).
 
-# Repository structure
-
-The repository contains main two folders:
-
-- `gtab` contains the Python code and some required data
-- `example` contains a Jupyter notebook with an easy-to-follow example
-
-
 # Installation
 
 The package is available on pip, so you just need to call
@@ -76,8 +69,7 @@ python -m pip install gtab
 ~~~
 
 The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
-Note that G-TAB was developed and tested in Python 3.8.1.
-
+We developed and tested it in Python 3.8.1.
 
 # Example usage
 
@@ -116,10 +108,9 @@ t.list_gtabs()
 This will produce a list of already-existing anchor banks from which you can select. Three defaults are included in this repository, and the output should look like this:
 ~~~
 Existing GTABs:
-        google_anchorbank_geo=IT_timeframe=2019-11-28 2020-07-28.tsv
-        google_anchorbank_geo=SE_timeframe=2019-11-28 2020-07-28.tsv
-        google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
-Active anchorbank: None selected.
+	google_anchorbank_geo=IT_timeframe=2019-01-01 2020-08-01.tsv
+	google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+Active anchorbank: google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
 ~~~
 
 To select which anchor bank to use, call
