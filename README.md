@@ -1,17 +1,49 @@
 # Google Trends Anchor Bank (G-TAB)
 
-[Google Trends](https://trends.google.com/) is a tool that allows users to analyze the popularity of Google search queries across time and space.
-In a single request, users can obtain time series for up to 5 Google queries on a common scale, normalized to the range from 0 
-to 100 and rounded to integer precision.
-Despite the overall value of Google Trends, rounding causes major problems, to the extent that entirely uninformative, 
-all-zero time series may be returned for unpopular Google queries when requested together with more popular queries.
+[Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
+queries across time and space.
+Despite the overall value of Google Trends, results are rounded to integer-level precision
+which may causes major problems.
 
-**Google Trends Anchor Bank (G-TAB)**
-addresses this issue by offering an efficient solution for the calibration of Google Trends data.
-G-TAB expresses the popularity of an arbitrary number of Google queries on a common scale without being compromised by 
-rounding errors.
+For example, lets say you want to compare the popularity of searches of the term "Switzerland",
+ to searches of the term "Google"!
 
-The method proceeds in two phases:
+![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
+
+We find that the comparison is highly non-informative!
+Since the popularity of Switzerland is always "<1%", we simply can't compare the two!
+
+## G-TAB to the rescue!
+
+Fortunately, this library solves this problem! You can simply do:
+
+~~~python
+import gtab
+t = gtab.GTAB()
+# Make the queries which will return precise values!
+query_facebook = t.new_query("Facebook")
+query_switzerland = t.new_query("Switzerland")
+~~~
+
+And you will have the two queries in comparable units! In fact, any subsequent query you make will also be comparable!
+You could then plot those (for example in log-scale to make things simpler and get something like):
+
+~~~python
+import matplotlib.pyplot as plt 
+plt.plot(query_switzerland["ts"].max_ratio )
+plt.plot(query_facebook["ts"].max_ratio)
+plt.show()
+~~~
+
+![Image portraying output of the library, where issues are fixed](./example/imgs/lead2.png)
+
+## How does it work?
+
+**TL;DR:** 
+G-TABS constructs a series of pre-computed queries,
+and is able to calibrate any query by cleverly inspecting those.
+
+More formally, the method proceeds in two phases:
 
 1. In the *offline pre-processing phase*, an "anchor bank" is constructed, a set of Google queries spanning the full spectrum 
 of popularity, all calibrated against a common reference query by carefully chaining multiple Google Trends requests.
@@ -26,13 +58,11 @@ A full description of the G-TAB method is available in the following paper:
 
 Please cite this paper when using G-TAB in your own work.
 
-Code and data for reproducing the results of the paper are available in the directory [`_cikm2020_paper`](_cikm2020_paper).
-
-
+Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](_cikm2020_paper).
 
 # Repository structure
 
-The repository contains two folders:
+The repository contains main two folders:
 
 - `gtab` contains the Python code and some required data
 - `example` contains a Jupyter notebook with an easy-to-follow example
@@ -46,8 +76,7 @@ python -m pip install gtab
 ~~~
 
 The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
-
-Note: G-TAB was developed and tested in Python 3.8.1.
+Note that G-TAB was developed and tested in Python 3.8.1.
 
 
 # Example usage
@@ -57,11 +86,14 @@ Note: G-TAB was developed and tested in Python 3.8.1.
 Since Google Trends requires users to specify a time period and location for which search interest is to be returned, G-TAB has the same requirement:
 every anchor bank is specific to a time period and location.
 
-To get you started quickly, this repo comes with 3 example anchor banks, all for the 8-month time period from 2019-11-28 to 2020-07-28, but for 3 different locations (countries): United States, Italy, Sweden.
-The first example below shows you how to use the 3 pre-existing anchor banks in order to calibrate any Google query.
+To get you started quickly, this repo comes with 2 example anchor banks, 
+for 20-month time period from 2019-01-01 to 2020-08-01, 
+but for 2 different locations (countries): Italy and Global (which is equivalent to Google Trends "worldwide" option).
+The first example below shows you how to use the pre-existing anchor banks in order to calibrate any Google query.
 
-The 3 included anchor banks are great for getting to know G-TAB and starting to play around, but if you have more specific needs, you might need to construct a new anchor bank for your specific time period and location. But don't worry, it's easy!
-The second example walks you through the process of constructing your own anchor bank.
+Th included anchor banks are great for getting to know G-TAB and starting to play around.
+But don't worry! Building an anchorbank is a piece of cake!
+
 
 ## Example with a pre-existing anchor bank
 
@@ -72,7 +104,7 @@ import gtab
 
 Then, create a `GTAB` object with the path to a working directory specified by you:
 ~~~python
-t = gtab.GTAB(dir_path = my_path)
+t = gtab.GTAB(dir_path=my_path)
 ~~~
 If the directory `my_path` already exists, it will be used as is.
 Otherwise, it will be created and initialized with the subdirectories of the [`gtab`](gtab) directory.
