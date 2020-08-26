@@ -185,3 +185,245 @@ New query calibrated!
 Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
 New query 'North Macedonia'
 New query calibrated!
+
+2020-08-25 14:35:48.064743
+Start AnchorBank init for region  in timeframe 2019-01-01 2020-08-01...
+Sampling keywords...
+
+Bad keyword '/m/05n91pt', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/06n9fv', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/04fzqn3', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0dfxdrn', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05hxz3p', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/09nn_9', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n1l9l', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/02q64zt', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/04rc3w', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05lv45q', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0gl3_vx', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/06b_y2', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0fpy9fp', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/04y5kpr', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n4pk1', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/02pxh01', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/04bdjb', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/03ct2_8', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n9bv7', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n7n62', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n6lws', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/07b2rg', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0bq4bp', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0dfxdcv', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/04f182w', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n2v4t', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05v67qk', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n8041', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0c0ff8', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/0c_lmc1', because The request failed: Google returned a response with code 400.
+
+Bad keyword '/m/05n35c8', because The request failed: Google returned a response with code 400.
+Querying google...
+Removing bad queries...
+Diagnostics done!
+A total of 151 bad keywords removed.
+Saving google results as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\data\internal\google_results\google_results_geo=_timeframe=2019-01-01 2020-08-01.pkl'...
+Total queries (groups of 5 keywords): 403
+Finding paths...
+Paths done!
+Err: 5.329070518200751e-15
+Querying pairs...
+Total range: 5.243983443578879e-06
+Saving anchorbank as 'D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv'...
+AnchorBank init done.
+
+2020-08-25 15:12:22.598339
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 15:12:39.891013
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Facebook'
+New query calibrated!
+
+2020-08-25 15:12:42.584798
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 15:13:06.605540
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 15:13:13.002266
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 15:13:15.459856
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 15:13:17.777857
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+Could not calibrate. Time series for query too high everywhere.
+
+2020-08-25 16:26:57.433073
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:27:02.089142
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:27:05.781005
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:28:15.441836
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:28:20.107579
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 16:28:21.687195
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:28:32.270274
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:28:36.475483
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'North Macedonia'
+New query calibrated!
+
+2020-08-25 16:28:37.665445
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 16:28:42.184506
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:30:56.250149
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:31:11.680978
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:31:19.890726
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:44:00.218659
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:44:19.834045
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:44:24.940237
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-25 16:46:53.430325
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+
+2020-08-25 16:47:17.773460
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-25 16:47:55.140082
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-25 16:48:07.518713
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-25 16:48:10.955355
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-25 17:17:36.430832
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-25 17:17:41.295976
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-26 00:18:25.168921
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '2tv3'
+Could not calibrate. Time series for query too low everywhere.
+
+2020-08-26 00:18:30.248115
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Google'
+New query calibrated!
+
+2020-08-26 00:50:00.600225
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '/m/02zk4n'
+New query calibrated!
+
+2020-08-26 00:50:24.802646
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '/m/030mv8'
+New query calibrated!

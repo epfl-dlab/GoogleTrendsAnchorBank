@@ -87,7 +87,7 @@ class GTAB:
 
         self.CONFIG['CONN']['timeout'] = tuple(self.CONFIG['CONN']['timeout'])
         self.ANCHOR_CANDIDATES = [el.strip() for el in open(
-            os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']))]
+            os.path.join(self.dir_path, "data", self.CONFIG['GTAB']['anchor_candidates_file']), "r")]
 
         if self.CONFIG['GTAB']['num_anchor_candidates'] >= len(self.ANCHOR_CANDIDATES):
             self.CONFIG['GTAB']['num_anchor_candidates'] = len(self.ANCHOR_CANDIDATES)
@@ -128,6 +128,7 @@ class GTAB:
         return keyword not in self.CONFIG['BLACKLIST']
 
     def _check_keyword(self, keyword):
+        time.sleep(self.CONFIG['GTAB']['sleep'])
         try:
             rez = self._query_google(keywords=keyword)
             return self._is_not_blacklisted(keyword) and not rez.empty
@@ -888,13 +889,19 @@ class GTAB:
         if query in anchors:
             self._print_and_log(f"The is already present in the active gtab!")
             self._log_con.close()
-            return None
+            # -2 -> Present in anchorbank
+            return -2 
+
+        if not self._check_keyword(query):
+            self._print_and_log(f"Keyword {query} is bad!")
+            # Bad keyword
+            return -1 
 
         lo = 0
-        hi = len(self.anchor_bank)
+        hi = len(self.anchor_bank) - 1
         n_iter = 0
 
-        while hi > lo:
+        while hi >= lo:
 
             anchor = anchors[mid]
             if verbose:
@@ -904,8 +911,13 @@ class GTAB:
             except ValueError as e:
                 raise e
             except Exception as e:
-                self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
-                break
+                if "response" in dir(e):
+                    if e.response.status_code == 429:
+                        input("Quota reached! Please change IP and press any key to continue.")
+                        ts = self._query_google(keywords=[anchor, query]).iloc[:, 0:2]
+                else:
+                    self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
+                    break
 
             timestamps = ts.index
             max_anchor = ts.loc[:, anchor].max()
@@ -964,4 +976,5 @@ class GTAB:
             self._print_and_log('Could not calibrate. Time series for query too low everywhere.')
         self._log_con.close()
 
+        # Unable to be calibrated.
         return None
