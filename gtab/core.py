@@ -954,13 +954,13 @@ class GTAB:
                             "ts_max_ratio_hi": list(ts_query_hi),
                             "ts_max_ratio_lo": list(ts_query_lo),
                             "no_iters": n_iter,
-                            "query": "query"}
+                            "query": query}
                 else:
                     ts_df = pd.DataFrame({"max_ratio": list(ts_query), "max_ratio_hi": ts_query_hi, "max_ratio_lo": ts_query_lo}, index = timestamps)
                     return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
                             "ts": ts_df,
                             "no_iters": n_iter,
-                            "query": "query"}
+                            "query": query}
 
             elif max_query < thresh:
                 lo = mid + 1
