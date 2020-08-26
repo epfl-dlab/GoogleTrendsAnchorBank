@@ -8,3 +8,8 @@ New query calibrated!
 Using example_path\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
 New query '/m/0jg7r'
 New query calibrated!
+
+2020-08-26 11:55:38.513101
+Using example_path\output\google_anchorbanks\google_anchorbank_geo=US_timeframe=2019-11-28 2020-07-28.tsv
+New query '/m/0jg7r'
+New query calibrated!

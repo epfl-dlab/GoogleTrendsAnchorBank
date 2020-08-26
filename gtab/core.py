@@ -913,9 +913,9 @@ class GTAB:
                 if "response" in dir(e):
                     if e.response.status_code == 429:
                         input("Quota reached! Please change IP and press any key to continue.")
+                        ts = self._query_google(keywords=[anchor, query]).iloc[:, 0:2]
                 else:
                     self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
-                    ts = self._query_google(keywords=[anchor, query]).iloc[:, 0:2]
                     break
 
             timestamps = ts.index
