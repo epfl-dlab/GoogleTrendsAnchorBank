@@ -3,28 +3,26 @@
 
 [Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
 queries across time and space.
-Despite the overall value of Google Trends:
+Despite the overall value of Google Trends, data scientists face certain problems when using it:
 
-1. Results are rounded to integer-level precision
-which may causes major problems.
-2. Queries are limited to 5 simultaneous comparisons, and results are relative, not absolute.
+1. Per Google Trends request, only up to 5 Google queries can be compared, and the results are relative (between 0 and 100), not absolute.
+2. Results are rounded to integer precision, which may cause major problems.
 
-Let's illustrate these two problems!
-For example, lets say you want to compare the popularity of searches of the term "Facebook",
- to searches of the term "Switerland":
+Let's illustrate these two problems visually.
+For example, lets say you want to compare the popularity of searches for "Facebook" to searches for "Switerland":
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
 
-We find that the comparison is highly non-informative!
+We find that the comparison is highly non-informative:
 Since the popularity of Switzerland is always "<1%", we simply can't compare the two!
-Moreover, if we did another query, say, "Facebook" and "Google", the values for "Facebook" would be different, since the results are relative.
+Moreover, if we did another query, say, "Facebook" and "Google", the values for "Facebook" would be different, since the results are relative:
 
 ![Image portraying transitivity issues with Google Trends](./example/imgs/lead2.png)
 
 
 # `gtab` to the rescue!
 
-Fortunately, this library solves these problems! Do:
+Fortunately, this library solves these problems. Simply run this code:
 
 ~~~python
 import gtab
@@ -34,8 +32,8 @@ query_facebook = t.new_query("Facebook")
 query_switzerland = t.new_query("Switzerland")
 ~~~
 
-And you will have the two queries in a universal scale! 
-Your output is a pandas DataFrame that looks like this:
+And you will have the two queries in a universal scale.
+Your output is a Pandas DataFrame that looks like this:
 
 ~~~
 (query_switzerland)
@@ -47,23 +45,23 @@ date
 2019-01-20   8.503401      9.084534      7.962750
 ~~~
 
-Where `max_ratio` is the calibrated value and `max_ratio_(hi/low)` are error bounds determined by our method.
+Here, `max_ratio` is the calibrated value and `max_ratio_(hi|low)` are error bounds determined by our method.
 You could plot those (we use log-scale to make things nicer) and get something like:
 
 ~~~python
 import matplotlib.pyplot as plt 
 plt.plot(query_switzerland.max_ratio)
 plt.plot(query_facebook.max_ratio)
-# lots of stuff omitted here :)
+# lots of plotting code omitted here :)
 plt.show()
 ~~~
 
 ![Image portraying output of the library, where issues are fixed](./example/imgs/result1.png)
 
-Where Switzerland is now not distorted by the popularity difference! 
-And you can even see some oscillations of popularity there.
+In this plot, Switzerland is now not distorted by the huge difference in popularity anymore.
+(You can even see some oscillations of popularity.)
 
-Importantly, if we now queried "Google", as in the example above, results would be outputted in the same scale!
+Importantly, if we now queried "Google", as in the example above, results would appear on the same scale:
 
 ~~~python
 query_google = t.new_query("Google")
