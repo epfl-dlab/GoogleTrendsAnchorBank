@@ -9,17 +9,17 @@ Despite the overall value of Google Trends, data scientists face certain problem
 2. Results are rounded to integer precision, which may cause major problems.
 
 Let's illustrate these two problems visually.
-For example, lets say you want to compare the popularity of searches for "Facebook" to searches for "Switerland":
+For example, lets say you want to compare the popularity of searches for "Facebook" to searches for "Swaziland":
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
 
 We find that the comparison is highly non-informative:
-Since the popularity of Switzerland is always "<1%", we simply can't compare the two!
+Since the popularity of "Swaziland" is always "<1%", we simply can't compare the two!
 Moreover, if we did another query, say, "Facebook" and "Google", the values for "Facebook" would be different, since the results are relative:
 
 ![Image portraying transitivity issues with Google Trends](./example/imgs/lead2.png)
 
-
+**Trivia:** The (former) Kingdowm of Swaziland changed their name to the Kingdom of Eswatini in 2018, to prevent confusions with Switzerland.
 # `gtab` to the rescue!
 
 Fortunately, this library solves these problems. Simply run this code:
@@ -28,8 +28,8 @@ Fortunately, this library solves these problems. Simply run this code:
 import gtab
 t = gtab.GTAB()
 # Make the queries which will return precise values!
-query_facebook = t.new_query("Facebook")
-query_switzerland = t.new_query("Switzerland")
+query_facebook = t.new_query("facebook")
+query_swaziland = t.new_query("swaziland")
 ~~~
 
 And you will have the two queries in a universal scale.
@@ -58,7 +58,7 @@ plt.show()
 
 ![Image portraying output of the library, where issues are fixed](./example/imgs/result1.png)
 
-In this plot, Switzerland is now not distorted by the huge difference in popularity anymore.
+In this plot, "Swaziland" is now not distorted by the huge difference in popularity anymore.
 (You can even see some oscillations of popularity.)
 
 Importantly, if we now queried "Google", as in the example above, results would appear on the same scale:
@@ -87,7 +87,7 @@ gtab-init your-path-here
 And then you can simply query anything with:
 
 ~~~bash
-gtab-query Switzerland Google Facebook --results_file my_query.json 
+gtab-query Swaziland Google Facebook --results_file my_query.json 
 ~~~
 
 Your query(ies) will be saved in `your-path-here/query_results/my_query.json`.
@@ -95,7 +95,7 @@ The output looks like this:
 
 ~~~json
 {
-    "Switzerland": {
+    "Swaziland": {
         "ts_timestamp": [
             "2019-01-06 00:00:00",
             "2019-01-13 00:00:00",
