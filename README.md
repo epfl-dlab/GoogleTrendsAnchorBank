@@ -162,7 +162,7 @@ We developed and tested it in Python 3.8.1.
 
 Want to use python? See [`example/example_python.ipynb`](example/example_python.ipynb).
 
-Want to use command line?  See [`example/example_cli.ipynb`](example/example_cli.md).
+Want to use the command line?  See [`example/example_cli.ipynb`](example/example_cli.md).
 
 # F.A.Q.
 
@@ -173,7 +173,7 @@ Additionally, [this](cikm2020_paper/README.md) appendix explains how to calculat
 
 #### **Q: Do I need a new anchor bank for each different location and time I wanna query google trends with?**
 
-Yes! But building those is easy! Be sure to check our examples, we teach how to do this [there](example/example.ipynb).
+Yes! But building those is easy! Be sure to check our examples, we teach how to do this [there](example/).
 
 #### **Q: Okay, so you always build the anchor banks with the same candidates (those in `/gtab/data/anchor_candidate_list.txt`), can I change that?**
 
