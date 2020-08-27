@@ -7,10 +7,11 @@ Despite the overall value of Google Trends:
 
 1. Results are rounded to integer-level precision
 which may causes major problems.
-2. Queries are limited to 5 simultaneous comparisons, and results are relative, not absolute!
+2. Queries are limited to 5 simultaneous comparisons, and results are relative, not absolute.
 
-For example, lets say you want to compare the popularity of searches of the term "Facebook,"
- to searches of the term "Switerland"!
+Let's illustrate these two problems!
+For example, lets say you want to compare the popularity of searches of the term "Facebook",
+ to searches of the term "Switerland":
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
 
@@ -18,7 +19,7 @@ We find that the comparison is highly non-informative!
 Since the popularity of Switzerland is always "<1%", we simply can't compare the two!
 Moreover, if we did another query, say, "Facebook" and "Google", the values for "Facebook" would be different, since the results are relative.
 
-![Image portraying transitivity issues with Google Trends](./example/imgs/lead3.png)
+![Image portraying transitivity issues with Google Trends](./example/imgs/lead2.png)
 
 
 # `gtab` to the rescue!
@@ -34,7 +35,7 @@ query_switzerland = t.new_query("Switzerland")
 ~~~
 
 And you will have the two queries in a universal scale! 
-Your output is a pandas dataframe that looks like this:
+Your output is a pandas DataFrame that looks like this:
 
 ~~~
 (query_switzerland)
@@ -62,7 +63,7 @@ plt.show()
 Where Switzerland is now not distorted by the popularity difference! 
 And you can even see some oscillations of popularity there.
 
-Importantly, if we now queried "Google", as in the example, above, it would output a result in a universal scale also!
+Importantly, if we now queried "Google", as in the example above, results would be outputted in the same scale!
 
 ~~~python
 query_google = t.new_query("Google")
@@ -75,7 +76,6 @@ plt.show()
 
 ![Image portraying output of the library, where issues are fixed](./example/imgs/result2.png)
 
-Your comparisons are not limited anyomore to a single query! You can just query whatever you wish and it will the result will be in a comparable scale!
 
 # You can also do it from the command line!
 
@@ -123,6 +123,7 @@ The output looks like this:
     "Facebook": {(...)}
 ~~~
 
+Where `ts_timestamp` is an array with dates, and, `max_ratio` is the calibrated value and `max_ratio_(hi/low)` are error bounds related to our method.
 
 # How does it work?
 
@@ -165,16 +166,16 @@ Want to use command line?  See [`example/example_cli.ipynb`](example/example_cli
 
 # F.A.Q.
 
-- **Q: Where can I understand more on the maths behind `gtab`?**
+#### **Q: Where can I understand more on the maths behind `gtab`?**
 
 Your best bet is to read the CIKM paper. The PDF can be found [here](https://arxiv.org/abs/2007.13861).
 Additionally, [this](cikm2020_paper/README.md) appendix explains how to calculate the error margins for the method
 
-- **Q: Do I need a new anchor bank for each different location and time I wanna query google trends with?**
+#### **Q: Do I need a new anchor bank for each different location and time I wanna query google trends with?**
 
 Yes! But building those is easy! Be sure to check our examples, we teach how to do this [there](example/example.ipynb).
 
-- **Q: Okay, so you always build the anchor banks with the same candidates (those in `/gtab/data/anchor_candidate_list.txt`), can I change that?**
+#### **Q: Okay, so you always build the anchor banks with the same candidates (those in `/gtab/data/anchor_candidate_list.txt`), can I change that?**
 
 *Yes, you can!* You can provide your own candidate list (a file with one word per line). 
 Place it over the `./data` folder for whatever path you created and enforce its usage with:
