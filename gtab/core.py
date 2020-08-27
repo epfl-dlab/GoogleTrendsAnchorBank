@@ -211,7 +211,7 @@ class GTAB:
 
         return ret
 
-    ## --- ANCHOR BANK METHODS --- ##
+    #  --- ANCHOR BANK METHODS ---
     def _get_google_results(self):
 
         fpath = os.path.join(self.dir_path, "data", "internal", "google_results",
@@ -569,9 +569,7 @@ class GTAB:
 
     # --- "EXPOSED" METHODS ---
     def print_options(self):
-        """
-            Prints the current config options in the active directory.
-        """
+        """ Prints the current config options in the active directory. """
         if self.from_cli:
             print(f"Config file: {os.path.join(self.dir_path, 'config', 'config_cl.json')}")
         else:
@@ -685,7 +683,6 @@ class GTAB:
             print(f"Overwriting config at: {config_path}\n")
             with open(config_path, 'w') as fp:
                 json.dump(self.CONFIG, fp, indent=4, sort_keys=True)
-
 
     def list_gtabs(self):
         """
@@ -853,27 +850,27 @@ class GTAB:
                 self._print_and_log("There was an error. Please check the log file.")
         else:
             print(
-                "GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)' or rename/delete it to create another one with this name.")
+                "GTAB with such parameters already exists! Load it with 'set_active_gtab(filename)' or rename/delete it"
+                " to create another one with this name.")
 
         self._log_con.close()
 
-    def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False):
+    def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False, complete=False):
+        """ Request a new Google Trends query and calibrate it with the active gtab.  The 'PYTRENDS' key in
+        config_py.json is used. Make sure to set it according to your chosen anchorbank!
 
-        """
-        Request a new Google Trends query and calibrate it with the active gtab. The 'PYTRENDS' key in config_py.json is
-         used. Make sure to set it according to your chosen anchorbank.
+        :param query: string containing a single query.
+        :param first_comparison: first pivot for the binary search.
+        :param thresh: threshold for comparison.
+        :param verbose: want to hear what we're doing?
+        :param complete: if True, returns params related to the execution.
+        :return: The return is not deterministic
+            (1) If not able to calibrate, returns -1;
 
-        Input parameters:
-            keyword - string containing a single query.
-            first_comparison - first pivot for the binary search.
-            thresh - threshold for comparison.
-        Returns a dictionary containing:
-            ratio - the computed ratio.
-            ts - the calibrated time series for the keyword.
-            iter - the number of iterations needed by the binary search.
+            (1) you are calling gtab from the CLI
+            (2)
+                    If not able to calibrate, returns -1.
 
-            If not able to calibrate, returns -1.
-            
         """
 
         if self.active_gtab is None:
@@ -882,20 +879,18 @@ class GTAB:
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
         self._print_and_log(f"Using {self.active_gtab}")
         self._print_and_log(f"New query '{query}'")
-        mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison == None else list(
-            self.anchor_bank.index).index(first_comparison)
+        mid = list(self.anchor_bank.index).index(self.ref_anchor) if first_comparison is None \
+            else list(self.anchor_bank.index).index(first_comparison)
         anchors = tuple(self.anchor_bank.index)
 
         if query in anchors:
-            self._print_and_log(f"The is already present in the active gtab!")
+            self._print_and_log(f"The query is already present in the active gtab!")
             self._log_con.close()
-            # -2 -> Present in anchorbank
-            return -2 
+            return -2
 
         if not self._check_keyword(query):
             self._print_and_log(f"Keyword {query} is bad!")
-            # Bad keyword
-            return -1 
+            return -1
 
         lo = 0
         hi = len(self.anchor_bank) - 1
@@ -948,19 +943,35 @@ class GTAB:
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
                 if self.from_cli:
-                    return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
-                            "ts_timestamp": [str(el) for el in timestamps],
-                            "ts_max_ratio": list(ts_query),
-                            "ts_max_ratio_hi": list(ts_query_hi),
-                            "ts_max_ratio_lo": list(ts_query_lo),
-                            "no_iters": n_iter,
-                            "query": query}
+                    if complete:
+                        return {"max_ratio": float(ratio),
+                                "max_ratio_hi": float(ratio_hi),
+                                "max_ratio_lo": float(ratio_lo),
+                                "ts_timestamp": [str(el) for el in timestamps],
+                                "ts_max_ratio": list(ts_query),
+                                "ts_max_ratio_hi": list(ts_query_hi),
+                                "ts_max_ratio_lo": list(ts_query_lo),
+                                "no_iters": n_iter
+                                }
+                    else:
+                        return {"ts_timestamp": [str(el) for el in timestamps],
+                                "ts_max_ratio": list(ts_query),
+                                "ts_max_ratio_hi": list(ts_query_hi),
+                                "ts_max_ratio_lo": list(ts_query_lo)
+                                }
                 else:
-                    ts_df = pd.DataFrame({"max_ratio": list(ts_query), "max_ratio_hi": ts_query_hi, "max_ratio_lo": ts_query_lo}, index = timestamps)
-                    return {"max_ratio": float(ratio), "max_ratio_hi": float(ratio_hi), "max_ratio_lo": float(ratio_lo),
-                            "ts": ts_df,
-                            "no_iters": n_iter,
-                            "query": query}
+                    ts_df = pd.DataFrame(
+                        {"max_ratio": list(ts_query), "max_ratio_hi": ts_query_hi, "max_ratio_lo": ts_query_lo},
+                        index=timestamps)
+                    if complete:
+                        return {"max_ratio": float(ratio),
+                                "max_ratio_hi": float(ratio_hi),
+                                "max_ratio_lo": float(ratio_lo),
+                                "ts": ts_df,
+                                "no_iters": n_iter,
+                                "query": query}
+                    else:
+                        return ts_df
 
             elif max_query < thresh:
                 lo = mid + 1
