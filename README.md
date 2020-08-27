@@ -1,5 +1,6 @@
 ![Repository logo](./logo.png)
 
+_[For a full technical description, see [this paper](https://arxiv.org/abs/2007.13861). When using `gtab` in your own work, please cite the paper.]_
 
 [Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
 queries across time and space.
@@ -19,7 +20,8 @@ Moreover, if we did another query, say, "Facebook" and "Google", the values for 
 
 ![Image portraying transitivity issues with Google Trends](./example/imgs/lead2.png)
 
-**Trivia:** The (former) Kingdowm of Swaziland changed their name to the Kingdom of Eswatini in 2018, to prevent confusions with Switzerland.
+**Trivia:** The former Kingdom of Swaziland changed its name to the Kingdom of Eswatini in 2018, to prevent confusion with Switzerland.
+
 # `gtab` to the rescue!
 
 Fortunately, this library solves these problems. Simply run this code:
@@ -99,26 +101,26 @@ The output looks like this:
         "ts_timestamp": [
             "2019-01-06 00:00:00",
             "2019-01-13 00:00:00",
-             (...)
+             ...
         ],
         "ts_max_ratio": [
             8.692365835222983,
             8.503401360544222,
-            (...)
+            ...
         ],
         "ts_max_ratio_hi": [
             9.284193998556656,
             9.08453391256619,
-            (...)
+            ...
         ],
         "ts_max_ratio_lo": [
             8.141687902460793,
             7.962749706802314,
-            (...)
+            ...
         ]
     },
-    "Google": {(...)},
-    "Facebook": {(...)}
+    "Google": {...},
+    "Facebook": {...}
 ~~~
 
 Where `ts_timestamp` is an array with dates, and, `max_ratio` is the calibrated value and `max_ratio_(hi/low)` are error bounds related to our method.

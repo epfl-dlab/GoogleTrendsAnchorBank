@@ -11,5 +11,6 @@ If you are interested in using Google Trends Anchor Bank (G-TAB) in your own res
 Directory contents:
 
 - The master script for reproducing the paper is `src/R/code_for_reproducing_cikm2020_paper.Rmd`.
+- An evaluated, HTML-rendered version of the script is available [here](https://epfl-dlab.github.io/GoogleTrendsAnchorBank/cikm2020_paper/src/R/code_for_reproducing_cikm2020_paper.html).
 - Data can be found in `data/`; in particular, `data/calibration` contains the cached results of Google Trends requests for constructing the anchor bank in the offline preprocessing stage (Sec. 2.1 of the paper); `data/binsearch` contains cached results of Google Trends requests from the online binary search phase (Sec. 2.2 of the paper).
 - All plots from the paper can be found in `plots/`.
