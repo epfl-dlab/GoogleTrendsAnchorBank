@@ -9,8 +9,8 @@ Despite the overall value of Google Trends:
 which may causes major problems.
 2. Queries are limited to 5 simultaneous comparisons, and results are relative, not absolute!
 
-For example, lets say you want to compare the popularity of searches of the term "Switzerland,"
- to searches of the term "Facebook"!
+For example, lets say you want to compare the popularity of searches of the term "Facebook,"
+ to searches of the term "Switerland"!
 
 ![Image portraying rounding issues with Google Trends](./example/imgs/lead.png)
 
@@ -33,17 +33,49 @@ query_facebook = t.new_query("Facebook")
 query_switzerland = t.new_query("Switzerland")
 ~~~
 
-And you will have the two queries in a universal scale!
-You could then plot those (for example in log-scale to make things simpler and get something like):
+And you will have the two queries in a universal scale! 
+Your output is a pandas dataframe that looks like this:
+
+~~~
+(query_switzerland)
+
+            max_ratio  max_ratio_hi  max_ratio_lo
+date                                             
+2019-01-06   8.692366      9.284194      8.141688
+2019-01-13   8.503401      9.084534      7.962750
+2019-01-20   8.503401      9.084534      7.962750
+~~~
+
+Where `max_ratio` is the calibrated value and `max_ratio_(hi/low)` are error bounds determined by our method.
+You could plot those (we use log-scale to make things nicer) and get something like:
 
 ~~~python
 import matplotlib.pyplot as plt 
-plt.plot(query_switzerland.max_ratio )
+plt.plot(query_switzerland.max_ratio)
 plt.plot(query_facebook.max_ratio)
+# lots of stuff omitted here :)
 plt.show()
 ~~~
 
-![Image portraying output of the library, where issues are fixed](./example/imgs/lead2.png)
+![Image portraying output of the library, where issues are fixed](./example/imgs/result1.png)
+
+Where Switzerland is now not distorted by the popularity difference! 
+And you can even see some oscillations of popularity there.
+
+Importantly, if we now queried "Google", as in the example, above, it would output a result in a universal scale also!
+
+~~~python
+query_google = t.new_query("Google")
+plt.plot(query_switzerland.max_ratio )
+plt.plot(query_facebook.max_ratio)
+plt.plot(query_google.max_ratio)
+# lots of stuff omitted here also! :)
+plt.show()
+~~~
+
+![Image portraying output of the library, where issues are fixed](./example/imgs/result2.png)
+
+Your comparisons are not limited anyomore to a single query! You can just query whatever you wish and it will the result will be in a comparable scale!
 
 # You can also do it from the command line!
 
@@ -60,7 +92,8 @@ And then you can simply query anything with:
 gtab-query Switzerland Google Facebook --results_file my_query.json 
 ~~~
 
-Your query(ies) will be saved in `your-path-here/query_results/my_query.json`, and look like this:
+Your query(ies) will be saved in `your-path-here/query_results/my_query.json`.
+The output looks like this:
 
 ~~~json
 {
