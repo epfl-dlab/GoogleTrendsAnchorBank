@@ -1,5 +1,6 @@
 ![Repository logo](./logo.png)
 
+_[For a full technical description, see [this paper](https://arxiv.org/abs/2007.13861). When using `gtab` in your own work, please cite the paper.]_
 
 [Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
 queries across time and space.
@@ -19,7 +20,8 @@ Moreover, if we did another query, say, "Facebook" and "Google", the values for 
 
 ![Image portraying transitivity issues with Google Trends](./example/imgs/lead2.png)
 
-**Trivia:** The (former) Kingdowm of Swaziland changed their name to the Kingdom of Eswatini in 2018, to prevent confusions with Switzerland.
+**Trivia:** The former Kingdom of Swaziland changed its name to the Kingdom of Eswatini in 2018, to prevent confusion with Switzerland.
+
 # `gtab` to the rescue!
 
 Fortunately, this library solves these problems. Simply run this code:
