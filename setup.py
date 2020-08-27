@@ -1,8 +1,13 @@
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='gtab',
       version='0.1',
-      description='Google Trends Anchor Banks (G-TAB) is a tool that allows users calibrate Google Trends data in order to enable further analyses.',
+      author="EPFL DLAB",
+      author_email="epfl.dlab@gmail.com",
+      description='gtab allows users to obtain precise results from Google Trends queries.',
       url='https://github.com/epfl-dlab/GoogleTrendsAnchorBank',
       packages=['gtab'],
       include_package_data=True,
@@ -19,5 +24,7 @@ setup(name='gtab',
                               'gtab-create=gtab.command_line:create_gtab',
                               'gtab-query=gtab.command_line:new_query'
                               ]
-      }
+      },
+      classifiers=["License :: OSI Approved :: MIT License"],
+      python_requires='>=3.6',
       )
