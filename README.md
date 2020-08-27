@@ -134,7 +134,7 @@ Want to use command line?  See [`example/example_cli.ipynb`](example/example_cli
 
 - **Q: Where can I understand more on the maths behind `gtab`?**
 
-Your best bet is to read the CIKM paper, pdf can be found [here]((https://arxiv.org/abs/2007.13861).
+Your best bet is to read the CIKM paper. The PDF can be found [here](https://arxiv.org/abs/2007.13861).
 Additionally, [this](cikm2020_paper/README.md) appendix explains how to calculate the error margins for the method
 
 - **Q: Do I need a new anchor bank for each different location and time I wanna query google trends with?**
@@ -152,7 +152,7 @@ t = gtab.GTAB()
 t.set_options(gtab_config = {"anchor_candidates_file": "your_file_name_here.txt"})
 ~~~
 
-We then need to set N and K, as described in the [paper]((https://arxiv.org/abs/2007.13861). 
+We then need to set N and K, as described in the [paper](https://arxiv.org/abs/2007.13861). 
 Choosing N and K depends on the anchor candidate data set we are using.
  N specifies how deep to go in the data set, i.e. take the first N keywords from the file for sampling. 
  K specifies how many stratified samples we want to get. N has to be smaller than the total number of keywords in the
