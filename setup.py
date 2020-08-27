@@ -1,13 +1,11 @@
 from setuptools import setup
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
 setup(name='gtab',
-      version='0.1',
+      version='0.2',
       author="EPFL DLAB",
       author_email="epfl.dlab@gmail.com",
-      description='gtab allows users to obtain precise results from Google Trends queries.',
+      description='gtab (Google Trends Anchor Bank) allows users to obtain precisely calibrated time series of search interest from Google Trends.',
+      long_description='For a project description see https://github.com/epfl-dlab/GoogleTrendsAnchorBank/.',
       url='https://github.com/epfl-dlab/GoogleTrendsAnchorBank',
       packages=['gtab'],
       include_package_data=True,

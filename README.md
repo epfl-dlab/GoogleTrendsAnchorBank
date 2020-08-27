@@ -36,7 +36,7 @@ And you will have the two queries in a universal scale.
 Your output is a Pandas DataFrame that looks like this:
 
 ~~~
-(query_switzerland)
+(query_swaziland)
 
             max_ratio  max_ratio_hi  max_ratio_lo
 date                                             
@@ -50,7 +50,7 @@ You could plot those (we use log-scale to make things nicer) and get something l
 
 ~~~python
 import matplotlib.pyplot as plt 
-plt.plot(query_switzerland.max_ratio)
+plt.plot(query_swaziland.max_ratio)
 plt.plot(query_facebook.max_ratio)
 # lots of plotting code omitted here :)
 plt.show()
@@ -65,7 +65,7 @@ Importantly, if we now queried "Google", as in the example above, results would 
 
 ~~~python
 query_google = t.new_query("Google")
-plt.plot(query_switzerland.max_ratio )
+plt.plot(query_swaziland.max_ratio )
 plt.plot(query_facebook.max_ratio)
 plt.plot(query_google.max_ratio)
 # lots of stuff omitted here also! :)
