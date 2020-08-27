@@ -112,7 +112,7 @@ A full description of the `gtab` method is available in the following paper:
 
 Please cite this paper when using `gtab` in your own work.
 
-Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](_cikm2020_paper).
+Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](cikm2020_paper).
 
 # Installation
 
