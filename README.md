@@ -89,9 +89,9 @@ plt.show()
 ![Image portraying output of the library, where issues are fixed](./example/imgs/result2.png)
 
 
-# You can also do it from the command line!
+# Command line usage
 
-More of a command-line person? Worry not! You can also use `gtab` with it (on UNIX-like computers at least...).
+More of a command-line person? Not to worry! You can also use `gtab` with it (on UNIX-like computers at least...).
 First, you have to initialize the `gtab` config directory somewhere:
 
 ~~~bash
