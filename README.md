@@ -2,6 +2,18 @@
 
 _[For a full technical description, see [this paper](https://arxiv.org/abs/2007.13861). When using `gtab` in your own work, please cite the paper.]_
 
+# Quick install
+
+The package is available on pip, so you just need to call
+~~~python
+python -m pip install gtab
+~~~
+
+The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
+We developed and tested it in Python 3.8.1.
+
+# Which problem does `gtab` solve?
+
 [Google Trends](https://trends.google.com/) allows users to analyze the popularity of Google search
 queries across time and space.
 Despite the overall value of Google Trends, data scientists face certain problems when using it:
@@ -147,16 +159,6 @@ A full description of the `gtab` method is available in the following paper:
 Please cite this paper when using `gtab` in your own work.
 
 Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](cikm2020_paper).
-
-# Installation
-
-The package is available on pip, so you just need to call
-~~~python
-python -m pip install gtab
-~~~
-
-The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
-We developed and tested it in Python 3.8.1.
 
 # Example usage
 
