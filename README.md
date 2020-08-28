@@ -10,7 +10,7 @@ python -m pip install gtab
 ~~~
 
 The explicit list of requirements can be found in [`requirements.txt`](requirements.txt).
-We developed and tested it in Python 3.8.1.
+The code was developed and tested in Python 3.8.1.
 
 # Which problem does `gtab` solve?
 
