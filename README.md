@@ -82,7 +82,7 @@ query_google = t.new_query("Google")
 plt.plot(query_swaziland.max_ratio )
 plt.plot(query_facebook.max_ratio)
 plt.plot(query_google.max_ratio)
-# lots of stuff omitted here also! :)
+# lots of plotting code omitted here :)
 plt.show()
 ~~~
 
