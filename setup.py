@@ -9,6 +9,13 @@ setup(name='gtab',
       url='https://github.com/epfl-dlab/GoogleTrendsAnchorBank',
       packages=['gtab'],
       include_package_data=True,
+      install_requires = [
+          'networkx',
+          'pytrends',
+          'tqdm',
+          'pandas',
+          'numpy',
+      ],
       entry_points={
           'console_scripts': ['gtab-init=gtab.command_line:init_dir',
                               'gtab-print-options=gtab.command_line:print_options',
