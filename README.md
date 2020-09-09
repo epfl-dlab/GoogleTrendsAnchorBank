@@ -104,7 +104,7 @@ And then you can simply query anything with:
 gtab-query Swaziland Google Facebook --results_file my_query.json 
 ~~~
 
-Your query(ies) will be saved in `your-path-here/query_results/my_query.json`.
+Your queries will be saved in `your-path-here/query_results/my_query.json`.
 The output looks like this:
 
 ~~~json
@@ -135,7 +135,7 @@ The output looks like this:
     "Facebook": {...}
 ~~~
 
-Where `ts_timestamp` is an array with dates, and, `max_ratio` is the calibrated value and `max_ratio_(hi/low)` are error bounds related to our method.
+Here, `ts_timestamp` is an array with dates, and, `max_ratio` is the calibrated value and `max_ratio_(hi|lo)` are error bounds related to our method.
 
 # How does it work?
 
@@ -162,18 +162,17 @@ Code and data for reproducing the results of the paper are available in the dire
 
 # Example usage
 
-Want to use python? See [`example/example_python.ipynb`](example/example_python.ipynb).
+Want to use Python? See [`example/example_python.ipynb`](example/example_python.ipynb).
 
 Want to use the command line?  See [`example/example_cli.ipynb`](example/example_cli.md).
 
-# F.A.Q.
+# FAQ
 
 #### **Q: Where can I understand more on the maths behind `gtab`?**
 
 Your best bet is to read the CIKM paper. The PDF can be found [here](https://arxiv.org/abs/2007.13861).
-Additionally, [this](cikm2020_paper/README.md) appendix explains how to calculate the error margins for the method
 
-#### **Q: Do I need a new anchor bank for each different location and time I wanna query google trends with?**
+#### **Q: Do I need a new anchor bank for each different location and time I wanna query Google Trends with?**
 
 Yes! But building those is easy! Be sure to check our examples, we teach how to do this [there](example/).
 
