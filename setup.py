@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='gtab',
-      version='0.2',
+      version='0.3',
       author="EPFL DLAB",
       author_email="epfl.dlab@gmail.com",
       description='gtab (Google Trends Anchor Bank) allows users to obtain precisely calibrated time series of search interest from Google Trends.',
@@ -9,7 +9,7 @@ setup(name='gtab',
       url='https://github.com/epfl-dlab/GoogleTrendsAnchorBank',
       packages=['gtab'],
       include_package_data=True,
-      install_requires = [
+      install_requires=[
           'networkx',
           'pytrends',
           'tqdm',
