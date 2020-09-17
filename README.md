@@ -160,6 +160,8 @@ Please cite this paper when using `gtab` in your own work.
 
 Code and data for reproducing the results of the paper are available in the directory [`cikm2020_paper`](cikm2020_paper).
 
+For a less technical explanation, see our [7-minute summary video](https://www.youtube.com/watch?v=VACUiY19MQQ).
+
 # Example usage
 
 Want to use Python? See [`example/example_python.ipynb`](example/example_python.ipynb).
