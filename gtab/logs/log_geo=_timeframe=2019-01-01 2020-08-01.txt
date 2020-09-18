@@ -472,3 +472,474 @@ New query calibrated!
 Using /Users/horta/PycharmProjects/GoogleTrendsAnchorBank/gtab/output/google_anchorbanks/google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
 New query 'Switzerland'
 New query calibrated!
+
+2020-09-04 11:24:49.097043
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:24:54.431923
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:28:57.025132
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:29:00.400365
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:29:21.979142
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:29:25.204019
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:31:08.082086
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:31:11.720125
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:31:16.255752
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:32:58.331362
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:33:02.117775
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:33:05.871495
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:34:27.911164
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:34:30.950797
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:34:35.388644
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:38:58.131085
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:39:16.736836
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:39:20.066175
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 11:39:23.438811
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:39:27.926121
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:39:32.291400
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cornflakes'
+New query calibrated!
+
+2020-09-04 11:41:39.014300
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:41:42.766676
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 11:41:46.327637
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:41:50.955443
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:41:55.267098
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Ajvar'
+New query calibrated!
+
+2020-09-04 11:45:28.368368
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Burger'
+New query calibrated!
+
+2020-09-04 11:45:32.021133
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 11:45:35.304129
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:45:39.364159
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:45:43.739139
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:46:22.625062
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:46:26.642555
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:46:30.721076
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:47:45.685041
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Kebab'
+New query calibrated!
+
+2020-09-04 11:47:50.219187
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Tuna'
+New query calibrated!
+
+2020-09-04 11:47:54.744003
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:47:57.184211
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 11:48:00.388951
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:51:43.982330
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'C'
+New query calibrated!
+
+2020-09-04 11:51:48.447250
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'h'
+
+2020-09-04 11:52:33.504288
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:52:38.161917
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:52:55.355795
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:52:57.725098
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:53:49.868499
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:53:53.635590
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query '['C', 'h', 'e', 'd', 'd', 'a', 'r', ' ', 'c', 'h', 'e', 'e', 's', 'e']'
+
+2020-09-04 11:54:19.149998
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:54:34.552826
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:54:39.041862
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:54:58.218464
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:55:00.479606
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 11:58:43.053463
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 11:58:45.696405
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 11:58:49.069051
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 12:00:16.405613
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:00:31.220026
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:01:04.472865
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:01:20.785440
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:01:34.819095
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:01:45.858773
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:02:31.612501
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:02:57.120061
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:03:45.423608
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:03:47.899142
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 12:03:51.295454
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 12:05:22.725301
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+
+2020-09-04 12:13:01.839135
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:13:05.090286
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 12:13:09.611584
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-04 12:13:35.895910
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-04 12:13:38.961684
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-04 12:13:42.701517
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:19:05.229659
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:19:09.674376
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:19:15.021458
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+
+2020-09-09 12:19:28.976506
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:19:31.260846
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:19:34.459179
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:20:57.069064
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:21:24.974226
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:21:27.872390
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:21:31.601981
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:22:26.888911
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:22:29.442885
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:22:32.614392
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:23:07.539775
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:23:10.971441
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:23:14.159788
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:23:37.658034
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:23:42.042965
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:23:46.060697
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!
+
+2020-09-09 12:26:05.349402
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Pizza'
+New query calibrated!
+
+2020-09-09 12:26:08.950421
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Chocolate'
+New query calibrated!
+
+2020-09-09 12:26:12.581169
+Using D:\IJS\IJS\projects\Ongoing\GoogleTrends_EPFL\g-tab\GoogleTrendsAnchorBank\gtab\output\google_anchorbanks\google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv
+New query 'Cheddar cheese'
+New query calibrated!

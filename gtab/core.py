@@ -422,6 +422,12 @@ class GTAB:
             lo1 = 99.5
             lo2 = 99.5
 
+        if lo1 < 0:
+            lo1 = 0.0
+
+        if lo2 < 0:
+            lo2 = 0.0
+            
         return lo1, hi1, lo2, hi2
 
     def _compute_max_ratios(self, google_results):
