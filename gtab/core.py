@@ -938,13 +938,19 @@ class GTAB:
                 ratio_anchor_lo = self.anchor_bank_lo[anchor]
                 ratio_anchor_hi = self.anchor_bank_hi[anchor]
 
-                ratio = ratio_anchor * (max_query / max_anchor)
-                ratio_hi = ratio_anchor_hi * (max_query_hi / max_anchor_lo)
-                ratio_lo = ratio_anchor_lo * (max_query_lo / max_anchor_hi)
+                #NEW 
+                ts_query = ts.loc[:, query] / max_anchor * ratio_anchor
+                ts_query_hi = np.array(ts_query_hi) / max_anchor_lo * ratio_anchor_hi
+                ts_query_lo = np.array(ts_query_lo) / max_anchor_hi * ratio_anchor_lo
 
-                ts_query = ts.loc[:, query] / max_query * ratio
-                ts_query_hi = np.array(ts_query_hi) / max_query_lo * ratio_hi
-                ts_query_lo = np.array(ts_query_lo) / max_query_hi * ratio_lo
+                # OLD
+                # ratio = ratio_anchor * (max_query / max_anchor)
+                # ratio_hi = ratio_anchor_hi * (max_query_hi / max_anchor_lo)
+                # ratio_lo = ratio_anchor_lo * (max_query_lo / max_anchor_hi)
+
+                # ts_query = ts.loc[:, query] / max_query * ratio
+                # ts_query_hi = np.array(ts_query_hi) / max_query_lo * ratio_hi
+                # ts_query_lo = np.array(ts_query_lo) / max_query_hi * ratio_lo
 
                 self._print_and_log("New query calibrated!")
                 self._log_con.close()
