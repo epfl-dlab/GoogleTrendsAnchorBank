@@ -170,6 +170,11 @@ Want to use the command line?  See [`example/example_cli.ipynb`](example/example
 
 # FAQ
 
+#### **Q: How can I select subregions (e.g. a U.S. state)?**
+
+You need to use ISO 3166-2 Subdivision Codes, these are freely available [here](https://www.ip2location.com/free/iso3166-2).
+So, for example, the code for Utah, in the US would be `US-UT`, the code for the region of Viena (Wien) in Austria would `AT-9`.
+
 #### **Q: Where can I understand more on the maths behind `gtab`?**
 
 Your best bet is to read the CIKM paper. The PDF can be found [here](https://arxiv.org/abs/2007.13861).
