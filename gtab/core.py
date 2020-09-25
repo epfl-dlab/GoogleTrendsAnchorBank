@@ -143,7 +143,7 @@ class GTAB:
             return False
 
     def _check_ts(self, ts):
-        return ts.max().max() >= self.CONFIG['GTAB']['thresh_offline']
+        return ts.max() >= self.CONFIG['GTAB']['thresh_offline']
 
     def _find_nans(self, W0):
         nans = set()
