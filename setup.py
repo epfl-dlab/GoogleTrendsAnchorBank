@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='gtab',
-      version='0.3',
+      version='0.4',
       author="EPFL DLAB",
       author_email="epfl.dlab@gmail.com",
       description='gtab (Google Trends Anchor Bank) allows users to obtain precisely calibrated time series of search interest from Google Trends.',
