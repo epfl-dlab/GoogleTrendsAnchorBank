@@ -1,0 +1,9 @@
+# {'GTAB': {'anchor_candidates_file': 'anchor_candidate_list.txt', 'num_anchor_candidates': 3500, 'num_anchors': 550, 'seed': 42, 'sleep': 0.5, 'thresh_offline': 10}}
+# {'PYTRENDS': {'geo': 'MW', 'timeframe': '2019-01-01 2020-12-31'}}
+	google_query	max_ratio	max_ratio_lo	max_ratio_hi
+0	/m/02y1vz	26.236389872753513	25.100480360442894	27.44190035159935
+1	/m/09jcvs	8.65800865800866	8.408660920748371	8.91861761426979
+2	Instagram	3.0303030303030303	2.9850746268656714	3.0769230769230766
+3	/m/05g0_z	1.0	1.0	1.0
+4	/m/023ls	0.71	0.705	0.715
+5	/m/03d0ts	0.26980000000000004	0.26437499999999997	0.275275
