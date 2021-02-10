@@ -120,8 +120,14 @@ class GTAB:
         if len(keywords) > 5:
             raise ValueError("Number of keywords must be at most than 5.")
 
-        self.pytrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
-        ret = self.pytrends.interest_over_time()
+        # avoids duplicate query
+        if len(keywords) == 2 and keywords[0] == keywords[1]:
+            self.pytrends.build_payload(kw_list=[keywords[0]], **self.CONFIG['PYTRENDS'])
+            ret = self.pytrends.interest_over_time()
+            ret.insert(loc=1, column="tmp", value=ret.iloc[:, 0])
+        else:
+            self.pytrends.build_payload(kw_list=keywords, **self.CONFIG['PYTRENDS'])
+            ret = self.pytrends.interest_over_time()
         return ret
 
     def _is_not_blacklisted(self, keyword):
@@ -889,10 +895,10 @@ class GTAB:
             else list(self.anchor_bank.index).index(first_comparison)
         anchors = tuple(self.anchor_bank.index)
 
-        if query in anchors:
-            self._print_and_log(f"The query is already present in the active gtab!")
-            self._log_con.close()
-            return -2
+        # if query in anchors:
+        #     self._print_and_log(f"The query is already present in the active gtab!")
+        #     self._log_con.close()
+        #     return -2
 
         if not self._check_keyword(query):
             self._print_and_log(f"Keyword {query} is bad!")
@@ -919,6 +925,9 @@ class GTAB:
                 else:
                     self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
                     break
+
+            if anchor == query:
+                query = "tmp"
 
             timestamps = ts.index
             max_anchor = ts.loc[:, anchor].max()
