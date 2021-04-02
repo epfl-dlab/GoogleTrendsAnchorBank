@@ -208,7 +208,7 @@ class GTAB:
 
         # old heuristic
         bad_kws2 = self._check_groups(gres)
-        bad_idxs2 = [bad_dict[kw][0] for kw in bad_kws2 if bad_dict[kw][0] < len(gres) - 4]
+        bad_idxs2 = [bad_dict[kw][0] for kw in bad_kws2 if kw in bad_dict and bad_dict[kw][0] < len(gres) - 4]
 
         ret = sorted(bad_idxs1 + bad_idxs2)
 
