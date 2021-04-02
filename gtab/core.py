@@ -867,7 +867,7 @@ class GTAB:
 
         self._log_con.close()
 
-    def new_query(self, query, first_comparison=None, thresh=100 / np.e, verbose=False, complete=False):
+    def new_query(self, query, first_comparison=None, thresh=10, verbose=False, complete=False):
         """ Request a new Google Trends query and calibrate it with the active gtab.  The 'PYTRENDS' key in
         config_py.json is used. Make sure to set it according to your chosen anchorbank!
 
