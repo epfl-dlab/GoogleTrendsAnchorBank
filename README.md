@@ -210,3 +210,18 @@ You can also edit these parameters in the config files:
 2. `config/config_cl.json` if you are using the CLI.
 
 Confused? Don't worry! The default candidate list works pretty well!
+
+### **Q: Can I make queries by U.S. state or metropolitan area?
+
+*Yes, you can!* You can do it by simply using the state and area codes (like this: https://www.bennetyee.org/ucsd-pages/area.html).
+
+The syntax is: "US-XX-YYY" where XX is the state (e.g., NJ) and YYY is the area code (e.g., 609).
+
+Here is a stub on how you can make an anchorbank for the New Jersey area:
+
+~~~python
+import gtab
+t = gtab.GTAB()
+t.set_options(pytrends_config={"geo": "US-NJ-609", "timeframe": "2004-01-01 2020-12-31"})
+t.create_anchorbank() # takes a while to run since it queries Google Trends.
+~~~
