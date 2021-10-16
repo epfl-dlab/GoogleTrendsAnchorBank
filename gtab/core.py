@@ -144,7 +144,7 @@ class GTAB:
             if "response" in dir(e) and e.response is not None:
                 if e.response.status_code == 429:
                     if retry_on_429:
-                        input("Quota reached! Please change IP and press any key to continue.")
+                        input("Quota reached! Please change IP and press enter to continue.")
                         return self._check_keyword(keyword)
                     else:
                         raise ConnectionError("Code 429: Query limit reached on this IP!")
@@ -365,7 +365,7 @@ class GTAB:
                         with open(fpath_intermediate, 'wb') as f_out:
                             pickle.dump(query_cache, f_out, protocol=4)
                         if "response" in dir(e) and e.response is not None and e.response.status_code == 429:
-                            input("Quota reached! Please change IP and press any key to continue.")
+                            input("Quota reached! Please change IP and press enter to continue.")
                             df_query = self._query_google(keywords=query_keywords).iloc[:, 0:5]
                             query_cache[cache_key] = df_query
                         else:
@@ -428,7 +428,7 @@ class GTAB:
                                 with open(fpath_intermediate, 'wb') as f_out:
                                     pickle.dump(query_cache, f_out, protocol=4)
                                 if "response" in dir(e) and e.response is not None and e.response.status_code == 429:
-                                    input("Quota reached! Please change IP and press any key to continue.")
+                                    input("Quota reached! Please change IP and press enter to continue.")
                                     df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
                                 else:
                                     raise e
@@ -980,7 +980,7 @@ class GTAB:
             except Exception as e:
                 if "response" in dir(e):
                     if e.response.status_code == 429:
-                        input("Quota reached! Please change IP and press any key to continue.")
+                        input("Quota reached! Please change IP and press enter to continue.")
                         ts = self._query_google(keywords=[anchor, query]).iloc[:, 0:2]
                 else:
                     self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
