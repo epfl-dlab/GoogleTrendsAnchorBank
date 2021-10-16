@@ -366,7 +366,7 @@ class GTAB:
                             pickle.dump(query_cache, f_out, protocol=4)
                         if "response" in dir(e) and e.response is not None and e.response.status_code == 429:
                             input("Quota reached! Please change IP and press enter to continue.")
-                            df_query = self._query_google(keywords=query_keywords).iloc[:, 0:5]
+                            df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
                             query_cache[cache_key] = df_query
                         else:
                             raise e
