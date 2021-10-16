@@ -311,7 +311,7 @@ class GTAB:
                     samples.append(self.ANCHOR_CANDIDATES[s1])
 
 
-                keyword_candidates = set(self.HITRAFFIC + samples)
+                keyword_candidates = self.HITRAFFIC + samples
                 remaining_keywords = [kw for kw in keyword_candidates if kw not in keywords_with_status]
                 self._print_and_log(f"{len(keyword_candidates) - len(remaining_keywords)}/{len(keyword_candidates)} "
                                     f"keyword candidates found in cache, {len(remaining_keywords)} still to check.")
