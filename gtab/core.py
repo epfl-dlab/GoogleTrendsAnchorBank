@@ -102,7 +102,7 @@ class GTAB:
             default_anchorbank = "google_anchorbank_geo=_timeframe=2019-01-01 2020-08-01.tsv"
             self.set_active_gtab(default_anchorbank)
 
-    # --- UTILITY METHODS --- 
+    # --- UTILITY METHODS ---
 
     def _print_and_log(self, text, verbose=True):
         if verbose:
@@ -133,7 +133,7 @@ class GTAB:
     def _is_not_blacklisted(self, keyword):
         return keyword not in self.CONFIG['BLACKLIST']
 
-    def _check_keyword(self, keyword):
+    def _check_keyword(self, keyword, retry_on_429=False):
         time.sleep(self.CONFIG['GTAB']['sleep'])
         try:
             rez = self._query_google(keywords=keyword)
@@ -141,12 +141,17 @@ class GTAB:
         except ValueError as e:
             raise e
         except Exception as e:
-            self._print_and_log(f"\nBad keyword '{keyword}', because {str(e)}")
-            if "response" in dir(e):
+            if "response" in dir(e) and e.response is not None:
                 if e.response.status_code == 429:
-                    raise ConnectionError("Code 429: Query limit reached on this IP!")
-
-            return False
+                    if retry_on_429:
+                        input("Quota reached! Please change IP and press enter to continue.")
+                        return self._check_keyword(keyword)
+                    else:
+                        raise ConnectionError("Code 429: Query limit reached on this IP!")
+                self._print_and_log(f"\nBad keyword '{keyword}', because {e}")
+            else:
+                raise e
+        return False
 
     def _check_ts(self, ts):
         return ts.max() >= self.CONFIG['GTAB']['thresh_offline']
@@ -222,6 +227,8 @@ class GTAB:
 
         fpath = os.path.join(self.dir_path, "data", "internal", "google_results",
                              f"google_results_{self._make_file_suffix()}.pkl")
+        fpath_intermediate = os.path.join(self.dir_path, "data", "internal", "google_results",
+                                          f"intermediate_google_results_{self._make_file_suffix()}.pkl")
         fpath_keywords = os.path.join(self.dir_path, "data", "internal", "google_keywords",
                                       f"google_keywords_{self._make_file_suffix()}.pkl")
 
@@ -282,10 +289,17 @@ class GTAB:
             N = self.CONFIG['GTAB']['num_anchor_candidates']
             K = self.CONFIG['GTAB']['num_anchors']
 
+            fpath_intermediate_keywords = os.path.join(self.dir_path, "data", "internal", "google_keywords",
+                                                       f"intermediate_google_keywords_{self._make_file_suffix()}.pkl")
+
             # --- Get stratified samples, 1 per stratum. ---
             if not os.path.exists(fpath_keywords):
+                if os.path.exists(fpath_intermediate_keywords):
+                    self._print_and_log(f"Loading previously checked keywords from {fpath_intermediate_keywords}.")
+                    keywords_with_status = self._load_pickle_with_fallback(fpath_intermediate_keywords, on_error_return={})
+                else:
+                    keywords_with_status = {}
 
-                self._print_and_log("Sampling keywords...")
                 random.seed(self.CONFIG['GTAB']['seed'])
                 np.random.seed(self.CONFIG['GTAB']['seed'])
 
@@ -296,8 +310,20 @@ class GTAB:
                     s1 = random.randint(start_idx, end_idx)
                     samples.append(self.ANCHOR_CANDIDATES[s1])
 
-                keywords = self.HITRAFFIC + samples
-                keywords = [k for k in tqdm(keywords, total=len(keywords)) if self._check_keyword(k)]
+
+                keyword_candidates = self.HITRAFFIC + samples
+                remaining_keywords = [kw for kw in keyword_candidates if kw not in keywords_with_status]
+                self._print_and_log(f"{len(keyword_candidates) - len(remaining_keywords)}/{len(keyword_candidates)} "
+                                    f"keyword candidates found in cache, {len(remaining_keywords)} still to check.")
+                self._print_and_log("Sampling keywords...")
+                for kw in tqdm(remaining_keywords, total=len(remaining_keywords)):
+                    try:
+                        keywords_with_status[kw] = self._check_keyword(kw, retry_on_429=True)
+                    except Exception as e:
+                        with open(fpath_intermediate_keywords, 'wb') as f_in:
+                            pickle.dump(keywords_with_status, f_in, protocol=4)
+                        raise e
+                keywords = [kw for kw in keyword_candidates if keywords_with_status[kw]]
 
             else:
                 print(f"Getting keywords from {fpath_keywords}")
@@ -308,26 +334,43 @@ class GTAB:
             with open(fpath_keywords, 'wb') as f_out_keywords:
                 pickle.dump(keywords, f_out_keywords, protocol=4)
 
+            if os.path.exists(fpath_intermediate_keywords):
+                os.remove(fpath_intermediate_keywords)
+
             keywords = np.array(keywords)
 
             # --- Query google on keywords and dump the file. ---
             self._print_and_log("Querying google...")
 
-            t_ret = dict()
+            if os.path.exists(fpath_intermediate):
+                self._print_and_log(f"Loading intermediate query results from {fpath_intermediate}.")
+                query_cache = self._load_pickle_with_fallback(fpath_intermediate, on_error_return={})
+            else:
+                query_cache = {}
+            t_ret = {}
             for i in tqdm(range(len(keywords) - 4)):
-
-                try:
-                    df_query = self._query_google(keywords=keywords[i:i + 5]).iloc[:, 0:5]
-                except ValueError as e:
-                    raise e
-                except Exception as e:
-                    if "response" in dir(e):
-                        if e.response.status_code == 429:
-                            input("Quota reached! Please change IP and press any key to continue.")
-                            df_query = self._query_google(keywords=keywords[i:i + 5]).iloc[:, 0:5]
+                kw_group = keywords[i:i + 5]
+                cache_key = tuple(kw_group)
+                if cache_key in query_cache:
+                    t_ret[i] = query_cache[cache_key]
+                else:
+                    try:
+                        df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
+                        query_cache[cache_key] = df_query
+                    except ValueError as e:
+                        with open(fpath_intermediate, 'wb') as f_out:
+                            pickle.dump(query_cache, f_out, protocol=4)
+                        raise e
+                    except Exception as e:
+                        with open(fpath_intermediate, 'wb') as f_out:
+                            pickle.dump(query_cache, f_out, protocol=4)
+                        if "response" in dir(e) and e.response is not None and e.response.status_code == 429:
+                            input("Quota reached! Please change IP and press enter to continue.")
+                            df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
+                            query_cache[cache_key] = df_query
                         else:
-                            self._print_and_log(str(e))
-                t_ret[i] = df_query
+                            raise e
+                    t_ret[i] = df_query
 
             self._print_and_log("Removing bad queries...")
             no_passes = 0
@@ -371,20 +414,26 @@ class GTAB:
                     # ...re-query the ones that do
                     kw_groups = get_kws(req_rng, new_kws)
                     for kw_group in tqdm(kw_groups):
-
-                        try:
-                            df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
-                        except ValueError as e:
-                            raise e
-                        except Exception as e:
-                            if "response" in dir(e):
-                                if e.response.status_code == 429:
-                                    input("Quota reached! Please change IP and press any key to continue.")
+                        cache_key = tuple(kw_group)
+                        if cache_key in query_cache:
+                            ret[idx_new] = query_cache[cache_key]
+                        else:
+                            try:
+                                df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
+                            except ValueError as e:
+                                with open(fpath_intermediate, 'wb') as f_out:
+                                    pickle.dump(query_cache, f_out, protocol=4)
+                                raise e
+                            except Exception as e:
+                                with open(fpath_intermediate, 'wb') as f_out:
+                                    pickle.dump(query_cache, f_out, protocol=4)
+                                if "response" in dir(e) and e.response is not None and e.response.status_code == 429:
+                                    input("Quota reached! Please change IP and press enter to continue.")
                                     df_query = self._query_google(keywords=kw_group).iloc[:, 0:5]
                                 else:
-                                    self._print_and_log(str(e))
-
-                        ret[idx_new] = df_query
+                                    raise e
+                            query_cache[cache_key] = df_query
+                            ret[idx_new] = df_query
                         idx_new += 1
 
                 if start_copy < len(t_ret):
@@ -406,7 +455,18 @@ class GTAB:
                 self._print_and_log(f"Saving google results as '{fpath}'...")
                 pickle.dump(ret, f_out, protocol=4)
 
-            return (ret)
+            if os.path.exists(fpath_intermediate):
+                os.remove(fpath_intermediate)
+
+            return ret
+
+    def _load_pickle_with_fallback(self, fpath, on_error_return=None):
+        try:
+            with open(fpath, 'rb') as f_in:
+                return pickle.load(f_in)
+        except Exception as e:
+            self._print_and_log(f"Load pickle from path {fpath} failed with cause: {e}, resorting to fallback.")
+            return on_error_return
 
     def _compute_hi_and_lo(self, max1, max2):
 
@@ -920,7 +980,7 @@ class GTAB:
             except Exception as e:
                 if "response" in dir(e):
                     if e.response.status_code == 429:
-                        input("Quota reached! Please change IP and press any key to continue.")
+                        input("Quota reached! Please change IP and press enter to continue.")
                         ts = self._query_google(keywords=[anchor, query]).iloc[:, 0:2]
                 else:
                     self._print_and_log(f"Google query '{query}' failed because: {str(e)}")
