@@ -296,7 +296,8 @@ class GTAB:
             if not os.path.exists(fpath_keywords):
                 if os.path.exists(fpath_intermediate_keywords):
                     self._print_and_log(f"Loading previously checked keywords from {fpath_intermediate_keywords}.")
-                    keywords_with_status = self._load_pickle_with_fallback(fpath_intermediate_keywords, on_error_return={})
+                    keywords_with_status = self._load_pickle_with_fallback(fpath_intermediate_keywords,
+                                                                           on_error_return={})
                 else:
                     keywords_with_status = {}
 
@@ -309,7 +310,6 @@ class GTAB:
                     end_idx = (((j + 1) * N) // K) - 1
                     s1 = random.randint(start_idx, end_idx)
                     samples.append(self.ANCHOR_CANDIDATES[s1])
-
 
                 keyword_candidates = self.HITRAFFIC + samples
                 remaining_keywords = [kw for kw in keyword_candidates if kw not in keywords_with_status]
@@ -493,7 +493,7 @@ class GTAB:
 
         if lo2 < 0:
             lo2 = 0.0
-            
+
         return lo1, hi1, lo2, hi2
 
     def _compute_max_ratios(self, google_results):
@@ -650,27 +650,34 @@ class GTAB:
 
     def set_options(self, pytrends_config=None, gtab_config=None, conn_config=None, overwite_file: bool = False):
         """
-            Overwrites specified options. This can also be done manually by editing 'config_py.json' in the active directory.
+        Overwrites specified options. This can also be done manually by editing 'config_py.json' in the active
+        directory.
 
-                pytrends_config - a dictionary containing values to overrwite some of the configuration parameters for the pytrends library when 
-                building the payload. It consists of two parameters:
-                    - geo (str) - containing the two-letter ISO code of the country, e.g. "US", or "" empty string for global;
-                    - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
+            pytrends_config - a dictionary containing values to overrwite some of the configuration parameters for the
+            pytrends library when
+            building the payload. It consists of two parameters:
+                - geo (str) - containing the two-letter ISO code of the country, e.g. "US", or "" empty string
+                    for global;
+                - timeframe (str) - containing the timeframe in which to query, e.g. "2019-11-28 2020-07-28".
 
-                gtab_config - a dictionary containing values to overrwite some of the configuration parameters for the GTAB methodology. It contains the following parameters:
+            gtab_config - a dictionary containing values to overrwite some of the configuration parameters for the GTAB
+                methodology. It contains the following parameters:
                     - num_anchor_candidates (int) - how many candidates to consider from the anchor candidate list;
                     - num_anchors (int) - how many to sample;
                     - seed (int) - the random seed;
                     - sleep (float) - sleep  e.g. 0.5,
-                    - thresh_offline - the threshold below which the Google Trends query is discarded in the offline phase, e.g. 10.
+                    - thresh_offline - the threshold below which the Google Trends query is discarded in the offline
+                        phase, e.g. 10.
 
-                conn_config - a dictionary containing values to overrwite some of the configuration parameters for the connection. It contains:
+            conn_config - a dictionary containing values to overrwite some of the configuration parameters for the
+                connection. It contains:
                     - backoff_factor (float) - e.g. 0.1;
-                    - proxies (list of strings) - which proxies to use, e.g. ["https://50.2.15.109:8800", "https://50.2.15.1:8800"];
+                    - proxies (list of strings) - which proxies to use,
+                        e.g. ["https://50.2.15.109:8800", "https://50.2.15.1:8800"];
                     - retries (int) - how many times to retry connection;
                     - timeout (list of two values) - e.g. [25, 25]
 
-                overwrite_file - whether to overwrite the config_py.json file in the active directory.
+            overwrite_file - whether to overwrite the config_py.json file in the active directory.
             """
 
         if pytrends_config is not None:
@@ -712,12 +719,11 @@ class GTAB:
 
     def set_blacklist(self, keywords, overwrite_file: bool = False):
         """
-            Sets a new blacklist. This can also be done manually by editing 'config_py.json' in the active directory.
+        Sets a new blacklist. This can also be done manually by editing 'config_py.json' in the active directory.
 
-            Input parameters:
-                keywords - list of str keywords;
-                overwrite_file - whether to overwrite the config_py.json file in the active directory.
-
+        Input parameters:
+            keywords - list of str keywords;
+            overwrite_file - whether to overwrite the config_py.json file in the active directory.
         """
         if type(keywords) != list:
             raise TypeError("Keywords paremeter must be a list with elements of type str.")
@@ -735,12 +741,11 @@ class GTAB:
 
     def set_hitraffic(self, keywords, overwrite_file: bool = False):
         """
-            Sets a new hitraffic list. This can also be done manually by editing 'config_py.json' in the active directory.
+        Sets a new hitraffic list. This can also be done manually by editing 'config_py.json' in the active directory.
 
-            Input parameters:
-                keywords - list of str keywords;
-                overwrite_file - whether to overwrite the config_py.json file in the active directory.
-
+        Input parameters:
+            keywords - list of str keywords;
+            overwrite_file - whether to overwrite the config_py.json file in the active directory.
         """
         if type(keywords) != list:
             raise TypeError("Keywords paremeter must be a list with elements of type str.")
@@ -847,8 +852,11 @@ class GTAB:
         self._log_con = open(os.path.join(self.dir_path, "logs", f"log_{self._make_file_suffix()}.txt"),
                              'a')  # append vs write
         self._log_con.write(f"\n{datetime.datetime.now()}\n")
+
         self._print_and_log(
-            f"Start AnchorBank init for region {self.CONFIG['PYTRENDS']['geo']} in timeframe {self.CONFIG['PYTRENDS']['timeframe']}...")
+        "Start AnchorBank init for region {} in timeframe {}...".format(
+            self.CONFIG['PYTRENDS']['geo'], self.CONFIG['PYTRENDS']['timeframe']
+        ))
 
         if verbose:
             self._print_and_log(f"Full option parameters are: {self.CONFIG}")
@@ -1007,7 +1015,7 @@ class GTAB:
                 ratio_anchor_lo = self.anchor_bank_lo[anchor]
                 ratio_anchor_hi = self.anchor_bank_hi[anchor]
 
-                #NEW 
+                # NEW
                 ts_query = ts.loc[:, query] / max_anchor * ratio_anchor
                 ts_query_hi = np.array(ts_query_hi) / max_anchor_lo * ratio_anchor_hi
                 ts_query_lo = np.array(ts_query_lo) / max_anchor_hi * ratio_anchor_lo
