@@ -110,7 +110,11 @@ class GTAB:
         self._log_con.write(text + '\n')
 
     def _make_file_suffix(self):
-        return "_".join([f"{k}={v}" for k, v in self.CONFIG['PYTRENDS'].items()])
+
+        return "_".join([f"{k}={v}" for k, v in self.CONFIG['PYTRENDS'].items()
+                         if not (k == "cat" and v == "0")]  # this if ensures compatibility with previous name formats,
+                        # after we allow people to search for categories
+                        )
 
     def _query_google(self, keywords=["Keywords"]):
         time.sleep(self.CONFIG['GTAB']['sleep'])

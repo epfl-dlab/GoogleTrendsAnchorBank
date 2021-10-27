@@ -211,13 +211,23 @@ You can also edit these parameters in the config files:
 
 Confused? Don't worry! The default candidate list works pretty well!
 
-### **Q: Can I make queries by U.S. state or metropolitan area?
+### **Q: Can I make queries by U.S. state or metropolitan area?**
 
 *Yes, you can!* You can do it by simply using the state and area codes (like this: https://www.bennetyee.org/ucsd-pages/area.html).
 
 The syntax is: "US-XX-YYY" where XX is the state (e.g., NJ) and YYY is the area code (e.g., 609).
 
 Here is a stub on how you can make an anchorbank for the New Jersey area:
+
+### **Q: Does the time frame for anchorbanks need to be precise? Can I run my anchorbank for months/years that were not considered when building it?**
+
+Unfortunately, the time frame needs to be precise. The scale provided is only meaningful for the months you created the anchorbank in! 
+
+### **Q: Can I use categories?**
+
+Yes! You simply have to change the `cat` parameter in the pytrends config file, e.g., `"cat": "71"` corresponds to the food category. 
+List of all available categories is available [here](https://github.com/pat310/google-trends-api/wiki/Google-Trends-Categories).
+See [this example](example/example_with_category.ipynb) to see how you can do it in practice.
 
 ~~~python
 import gtab
