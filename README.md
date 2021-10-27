@@ -219,6 +219,14 @@ The syntax is: "US-XX-YYY" where XX is the state (e.g., NJ) and YYY is the area 
 
 Here is a stub on how you can make an anchorbank for the New Jersey area:
 
+~~~python
+import gtab
+t = gtab.GTAB()
+t.set_options(pytrends_config={"geo": "US-NJ-609", "timeframe": "2004-01-01 2020-12-31"})
+t.create_anchorbank() # takes a while to run since it queries Google Trends.
+~~~
+
+
 ### **Q: Does the time frame for anchorbanks need to be precise? Can I run my anchorbank for months/years that were not considered when building it?**
 
 Unfortunately, the time frame needs to be precise. The scale provided is only meaningful for the months you created the anchorbank in! 
@@ -227,11 +235,16 @@ Unfortunately, the time frame needs to be precise. The scale provided is only me
 
 Yes! You simply have to change the `cat` parameter in the pytrends config file, e.g., `"cat": "71"` corresponds to the food category. 
 List of all available categories is available [here](https://github.com/pat310/google-trends-api/wiki/Google-Trends-Categories).
-See [this example](example/example_with_category.ipynb) to see how you can do it in practice.
 
-~~~python
+Here is a stub of how to do this in practice:
+
+```python
 import gtab
 t = gtab.GTAB()
-t.set_options(pytrends_config={"geo": "US-NJ-609", "timeframe": "2004-01-01 2020-12-31"})
+t.set_options(pytrends_config={"geo": "DE", "timeframe": "2018-03-05 2021-05-05", 'cat': "71"},
+              gtab_config= {"anchor_candidates_file": "550_cities_and_countries.txt"})
 t.create_anchorbank() # takes a while to run since it queries Google Trends.
-~~~
+```
+
+Also, see [this example](example/example_with_category.ipynb).
+
