@@ -241,8 +241,10 @@ Here is a stub of how to do this in practice:
 ```python
 import gtab
 t = gtab.GTAB()
-t.set_options(pytrends_config={"geo": "DE", "timeframe": "2018-03-05 2021-05-05", 'cat': "71"},
-              gtab_config= {"anchor_candidates_file": "550_cities_and_countries.txt"})
+t.set_options(pytrends_config={'cat': "71"},
+              # when using categories, please use this alternate candidate file!
+              gtab_config= {"anchor_candidates_file": "550_cities_and_countries.txt"}
+)
 t.create_anchorbank() # takes a while to run since it queries Google Trends.
 ```
 
