@@ -170,6 +170,11 @@ Want to use the command line?  See [`example/example_cli.ipynb`](example/example
 
 # FAQ
 
+#### **Q: I'm getting the "too many 429 error responses" error**
+
+This is likely due to Google itself and not something in  gtab. The workaround we have used is to employ proxies(IPv4 proxies, whitelisted through your IP address).  These can be added to the `conn_config` parameter in a list in the `set_options` method (see [here](
+https://github.com/epfl-dlab/GoogleTrendsAnchorBank/blob/master/gtab/core.py#L676)).
+
 #### **Q: How can I select subregions (e.g. a U.S. state)?**
 
 You need to use ISO 3166-2 Subdivision Codes, these are freely available [here](https://www.ip2location.com/free/iso3166-2).
